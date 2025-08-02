@@ -1,13 +1,23 @@
 {
+  "name": "roguelike-agent",
+  "version": "1.0.0",
+  "description": "LLM-powered roguelike with emoji rendering",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
   "dependencies": {
-    "gsap": "^3.13.0",
-    "mobx": "^6.13.7",
-    "mobx-state-tree": "^7.0.2",
-    "pixi.js": "^8.11.0"
+    "pixi.js": "^7.4.0",
+    "mobx": "^6.12.0",
+    "mobx-state-tree": "^5.4.0",
+    "gsap": "^3.12.5"
   },
   "devDependencies": {
-    "@types/node": "^24.1.0",
-    "typescript": "^5.9.2",
-    "vite": "^7.0.6"
+    "vite": "^5.1.0",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.0"
   }
 }
