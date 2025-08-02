@@ -14,6 +14,7 @@ export interface Entity {
   color: number;
   name: string;
   isEmoji: boolean;
+  hp: number;
 }
 
 export interface WorldSchema {

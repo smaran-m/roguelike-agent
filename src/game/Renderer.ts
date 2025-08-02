@@ -9,6 +9,7 @@ export class Renderer {
   tileContainer: Container;
   entityContainer: Container;
   entityTextMap: Map<string, Text> = new Map(); // Track text objects by entity ID
+  hpTextMap: Map<string, Text> = new Map(); // Track HP text objects by entity ID
   
   constructor(width: number, height: number) {
     this.gridWidth = width;
@@ -72,15 +73,21 @@ export class Renderer {
   clearEntities() {
     this.entityContainer.removeChildren();
     this.entityTextMap.clear();
+    this.hpTextMap.clear();
   }
   
   renderEntity(entity: Entity) {
     const text = new Text(entity.glyph, {
-      fontFamily: entity.isEmoji ? 'Noto Emoji' : 'Noto Sans Mono',
+      fontFamily: entity.isEmoji ? 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif' : 'Noto Sans Mono, monospace',
       fontSize: entity.isEmoji ? 14 : 12,
-      fill: entity.color,
+      fill: entity.isEmoji ? 0xFFFFFF : entity.color,
       align: 'center'
     });
+    
+    // Apply color tint for emojis
+    if (entity.isEmoji) {
+      text.tint = entity.color;
+    }
     
     text.x = entity.x * this.tileSize + this.tileSize / 2;
     text.y = entity.y * this.tileSize + this.tileSize / 2;
@@ -89,14 +96,36 @@ export class Renderer {
     // Store reference for animations
     this.entityTextMap.set(entity.id, text);
     this.entityContainer.addChild(text);
+    
+    // Render HP above entity
+    const hpText = new Text(entity.hp.toString(), {
+      fontFamily: 'Noto Sans Mono',
+      fontSize: 10,
+      fill: 0xFFFFFF,
+      align: 'center'
+    });
+    
+    hpText.x = entity.x * this.tileSize + this.tileSize / 2;
+    hpText.y = entity.y * this.tileSize + this.tileSize / 2 - 10;
+    hpText.anchor.set(0.5);
+    
+    // Store reference for animations
+    this.hpTextMap.set(entity.id, hpText);
+    this.entityContainer.addChild(hpText);
   }
   
   animateMove(entity: Entity, fromX: number, fromY: number, toX: number, toY: number) {
     const text = this.entityTextMap.get(entity.id);
+    const hpText = this.hpTextMap.get(entity.id);
     if (!text) return;
     
     text.x = fromX * this.tileSize + this.tileSize / 2;
     text.y = fromY * this.tileSize + this.tileSize / 2;
+    
+    if (hpText) {
+      hpText.x = fromX * this.tileSize + this.tileSize / 2;
+      hpText.y = fromY * this.tileSize + this.tileSize / 2 - 10;
+    }
     
     // Simple linear animation
     const targetX = toX * this.tileSize + this.tileSize / 2;
@@ -111,6 +140,11 @@ export class Renderer {
       
       text.x = text.x + (targetX - text.x) * progress;
       text.y = text.y + (targetY - text.y) * progress;
+      
+      if (hpText) {
+        hpText.x = hpText.x + (targetX - hpText.x) * progress;
+        hpText.y = hpText.y + (targetY - 10 - hpText.y) * progress;
+      }
       
       if (progress < 1) {
         requestAnimationFrame(animate);

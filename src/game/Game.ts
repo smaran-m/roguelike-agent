@@ -18,9 +18,10 @@ export class Game {
       x: 25,
       y: 15,
       glyph: '🧙',
-      color: 0xFFFFFF,
+      color: 0x4169E1,
       name: 'Player',
-      isEmoji: true
+      isEmoji: true,
+      hp: 6
     };
     
     this.entities.push(this.player);
@@ -33,14 +34,15 @@ export class Game {
       glyph: '👺',
       color: 0x00FF00,
       name: 'Goblin',
-      isEmoji: true
+      isEmoji: true,
+      hp: 5
     });
     
     // Setup input
     this.setupInput();
     
-    // Initial render
-    this.render();
+    // Wait for Noto Emoji to be fully available before rendering
+    this.waitForFontsAndRender();
   }
   
   setupInput() {
@@ -96,9 +98,20 @@ export class Game {
     );
     
     if (collidedEntity) {
+      // Combat: player attacks enemy, enemy takes damage
+      collidedEntity.hp -= 1;
+      this.player.hp -= 1;
+      
       // Shake both entities when they collide
       this.renderer.shakeEntity(this.player);
       this.renderer.shakeEntity(collidedEntity);
+      
+      // Remove dead entities
+      this.entities = this.entities.filter(entity => entity.hp > 0);
+      
+      // Re-render to update HP display
+      this.render();
+      
       return;
     }
     
@@ -112,6 +125,36 @@ export class Game {
     this.renderer.animateMove(this.player, oldX, oldY, newX, newY);
   }
   
+  async waitForFontsAndRender() {
+    // Load all fonts comprehensively
+    try {
+      await document.fonts.load('14px "Noto Emoji"');
+      await document.fonts.load('12px "Noto Sans Mono"');
+      await document.fonts.load('10px "Noto Sans Mono"'); // For HP text
+    } catch (e) {
+      console.warn('Font failed to load, using fallback');
+    }
+    
+    // Test all emojis we use to ensure they render consistently
+    const testEmojis = ['🧙', '👺']; // Add all emojis used in game
+    const testCanvas = document.createElement('canvas');
+    const ctx = testCanvas.getContext('2d');
+    
+    if (ctx) {
+      for (const emoji of testEmojis) {
+        // Test each emoji with our font stack
+        ctx.font = '14px "Noto Emoji", Apple Color Emoji, Segoe UI Emoji, sans-serif';
+        const metrics = ctx.measureText(emoji);
+        console.log(`Font test for ${emoji}: width=${metrics.width}`);
+      }
+      
+      // Additional delay to ensure PixiJS can access fonts
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    this.render();
+  }
+
   render() {
     // Clear previous frame
     this.renderer.clearTiles();

@@ -1,7 +1,17 @@
 import { Game } from './game/Game';
 
-// Wait for fonts to load
-document.fonts.ready.then(() => {
+// Wait for fonts to load completely
+document.fonts.ready.then(async () => {
+  // Force load all fonts we need
+  try {
+    await document.fonts.load('14px "Noto Emoji"');
+    await document.fonts.load('12px "Noto Sans Mono"');
+    await document.fonts.load('10px "Noto Sans Mono"');
+    console.log('All fonts loaded successfully');
+  } catch (e) {
+    console.warn('Some fonts failed to load:', e);
+  }
+  
   const game = new Game();
   
   // Expose to window for debugging
