@@ -1,14 +1,27 @@
-import { Tile } from '../types';
+import { Tile, TileVisibility } from '../types';
 
 export class TileMap {
   width: number;
   height: number;
   tiles: Tile[][];
+  visibility: TileVisibility[][];
   
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
     this.tiles = [];
+    this.visibility = [];
+    
+    // Initialize visibility grid
+    for (let y = 0; y < this.height; y++) {
+      this.visibility[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        this.visibility[y][x] = {
+          explored: false,
+          visible: false
+        };
+      }
+    }
     
     // Generate simple test map
     this.generateTestMap();
@@ -26,7 +39,8 @@ export class TileMap {
             fgColor: 0x808080,
             bgColor: 0x000000,
             isEmoji: false,
-            walkable: false
+            walkable: false,
+            blocksLight: true
           };
         } else {
           // Floor
@@ -35,7 +49,8 @@ export class TileMap {
             fgColor: 0x404040,
             bgColor: 0x000000,
             isEmoji: false,
-            walkable: true
+            walkable: true,
+            blocksLight: false
           };
         }
       }
@@ -51,7 +66,8 @@ export class TileMap {
         fgColor: 0x808080,
         bgColor: 0x000000,
         isEmoji: false,
-        walkable: false
+        walkable: false,
+        blocksLight: true
       };
     }
   }
@@ -72,6 +88,27 @@ export class TileMap {
   setTile(x: number, y: number, tile: Tile) {
     if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
       this.tiles[y][x] = tile;
+    }
+  }
+  
+  getVisibility(x: number, y: number): TileVisibility {
+    if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+      return { explored: false, visible: false };
+    }
+    return this.visibility[y][x];
+  }
+  
+  setVisibility(x: number, y: number, visibility: TileVisibility) {
+    if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+      this.visibility[y][x] = visibility;
+    }
+  }
+  
+  clearVisibility() {
+    for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+        this.visibility[y][x].visible = false;
+      }
     }
   }
 }

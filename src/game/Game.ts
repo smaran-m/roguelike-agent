@@ -2,6 +2,7 @@ import { Renderer } from './Renderer';
 import { TileMap } from './TileMap';
 import { Entity } from '../types';
 import { CombatSystem } from './CombatSystem';
+import { LineOfSight } from './LineOfSight';
 
 export class Game {
   renderer: Renderer;
@@ -258,8 +259,17 @@ export class Game {
       y: Math.round(this.playerDisplayY) 
     } as Entity);
     
-    // If camera moved, need to re-render everything
-    if (cameraMoved) {
+    // Check if player moved to a new grid position (for FOV updates)
+    const currentGridX = Math.round(this.playerDisplayX);
+    const currentGridY = Math.round(this.playerDisplayY);
+    const playerMoved = currentGridX !== this.player.x || currentGridY !== this.player.y;
+    
+    // If camera moved or player moved to new grid position, need to re-render everything
+    if (cameraMoved || playerMoved) {
+      // Update player's logical position
+      this.player.x = currentGridX;
+      this.player.y = currentGridY;
+      
       this.render();
       return; // render() will handle entity positioning
     }
@@ -330,17 +340,21 @@ export class Game {
     const startY = Math.max(0, this.renderer.cameraY);
     const endY = Math.min(this.tileMap.height, this.renderer.cameraY + this.renderer.viewportHeight);
     
-    // Render tiles
+    // Render tiles with line of sight check (but no exploration tracking)
     for (let y = startY; y < endY; y++) {
       for (let x = startX; x < endX; x++) {
         const tile = this.tileMap.getTile(x, y);
-        this.renderer.renderTile(x, y, tile);
+        const distance = Math.sqrt((x - this.player.x) ** 2 + (y - this.player.y) ** 2);
+        const hasLOS = LineOfSight.hasLineOfSight(this.tileMap, this.player.x, this.player.y, x, y);
+        this.renderer.renderTileWithVisibility(x, y, tile, distance, hasLOS);
       }
     }
     
-    // Render entities (renderer will cull those outside viewport)
+    // Render entities with line of sight check
     for (const entity of this.entities) {
-      this.renderer.renderEntity(entity);
+      const distance = Math.sqrt((entity.x - this.player.x) ** 2 + (entity.y - this.player.y) ** 2);
+      const hasLOS = LineOfSight.hasLineOfSight(this.tileMap, this.player.x, this.player.y, entity.x, entity.y);
+      this.renderer.renderEntityWithVisibility(entity, distance, hasLOS);
     }
   }
 }

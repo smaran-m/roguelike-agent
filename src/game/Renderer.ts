@@ -78,7 +78,7 @@ export class Renderer {
     }
   }
   
-  renderTile(worldX: number, worldY: number, tile: Tile) {
+  renderTile(worldX: number, worldY: number, tile: Tile, visibility: import('../types').TileVisibility) {
     // Convert world coordinates to screen coordinates
     const screenX = worldX - this.cameraX;
     const screenY = worldY - this.cameraY;
@@ -89,9 +89,26 @@ export class Renderer {
       return;
     }
     
+    // Don't render unexplored tiles
+    if (!visibility.explored) {
+      return;
+    }
+    
+    // Determine colors based on visibility
+    let bgColor = tile.bgColor;
+    let fgColor = tile.fgColor;
+    let alpha = 1.0;
+    
+    if (!visibility.visible) {
+      // Explored but not currently visible - make it darker
+      fgColor = this.darkenColor(fgColor, 0.4);
+      alpha = 0.6;
+    }
+    
     // Background
     const bg = new Graphics();
-    bg.beginFill(tile.bgColor);
+    bg.beginFill(bgColor);
+    bg.alpha = alpha;
     bg.drawRect(
       screenX * this.tileSize,
       screenY * this.tileSize,
@@ -105,13 +122,14 @@ export class Renderer {
     const text = new Text(tile.glyph, {
       fontFamily: tile.isEmoji ? 'Noto Emoji' : 'Noto Sans Mono',
       fontSize: tile.isEmoji ? 28 : 24,
-      fill: tile.fgColor,
+      fill: fgColor,
       align: 'center'
     });
     
     text.x = screenX * this.tileSize + this.tileSize / 2;
     text.y = screenY * this.tileSize + this.tileSize / 2;
     text.anchor.set(0.5);
+    text.alpha = alpha;
     
     this.tileContainer.addChild(text);
   }
@@ -125,8 +143,62 @@ export class Renderer {
     this.entityTextMap.clear();
     this.hpTextMap.clear();
   }
-  
-  renderEntity(entity: Entity) {
+
+  renderTileWithVisibility(worldX: number, worldY: number, tile: Tile, distance: number, hasLOS: boolean) {
+    // Convert world coordinates to screen coordinates
+    const screenX = worldX - this.cameraX;
+    const screenY = worldY - this.cameraY;
+    
+    // Only render if within viewport
+    if (screenX < 0 || screenX >= this.viewportWidth || 
+        screenY < 0 || screenY >= this.viewportHeight) {
+      return;
+    }
+    
+    // Calculate alpha based on distance and line of sight
+    let alpha = 1.0;
+    let fgColor = tile.fgColor;
+    
+    if (!hasLOS) {
+      // No line of sight - very dim
+      alpha = 0.2;
+      fgColor = this.darkenColor(fgColor, 0.7);
+    } else {
+      // Line of sight - fade based on distance
+      const maxDistance = 8;
+      alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
+    }
+    
+    // Background
+    const bg = new Graphics();
+    bg.beginFill(tile.bgColor);
+    bg.alpha = alpha;
+    bg.drawRect(
+      screenX * this.tileSize,
+      screenY * this.tileSize,
+      this.tileSize,
+      this.tileSize
+    );
+    bg.endFill();
+    this.tileContainer.addChild(bg);
+    
+    // Glyph
+    const text = new Text(tile.glyph, {
+      fontFamily: tile.isEmoji ? 'Noto Emoji' : 'Noto Sans Mono',
+      fontSize: tile.isEmoji ? 28 : 24,
+      fill: fgColor,
+      align: 'center'
+    });
+    
+    text.x = screenX * this.tileSize + this.tileSize / 2;
+    text.y = screenY * this.tileSize + this.tileSize / 2;
+    text.anchor.set(0.5);
+    text.alpha = alpha;
+    
+    this.tileContainer.addChild(text);
+  }
+
+  renderEntityWithVisibility(entity: Entity, distance: number, hasLOS: boolean) {
     // Convert world coordinates to screen coordinates
     const screenX = entity.x - this.cameraX;
     const screenY = entity.y - this.cameraY;
@@ -134,6 +206,71 @@ export class Renderer {
     // Only render if within viewport
     if (screenX < 0 || screenX >= this.viewportWidth || 
         screenY < 0 || screenY >= this.viewportHeight) {
+      return;
+    }
+    
+    // Calculate alpha based on distance and line of sight
+    let alpha = 1.0;
+    
+    if (!hasLOS) {
+      // No line of sight - don't render at all
+      return;
+    } else {
+      // Line of sight - fade based on distance
+      const maxDistance = 8;
+      alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
+    }
+    
+    const text = new Text(entity.glyph, {
+      fontFamily: entity.isEmoji ? 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif' : 'Noto Sans Mono, monospace',
+      fontSize: entity.isEmoji ? 28 : 24,
+      fill: entity.isEmoji ? 0xFFFFFF : entity.color,
+      align: 'center'
+    });
+    
+    // Apply color tint for emojis
+    if (entity.isEmoji) {
+      text.tint = entity.color;
+    }
+    
+    text.x = screenX * this.tileSize + this.tileSize / 2;
+    text.y = screenY * this.tileSize + this.tileSize / 2;
+    text.anchor.set(0.5);
+    text.alpha = alpha;
+    
+    // Store reference for animations
+    this.entityTextMap.set(entity.id, text);
+    this.entityContainer.addChild(text);
+    
+    // Render HP above entity with bar-like appearance
+    const hpRatio = entity.stats.hp / entity.stats.maxHp;
+    const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
+    
+    const hpText = new Text(`${entity.stats.hp}/${entity.stats.maxHp}`, {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 10,
+      fill: hpColor,
+      align: 'center'
+    });
+    
+    hpText.x = screenX * this.tileSize + this.tileSize / 2;
+    hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10; // Above entity
+    hpText.anchor.set(0.5);
+    hpText.alpha = alpha; // Same alpha as entity
+    
+    // Store reference for animations
+    this.hpTextMap.set(entity.id, hpText);
+    this.entityContainer.addChild(hpText);
+  }
+  
+  renderEntity(entity: Entity, visible: boolean) {
+    // Convert world coordinates to screen coordinates
+    const screenX = entity.x - this.cameraX;
+    const screenY = entity.y - this.cameraY;
+    
+    // Only render if within viewport and visible
+    if (screenX < 0 || screenX >= this.viewportWidth || 
+        screenY < 0 || screenY >= this.viewportHeight || !visible) {
       return;
     }
     
@@ -176,6 +313,18 @@ export class Renderer {
     // Store reference for animations
     this.hpTextMap.set(entity.id, hpText);
     this.entityContainer.addChild(hpText);
+  }
+  
+  darkenColor(color: number, factor: number): number {
+    const r = (color >> 16) & 0xFF;
+    const g = (color >> 8) & 0xFF;
+    const b = color & 0xFF;
+    
+    const newR = Math.floor(r * factor);
+    const newG = Math.floor(g * factor);
+    const newB = Math.floor(b * factor);
+    
+    return (newR << 16) | (newG << 8) | newB;
   }
   
   animateMove(entity: Entity, fromX: number, fromY: number, toX: number, toY: number) {

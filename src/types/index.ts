@@ -4,6 +4,12 @@ export interface Tile {
   bgColor: number;
   isEmoji: boolean;
   walkable: boolean;
+  blocksLight?: boolean;
+}
+
+export interface TileVisibility {
+  explored: boolean;
+  visible: boolean;
 }
 
 export interface EntityStats {
