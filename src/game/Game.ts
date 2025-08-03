@@ -207,7 +207,7 @@ export class Game {
     );
     
     if (targets.length === 0) {
-      console.log("No enemies in range!");
+      this.renderer.addMessage("No enemies in range!");
       return;
     }
     
@@ -215,27 +215,37 @@ export class Game {
     const target = targets[0];
     const attackResult = CombatSystem.meleeAttack(this.player, target);
     
-    console.log(`${this.player.name} attacks ${target.name}!`);
-    console.log(`Attack roll: ${attackResult.attackRoll} vs AC ${target.stats.ac}`);
+    // Player nudges toward enemy when attacking
+    this.renderer.nudgeEntity(this.player, target.x, target.y);
+    
+    this.renderer.addMessage(`${this.player.name} attacks ${target.name}!`);
+    this.renderer.addMessage(`Attack: ${attackResult.attackRoll} vs AC ${target.stats.ac}`);
     
     if (attackResult.hit) {
       const died = CombatSystem.applyDamage(target, attackResult.damage);
-      console.log(`Hit! Damage: ${attackResult.damageRoll} = ${attackResult.damage}`);
-      console.log(`${target.name} HP: ${target.stats.hp}/${target.stats.maxHp}`);
       
-      if (died) {
-        console.log(`${target.name} died!`);
-        this.entities = this.entities.filter(entity => entity.id !== target.id);
+      if (attackResult.critical) {
+        this.renderer.addMessage(`CRITICAL HIT! ${attackResult.damageRoll} = ${attackResult.damage} damage`);
+      } else {
+        this.renderer.addMessage(`Hit! ${attackResult.damageRoll} = ${attackResult.damage} damage`);
       }
       
-      // Shake target
+      // Visual effects for hit
       this.renderer.shakeEntity(target);
+      this.renderer.showFloatingDamage(target, attackResult.damage);
+      
+      if (died) {
+        this.renderer.addMessage(`${target.name} died!`);
+        this.entities = this.entities.filter(entity => entity.id !== target.id);
+      } else {
+        this.renderer.addMessage(`${target.name}: ${target.stats.hp}/${target.stats.maxHp} HP`);
+      }
       
       // Re-render to update HP display
       this.render();
       
     } else {
-      console.log("Miss!");
+      this.renderer.addMessage("Miss!");
       // Shake player to indicate miss
       this.renderer.shakeEntity(this.player);
     }
@@ -254,8 +264,11 @@ export class Game {
     if (playerHp) {
       playerHp.x = this.playerDisplayX * this.renderer.tileSize + this.renderer.tileSize / 2;
       playerHp.y = this.playerDisplayY * this.renderer.tileSize + this.renderer.tileSize / 2 - 10;
-      // Update HP text content
-      playerHp.text = this.player.stats.hp.toString();
+      // Update HP text content and color
+      const hpRatio = this.player.stats.hp / this.player.stats.maxHp;
+      const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
+      playerHp.text = `${this.player.stats.hp}/${this.player.stats.maxHp}`;
+      playerHp.style.fill = hpColor;
     }
   }
   

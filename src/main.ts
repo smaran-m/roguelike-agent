@@ -23,7 +23,8 @@ document.fonts.ready.then(async () => {
     if (ui) {
       ui.innerHTML = `
         <div>Position: ${game.player.x}, ${game.player.y}</div>
-        <div>Use arrow keys or WASD to move</div>
+        <div>HP: ${game.player.stats.hp}/${game.player.stats.maxHp}</div>
+        <div>Controls: WASD/Arrows to move, Spacebar to attack</div>
       `;
     }
   };
