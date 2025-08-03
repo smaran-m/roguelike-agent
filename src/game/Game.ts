@@ -1,6 +1,7 @@
 import { Renderer } from './Renderer';
 import { TileMap } from './TileMap';
 import { Entity } from '../types';
+import { CombatSystem } from './CombatSystem';
 
 export class Game {
   renderer: Renderer;
@@ -27,7 +28,8 @@ export class Game {
       color: 0x4169E1,
       name: 'Player',
       isEmoji: true,
-      hp: 6
+      stats: CombatSystem.createPlayerStats(),
+      isPlayer: true
     };
     
     this.entities.push(this.player);
@@ -41,7 +43,7 @@ export class Game {
       color: 0x00FF00,
       name: 'Goblin',
       isEmoji: true,
-      hp: 5
+      stats: CombatSystem.createEnemyStats()
     });
     
     // Setup input
@@ -57,9 +59,17 @@ export class Game {
   setupInput() {
     window.addEventListener('keydown', (e) => {
       const key = e.key.toLowerCase();
+      
+      // Movement keys
       if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
         e.preventDefault();
         this.keysPressed.add(key);
+      }
+      
+      // Attack key (spacebar)
+      if (key === ' ') {
+        e.preventDefault();
+        this.attemptMeleeAttack();
       }
     });
     
@@ -162,21 +172,8 @@ export class Game {
       );
       
       if (collidedEntity) {
-        // Combat: player attacks enemy, enemy takes damage
-        collidedEntity.hp -= 1;
-        this.player.hp -= 1;
-        
-        // Shake both entities when they collide
-        this.renderer.shakeEntity(this.player);
-        this.renderer.shakeEntity(collidedEntity);
-        
-        // Remove dead entities
-        this.entities = this.entities.filter(entity => entity.hp > 0);
-        
-        // Re-render to update HP display
-        this.render();
-        
-        // Snap to last valid position instead of enemy position
+        // Don't allow movement into enemy space, but don't trigger combat
+        // Combat is now handled separately via spacebar
         this.snapToLastValidPosition();
         return;
       }
@@ -202,6 +199,48 @@ export class Game {
   }
   
   
+  attemptMeleeAttack() {
+    // Find all enemies within melee range
+    const targets = this.entities.filter(entity => 
+      entity.id !== this.player.id && 
+      CombatSystem.isInMeleeRange(this.player, entity)
+    );
+    
+    if (targets.length === 0) {
+      console.log("No enemies in range!");
+      return;
+    }
+    
+    // For now, attack the first target in range
+    const target = targets[0];
+    const attackResult = CombatSystem.meleeAttack(this.player, target);
+    
+    console.log(`${this.player.name} attacks ${target.name}!`);
+    console.log(`Attack roll: ${attackResult.attackRoll} vs AC ${target.stats.ac}`);
+    
+    if (attackResult.hit) {
+      const died = CombatSystem.applyDamage(target, attackResult.damage);
+      console.log(`Hit! Damage: ${attackResult.damageRoll} = ${attackResult.damage}`);
+      console.log(`${target.name} HP: ${target.stats.hp}/${target.stats.maxHp}`);
+      
+      if (died) {
+        console.log(`${target.name} died!`);
+        this.entities = this.entities.filter(entity => entity.id !== target.id);
+      }
+      
+      // Shake target
+      this.renderer.shakeEntity(target);
+      
+      // Re-render to update HP display
+      this.render();
+      
+    } else {
+      console.log("Miss!");
+      // Shake player to indicate miss
+      this.renderer.shakeEntity(this.player);
+    }
+  }
+
   updateVisuals() {
     // Update entity visual positions using display coordinates
     const playerText = this.renderer.entityTextMap.get(this.player.id);
@@ -215,6 +254,8 @@ export class Game {
     if (playerHp) {
       playerHp.x = this.playerDisplayX * this.renderer.tileSize + this.renderer.tileSize / 2;
       playerHp.y = this.playerDisplayY * this.renderer.tileSize + this.renderer.tileSize / 2 - 10;
+      // Update HP text content
+      playerHp.text = this.player.stats.hp.toString();
     }
   }
   

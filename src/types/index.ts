@@ -6,6 +6,20 @@ export interface Tile {
   walkable: boolean;
 }
 
+export interface EntityStats {
+  hp: number;
+  maxHp: number;
+  ac: number; // Armor Class
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  intelligence: number;
+  wisdom: number;
+  charisma: number;
+  proficiencyBonus: number;
+  level: number;
+}
+
 export interface Entity {
   id: string;
   x: number;
@@ -14,7 +28,16 @@ export interface Entity {
   color: number;
   name: string;
   isEmoji: boolean;
-  hp: number;
+  stats: EntityStats;
+  isPlayer?: boolean;
+}
+
+export interface AttackResult {
+  hit: boolean;
+  damage: number;
+  critical: boolean;
+  attackRoll: number;
+  damageRoll: string;
 }
 
 export interface WorldSchema {

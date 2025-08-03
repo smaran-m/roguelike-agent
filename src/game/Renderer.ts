@@ -98,7 +98,7 @@ export class Renderer {
     this.entityContainer.addChild(text);
     
     // Render HP above entity
-    const hpText = new Text(entity.hp.toString(), {
+    const hpText = new Text(entity.stats.hp.toString(), {
       fontFamily: 'Noto Sans Mono',
       fontSize: 10,
       fill: 0xFFFFFF,
