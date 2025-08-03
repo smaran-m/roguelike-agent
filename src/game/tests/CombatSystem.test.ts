@@ -83,10 +83,10 @@ describe('CombatSystem', () => {
     enemy.y = player.y;
     expect(CombatSystem.isInMeleeRange(player, enemy)).toBe(true);
     
-    // Diagonal should be in melee range (distance = sqrt(2) ≈ 1.414, which is > 1.0)
+    // Diagonal should be in melee range (8-directional movement treats diagonals as 1 grid square)
     enemy.x = player.x + 1;
     enemy.y = player.y + 1;
-    expect(CombatSystem.isInMeleeRange(player, enemy)).toBe(false);
+    expect(CombatSystem.isInMeleeRange(player, enemy)).toBe(true);
     
     // Too far should not be in melee range
     enemy.x = player.x + 2;

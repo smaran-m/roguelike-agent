@@ -64,10 +64,30 @@ describe('MovementSystem', () => {
   });
 
   it('should update movement when keys are pressed', () => {
+    // Find a safe starting position with room to move up
+    let safeX = 10, safeY = 10;
+    for (let y = 5; y < 15; y++) {
+      for (let x = 5; x < 15; x++) {
+        if (tileMap.getTile(x, y).walkable && tileMap.getTile(x, y - 1).walkable) {
+          safeX = x;
+          safeY = y;
+          break;
+        }
+      }
+    }
+    
+    // Reset player and movement state to safe position
+    player.x = safeX;
+    player.y = safeY;
+    movementState.displayX = safeX;
+    movementState.displayY = safeY;
+    movementState.lastValidX = safeX;
+    movementState.lastValidY = safeY;
+    
     const keysPressed = new Set(['w']);
     const initialY = movementState.displayY;
     
-    const moved = movementSystem.updateMovement(keysPressed, movementState, tileMap, player);
+    const moved = movementSystem.updateMovement(keysPressed, movementState, tileMap, player, entities);
     
     expect(moved).toBe(true);
     expect(movementState.displayY).toBeLessThan(initialY);

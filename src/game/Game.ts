@@ -89,11 +89,13 @@ export class Game {
   
   updateMovement() {
     const keysPressed = this.inputHandler.getKeysPressed();
+    const entities = this.gameStateManager.getAllEntities();
     this.movementSystem.updateMovement(
       keysPressed, 
       this.movementState, 
       this.tileMap, 
-      this.player
+      this.player,
+      entities
     );
   }
   

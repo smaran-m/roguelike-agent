@@ -9,9 +9,13 @@ export class CombatSystem {
     return Math.sqrt(dx * dx + dy * dy);
   }
   
-  // Check if entity is within melee range (5 feet = 1 grid square in D&D)
+  // Check if entity is within melee range (5 feet = 1 grid square in D&D, including diagonals)
   static isInMeleeRange(attacker: Entity, target: Entity): boolean {
-    return this.getDistance(attacker, target) <= 1.0;
+    // Use Chebyshev distance (max of x or y difference) for 8-directional movement
+    // This considers diagonals as the same distance as orthogonal moves
+    const dx = Math.abs(attacker.x - target.x);
+    const dy = Math.abs(attacker.y - target.y);
+    return Math.max(dx, dy) <= 1;
   }
   
   // Roll a d20

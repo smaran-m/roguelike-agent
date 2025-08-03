@@ -19,7 +19,8 @@ export class MovementSystem {
     keysPressed: Set<string>, 
     movementState: MovementState, 
     tileMap: TileMap,
-    player: Entity
+    player: Entity,
+    entities: Entity[] = []
   ): boolean {
     if (keysPressed.size === 0) return false;
     
@@ -33,15 +34,15 @@ export class MovementSystem {
     const newDisplayX = movementState.displayX + dx;
     const newDisplayY = movementState.displayY + dy;
     
-    // Check if the new position is valid
-    if (this.isValidPosition(newDisplayX, newDisplayY, tileMap)) {
+    // Check if the new position is valid (both tiles and entities)
+    if (this.isValidPosition(newDisplayX, newDisplayY, tileMap, entities, player.id)) {
       movementState.displayX = newDisplayX;
       movementState.displayY = newDisplayY;
       
       // Update last valid grid position if we're on a valid grid cell
       const gridX = Math.round(movementState.displayX);
       const gridY = Math.round(movementState.displayY);
-      if (this.isValidGridPosition(gridX, gridY, tileMap)) {
+      if (this.isValidGridPosition(gridX, gridY, tileMap, entities, player.id)) {
         movementState.lastValidX = gridX;
         movementState.lastValidY = gridY;
         player.x = gridX;
@@ -52,7 +53,7 @@ export class MovementSystem {
     return false;
   }
 
-  isValidPosition(x: number, y: number, tileMap: TileMap): boolean {
+  isValidPosition(x: number, y: number, tileMap: TileMap, entities: Entity[] = [], excludeEntityId?: string): boolean {
     // Check bounds
     if (x < 0 || x >= tileMap.width || y < 0 || y >= tileMap.height) {
       return false;
@@ -71,6 +72,16 @@ export class MovementSystem {
           if (!tileMap.getTile(checkX, checkY).walkable) {
             return false;
           }
+          
+          // Check for entity collisions at this grid position
+          const occupyingEntity = entities.find(entity => 
+            entity.x === checkX && 
+            entity.y === checkY && 
+            entity.id !== excludeEntityId
+          );
+          if (occupyingEntity) {
+            return false;
+          }
         }
       }
     }
@@ -78,12 +89,23 @@ export class MovementSystem {
     return true;
   }
 
-  isValidGridPosition(x: number, y: number, tileMap: TileMap): boolean {
+  isValidGridPosition(x: number, y: number, tileMap: TileMap, entities: Entity[] = [], excludeEntityId?: string): boolean {
     if (x < 0 || x >= tileMap.width || y < 0 || y >= tileMap.height) {
       return false;
     }
     
-    return tileMap.getTile(x, y).walkable;
+    if (!tileMap.getTile(x, y).walkable) {
+      return false;
+    }
+    
+    // Check for entity collisions
+    const occupyingEntity = entities.find(entity => 
+      entity.x === x && 
+      entity.y === y && 
+      entity.id !== excludeEntityId
+    );
+    
+    return !occupyingEntity;
   }
 
   snapPlayerToGrid(
@@ -95,19 +117,8 @@ export class MovementSystem {
     const gridX = Math.round(movementState.displayX);
     const gridY = Math.round(movementState.displayY);
     
-    // Check if the snapped position is valid
-    if (this.isValidGridPosition(gridX, gridY, tileMap)) {
-      // Check collision with other entities
-      const collidedEntity = entities.find(e => 
-        e.id !== player.id && e.x === gridX && e.y === gridY
-      );
-      
-      if (collidedEntity) {
-        // Don't allow movement into enemy space
-        this.snapToLastValidPosition(movementState, player);
-        return false;
-      }
-      
+    // Check if the snapped position is valid (includes entity collision checking)
+    if (this.isValidGridPosition(gridX, gridY, tileMap, entities, player.id)) {
       // Valid position, snap to it
       player.x = gridX;
       player.y = gridY;

@@ -1,5 +1,5 @@
 import { Entity } from '../types';
-import { CombatSystem } from './CombatSystem';
+import { CreateEntity } from './CreateEntity';
 
 export class GameStateManager {
   private entities: Entity[] = [];
@@ -11,59 +11,25 @@ export class GameStateManager {
   }
 
   initializeEntities(tileMap?: any): Entity[] {
-    let playerX = 25, playerY = 15;
-    let enemyX = 20, enemyY = 10;
-    
-    // If tileMap is provided, find safe spawn positions
-    if (tileMap && tileMap.findValidSpawnPosition) {
-      const playerSpawn = tileMap.findValidSpawnPosition();
-      if (playerSpawn) {
-        playerX = playerSpawn.x;
-        playerY = playerSpawn.y;
-      }
-      
-      // Find a different position for enemy
-      let enemySpawn = tileMap.findValidSpawnPosition();
-      if (enemySpawn) {
-        // Try to find a position that's not the same as player
-        for (let attempts = 0; attempts < 10; attempts++) {
-          const testSpawn = tileMap.findValidSpawnPosition();
-          if (testSpawn && (testSpawn.x !== playerX || testSpawn.y !== playerY)) {
-            enemySpawn = testSpawn;
-            break;
-          }
-        }
-        enemyX = enemySpawn.x;
-        enemyY = enemySpawn.y;
-      }
-    }
-    
-    // Create player
-    const player: Entity = {
-      id: 'player',
-      x: playerX,
-      y: playerY,
-      glyph: '🧙',
-      color: 0x4169E1,
-      name: 'Player',
-      isEmoji: true,
-      stats: CombatSystem.createPlayerStats(),
-      isPlayer: true
-    };
-    
+    // Create player using CreateEntity class
+    const player = CreateEntity.createPlayer(tileMap);
     this.entities = [player];
     
-    // Add some test enemies
-    this.addEntity({
-      id: 'goblin1',
-      x: enemyX,
-      y: enemyY,
-      glyph: '👺',
-      color: 0x00FF00,
-      name: 'Goblin',
-      isEmoji: true,
-      stats: CombatSystem.createEnemyStats()
-    });
+    // Create multiple enemies to demonstrate improved collision avoidance
+    const goblin1 = CreateEntity.createGoblin('goblin1', tileMap, this.entities);
+    if (goblin1) {
+      this.addEntity(goblin1);
+    }
+    
+    const goblin2 = CreateEntity.createGoblin('goblin2', tileMap, this.entities);
+    if (goblin2) {
+      this.addEntity(goblin2);
+    }
+    
+    const goblin3 = CreateEntity.createGoblin('goblin3', tileMap, this.entities);
+    if (goblin3) {
+      this.addEntity(goblin3);
+    }
     
     return [...this.entities];
   }
