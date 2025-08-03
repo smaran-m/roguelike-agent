@@ -3,9 +3,13 @@ import { Tile, Entity } from '../types';
 
 export class Renderer {
   app: Application;
-  tileSize: number = 24;
+  tileSize: number = 32;
   gridWidth: number;
   gridHeight: number;
+  viewportWidth: number = 25; // Tiles visible horizontally
+  viewportHeight: number = 15; // Tiles visible vertically
+  cameraX: number = 0;
+  cameraY: number = 0;
   tileContainer: Container;
   entityContainer: Container;
   messageContainer: Container;
@@ -19,8 +23,8 @@ export class Renderer {
     this.gridHeight = height;
     
     this.app = new Application({
-      width: width * this.tileSize + 300, // Add space for messages
-      height: height * this.tileSize,
+      width: this.viewportWidth * this.tileSize + 350, // Viewport size + message area
+      height: this.viewportHeight * this.tileSize,
       backgroundColor: 0x000000,
       antialias: false,
       resolution: window.devicePixelRatio || 1,
@@ -39,8 +43,8 @@ export class Renderer {
     // Add a separator line
     const separator = new Graphics();
     separator.lineStyle(2, 0x444444);
-    separator.moveTo(width * this.tileSize + 10, 0);
-    separator.lineTo(width * this.tileSize + 10, height * this.tileSize);
+    separator.moveTo(this.viewportWidth * this.tileSize + 10, 0);
+    separator.lineTo(this.viewportWidth * this.tileSize + 10, this.viewportHeight * this.tileSize);
     this.messageContainer.addChild(separator);
     
     // Add title
@@ -50,18 +54,20 @@ export class Renderer {
       fill: 0xAAAAAA,
       align: 'left'
     });
-    titleText.x = width * this.tileSize + 20;
+    titleText.x = this.viewportWidth * this.tileSize + 20;
     titleText.y = 10;
     this.messageContainer.addChild(titleText);
     
     // Initialize message display (positioned on the right side)
     this.messageText = new Text('Move near goblin and press SPACE to attack', {
       fontFamily: 'Noto Sans Mono, monospace',
-      fontSize: 12,
+      fontSize: 11,
       fill: 0xFFFFFF,
-      align: 'left'
+      align: 'left',
+      wordWrap: true,
+      wordWrapWidth: 320
     });
-    this.messageText.x = width * this.tileSize + 20; // Right of the game area
+    this.messageText.x = this.viewportWidth * this.tileSize + 20; // Right of the game area
     this.messageText.y = 40;
     this.messageContainer.addChild(this.messageText);
     
@@ -72,13 +78,23 @@ export class Renderer {
     }
   }
   
-  renderTile(x: number, y: number, tile: Tile) {
+  renderTile(worldX: number, worldY: number, tile: Tile) {
+    // Convert world coordinates to screen coordinates
+    const screenX = worldX - this.cameraX;
+    const screenY = worldY - this.cameraY;
+    
+    // Only render if within viewport
+    if (screenX < 0 || screenX >= this.viewportWidth || 
+        screenY < 0 || screenY >= this.viewportHeight) {
+      return;
+    }
+    
     // Background
     const bg = new Graphics();
     bg.beginFill(tile.bgColor);
     bg.drawRect(
-      x * this.tileSize,
-      y * this.tileSize,
+      screenX * this.tileSize,
+      screenY * this.tileSize,
       this.tileSize,
       this.tileSize
     );
@@ -88,13 +104,13 @@ export class Renderer {
     // Glyph
     const text = new Text(tile.glyph, {
       fontFamily: tile.isEmoji ? 'Noto Emoji' : 'Noto Sans Mono',
-      fontSize: tile.isEmoji ? 20 : 18,
+      fontSize: tile.isEmoji ? 28 : 24,
       fill: tile.fgColor,
       align: 'center'
     });
     
-    text.x = x * this.tileSize + this.tileSize / 2;
-    text.y = y * this.tileSize + this.tileSize / 2;
+    text.x = screenX * this.tileSize + this.tileSize / 2;
+    text.y = screenY * this.tileSize + this.tileSize / 2;
     text.anchor.set(0.5);
     
     this.tileContainer.addChild(text);
@@ -111,9 +127,19 @@ export class Renderer {
   }
   
   renderEntity(entity: Entity) {
+    // Convert world coordinates to screen coordinates
+    const screenX = entity.x - this.cameraX;
+    const screenY = entity.y - this.cameraY;
+    
+    // Only render if within viewport
+    if (screenX < 0 || screenX >= this.viewportWidth || 
+        screenY < 0 || screenY >= this.viewportHeight) {
+      return;
+    }
+    
     const text = new Text(entity.glyph, {
       fontFamily: entity.isEmoji ? 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif' : 'Noto Sans Mono, monospace',
-      fontSize: entity.isEmoji ? 20 : 18,
+      fontSize: entity.isEmoji ? 28 : 24,
       fill: entity.isEmoji ? 0xFFFFFF : entity.color,
       align: 'center'
     });
@@ -123,8 +149,8 @@ export class Renderer {
       text.tint = entity.color;
     }
     
-    text.x = entity.x * this.tileSize + this.tileSize / 2;
-    text.y = entity.y * this.tileSize + this.tileSize / 2;
+    text.x = screenX * this.tileSize + this.tileSize / 2;
+    text.y = screenY * this.tileSize + this.tileSize / 2;
     text.anchor.set(0.5);
     
     // Store reference for animations
@@ -138,13 +164,13 @@ export class Renderer {
     
     const hpText = new Text(hpDisplay, {
       fontFamily: 'Noto Sans Mono, monospace',
-      fontSize: 12,
+      fontSize: 14,
       fill: hpColor,
       align: 'center'
     });
     
-    hpText.x = entity.x * this.tileSize + this.tileSize / 2;
-    hpText.y = entity.y * this.tileSize + this.tileSize / 2 - 10;
+    hpText.x = screenX * this.tileSize + this.tileSize / 2;
+    hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10;
     hpText.anchor.set(0.5);
     
     // Store reference for animations
@@ -307,7 +333,7 @@ export class Renderer {
   showFloatingDamage(entity: Entity, damage: number) {
     const damageText = new Text(`-${damage}`, {
       fontFamily: 'Noto Sans Mono, monospace',
-      fontSize: 18,
+      fontSize: 22,
       fill: 0xFF4444,
       align: 'center'
     });
@@ -339,5 +365,58 @@ export class Renderer {
     };
     
     requestAnimationFrame(float);
+  }
+  
+  updateCameraForPlayer(entity: Entity): boolean {
+    const oldCameraX = this.cameraX;
+    const oldCameraY = this.cameraY;
+    
+    // Check if player is at viewport edges
+    const playerScreenX = entity.x - this.cameraX;
+    const playerScreenY = entity.y - this.cameraY;
+    
+    // Move camera if player is at edges
+    if (playerScreenX < 0) {
+      // Player moved off left edge
+      this.cameraX = Math.max(0, entity.x);
+    } else if (playerScreenX >= this.viewportWidth) {
+      // Player moved off right edge
+      this.cameraX = Math.min(this.gridWidth - this.viewportWidth, entity.x - this.viewportWidth + 1);
+    }
+    
+    if (playerScreenY < 0) {
+      // Player moved off top edge
+      this.cameraY = Math.max(0, entity.y);
+    } else if (playerScreenY >= this.viewportHeight) {
+      // Player moved off bottom edge
+      this.cameraY = Math.min(this.gridHeight - this.viewportHeight, entity.y - this.viewportHeight + 1);
+    }
+    
+    // Return true if camera actually moved
+    return oldCameraX !== this.cameraX || oldCameraY !== this.cameraY;
+  }
+  
+  centerCameraOn(entity: Entity) {
+    // Center camera on entity, but keep it within map bounds
+    const targetCameraX = entity.x - Math.floor(this.viewportWidth / 2);
+    const targetCameraY = entity.y - Math.floor(this.viewportHeight / 2);
+    
+    // Clamp camera to map bounds
+    this.cameraX = Math.max(0, Math.min(this.gridWidth - this.viewportWidth, targetCameraX));
+    this.cameraY = Math.max(0, Math.min(this.gridHeight - this.viewportHeight, targetCameraY));
+  }
+  
+  worldToScreen(worldX: number, worldY: number): {x: number, y: number} {
+    return {
+      x: worldX - this.cameraX,
+      y: worldY - this.cameraY
+    };
+  }
+  
+  screenToWorld(screenX: number, screenY: number): {x: number, y: number} {
+    return {
+      x: screenX + this.cameraX,
+      y: screenY + this.cameraY
+    };
   }
 }

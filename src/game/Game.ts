@@ -252,18 +252,32 @@ export class Game {
   }
 
   updateVisuals() {
-    // Update entity visual positions using display coordinates
+    // Check if camera needs to move based on player position
+    const cameraMoved = this.renderer.updateCameraForPlayer({ 
+      x: Math.round(this.playerDisplayX), 
+      y: Math.round(this.playerDisplayY) 
+    } as Entity);
+    
+    // If camera moved, need to re-render everything
+    if (cameraMoved) {
+      this.render();
+      return; // render() will handle entity positioning
+    }
+    
+    // Otherwise, just update entity visual positions
     const playerText = this.renderer.entityTextMap.get(this.player.id);
     const playerHp = this.renderer.hpTextMap.get(this.player.id);
     
     if (playerText) {
-      playerText.x = this.playerDisplayX * this.renderer.tileSize + this.renderer.tileSize / 2;
-      playerText.y = this.playerDisplayY * this.renderer.tileSize + this.renderer.tileSize / 2;
+      const screenPos = this.renderer.worldToScreen(this.playerDisplayX, this.playerDisplayY);
+      playerText.x = screenPos.x * this.renderer.tileSize + this.renderer.tileSize / 2;
+      playerText.y = screenPos.y * this.renderer.tileSize + this.renderer.tileSize / 2;
     }
     
     if (playerHp) {
-      playerHp.x = this.playerDisplayX * this.renderer.tileSize + this.renderer.tileSize / 2;
-      playerHp.y = this.playerDisplayY * this.renderer.tileSize + this.renderer.tileSize / 2 - 10;
+      const screenPos = this.renderer.worldToScreen(this.playerDisplayX, this.playerDisplayY);
+      playerHp.x = screenPos.x * this.renderer.tileSize + this.renderer.tileSize / 2;
+      playerHp.y = screenPos.y * this.renderer.tileSize + this.renderer.tileSize / 2 - 10;
       // Update HP text content and color
       const hpRatio = this.player.stats.hp / this.player.stats.maxHp;
       const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
@@ -303,19 +317,28 @@ export class Game {
   }
 
   render() {
+    // Update camera to follow player
+    this.renderer.centerCameraOn(this.player);
+    
     // Clear previous frame
     this.renderer.clearTiles();
     this.renderer.clearEntities();
     
+    // Only render tiles that are visible in the camera viewport
+    const startX = Math.max(0, this.renderer.cameraX);
+    const endX = Math.min(this.tileMap.width, this.renderer.cameraX + this.renderer.viewportWidth);
+    const startY = Math.max(0, this.renderer.cameraY);
+    const endY = Math.min(this.tileMap.height, this.renderer.cameraY + this.renderer.viewportHeight);
+    
     // Render tiles
-    for (let y = 0; y < this.tileMap.height; y++) {
-      for (let x = 0; x < this.tileMap.width; x++) {
+    for (let y = startY; y < endY; y++) {
+      for (let x = startX; x < endX; x++) {
         const tile = this.tileMap.getTile(x, y);
         this.renderer.renderTile(x, y, tile);
       }
     }
     
-    // Render entities
+    // Render entities (renderer will cull those outside viewport)
     for (const entity of this.entities) {
       this.renderer.renderEntity(entity);
     }
