@@ -1,5 +1,6 @@
 import { Application, Container, Graphics, Text } from 'pixi.js';
 import { Tile, Entity } from '../types';
+import { CharacterSheet } from '../ui/CharacterSheet';
 
 export class Renderer {
   app: Application;
@@ -18,14 +19,20 @@ export class Renderer {
   entityPositions: Map<string, {x: number, y: number}> = new Map(); // Track entity world positions
   messages: string[] = [];
   messageText: Text;
+  characterSheet: CharacterSheet;
+  private readonly characterSheetWidth = 220; // Width of character sheet panel
+  
+  // Bottom corner UI elements
+  private controlsText!: Text;
+  private positionText!: Text;
   
   constructor(width: number, height: number) {
     this.gridWidth = width;
     this.gridHeight = height;
     
     this.app = new Application({
-      width: this.viewportWidth * this.tileSize + 350, // Viewport size + message area
-      height: this.viewportHeight * this.tileSize,
+      width: this.characterSheetWidth + this.viewportWidth * this.tileSize + 350, // Character sheet + viewport + message area
+      height: Math.max(this.viewportHeight * this.tileSize, 600), // Ensure minimum height for character sheet
       backgroundColor: 0x000000,
       antialias: false,
       resolution: window.devicePixelRatio || 1,
@@ -37,15 +44,28 @@ export class Renderer {
     this.entityContainer = new Container();
     this.messageContainer = new Container();
     
+    // Offset game containers to make room for character sheet
+    this.tileContainer.x = this.characterSheetWidth;
+    this.entityContainer.x = this.characterSheetWidth;
+    
     this.app.stage.addChild(this.tileContainer);
     this.app.stage.addChild(this.entityContainer);
     this.app.stage.addChild(this.messageContainer);
     
-    // Add a separator line
+    // Initialize character sheet
+    this.characterSheet = new CharacterSheet(this.app);
+    this.characterSheet.setPosition(10, 10);
+    
+    // Initialize bottom corner UI elements
+    this.setupBottomCornerUI();
+    
+    // Add a separator line between game area and message area  
     const separator = new Graphics();
-    separator.lineStyle(2, 0x444444);
-    separator.moveTo(this.viewportWidth * this.tileSize + 10, 0);
-    separator.lineTo(this.viewportWidth * this.tileSize + 10, this.viewportHeight * this.tileSize);
+    separator.beginFill(0x444444);
+    separator.drawRect(0, 0, 2, Math.max(this.viewportHeight * this.tileSize, 600));
+    separator.endFill();
+    separator.x = this.characterSheetWidth + this.viewportWidth * this.tileSize + 10;
+    separator.y = 0;
     this.messageContainer.addChild(separator);
     
     // Add title
@@ -55,12 +75,12 @@ export class Renderer {
       fill: 0xAAAAAA,
       align: 'left'
     });
-    titleText.x = this.viewportWidth * this.tileSize + 20;
+    titleText.x = this.characterSheetWidth + this.viewportWidth * this.tileSize + 20;
     titleText.y = 10;
     this.messageContainer.addChild(titleText);
     
     // Initialize message display (positioned on the right side)
-    this.messageText = new Text('Move near goblin and press SPACE to attack', {
+    this.messageText = new Text('Move near enemies and press SPACE to attack', {
       fontFamily: 'Noto Sans Mono, monospace',
       fontSize: 11,
       fill: 0xFFFFFF,
@@ -68,7 +88,7 @@ export class Renderer {
       wordWrap: true,
       wordWrapWidth: 320
     });
-    this.messageText.x = this.viewportWidth * this.tileSize + 20; // Right of the game area
+    this.messageText.x = this.characterSheetWidth + this.viewportWidth * this.tileSize + 20; // Right of the game area
     this.messageText.y = 40;
     this.messageContainer.addChild(this.messageText);
     
@@ -77,6 +97,28 @@ export class Renderer {
     if (container) {
       container.appendChild(this.app.view as HTMLCanvasElement);
     }
+  }
+  
+  private setupBottomCornerUI() {
+    // Controls text in bottom left of gameplay area
+    this.controlsText = new Text('WASD/Arrows: Move  Space: Attack', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 10,
+      fill: 0x888888
+    });
+    this.controlsText.x = this.characterSheetWidth + 5;
+    this.controlsText.y = this.viewportHeight * this.tileSize - 20;
+    this.messageContainer.addChild(this.controlsText);
+    
+    // Position text in bottom right of gameplay area  
+    this.positionText = new Text('(0, 0)', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 10,
+      fill: 0x888888
+    });
+    this.positionText.x = this.characterSheetWidth + this.viewportWidth * this.tileSize - 60;
+    this.positionText.y = this.viewportHeight * this.tileSize - 20;
+    this.messageContainer.addChild(this.positionText);
   }
   
   renderTile(worldX: number, worldY: number, tile: Tile, visibility: import('../types').TileVisibility) {
@@ -250,11 +292,12 @@ export class Renderer {
     this.entityPositions.set(entity.id, {x: entity.x, y: entity.y});
     this.entityContainer.addChild(text);
     
-    // Render HP above entity with bar-like appearance
-    const hpRatio = entity.stats.hp / entity.stats.maxHp;
-    const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
-    
-    const hpText = new Text(`${entity.stats.hp}/${entity.stats.maxHp}`, {
+    // Render HP above entity with bar-like appearance (only for non-player entities)
+    if (!entity.isPlayer) {
+      const hpRatio = entity.stats.hp / entity.stats.maxHp;
+      const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
+      
+      const hpText = new Text(`${entity.stats.hp}/${entity.stats.maxHp}`, {
       fontFamily: 'Noto Sans Mono, monospace',
       fontSize: 10,
       fill: hpColor,
@@ -264,11 +307,18 @@ export class Renderer {
     hpText.x = screenX * this.tileSize + this.tileSize / 2;
     hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10; // Above entity
     hpText.anchor.set(0.5);
-    hpText.alpha = alpha; // Same alpha as entity
+      hpText.alpha = alpha; // Same alpha as entity
+      
+      // Store reference for animations
+      this.hpTextMap.set(entity.id, hpText);
+      this.entityContainer.addChild(hpText);
+    }
     
-    // Store reference for animations
-    this.hpTextMap.set(entity.id, hpText);
-    this.entityContainer.addChild(hpText);
+    // Update character sheet and position text if this is the player
+    if (entity.isPlayer) {
+      this.characterSheet.updateCharacterSheet(entity);
+      this.updatePositionText(entity.x, entity.y);
+    }
   }
   
   renderEntity(entity: Entity, visible: boolean) {
@@ -581,6 +631,10 @@ export class Renderer {
   // Store tile graphics for alpha updates
   tileGraphicsMap: Map<string, {bg: Graphics, text: Text, originalColor: number}> = new Map();
 
+  updatePositionText(x: number, y: number) {
+    this.positionText.text = `(${x}, ${y})`;
+  }
+  
   updateVisibilityAlpha(playerX: number, playerY: number, tileMap: any, lineOfSight: any) {
     // Ensure player coordinates are within bounds and integers
     const safePlayerX = Math.max(0, Math.min(tileMap.width - 1, Math.round(playerX)));

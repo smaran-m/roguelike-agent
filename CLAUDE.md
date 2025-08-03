@@ -135,6 +135,28 @@ Smooth movement animations are implemented using requestAnimationFrame with line
 - Configurable logging system with multiple levels (DEBUG, INFO, WARN, ERROR)
 - Deterministic testing with seeded randomness for combat mechanics
 
+## UI Design Standards
+
+The project uses consistent dark theme styling throughout:
+
+### Typography Standards
+- **Primary Font**: `Noto Sans Mono, monospace` for all text elements (consistent project-wide)
+- **Emoji Font**: `Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif` for emoji rendering
+- **Font Sizes**: Standardized sizes from 10px (small) to 48px (large emoji)
+
+### Color Palette
+- **Dark Backgrounds**: `0x000000` (panels and overlays)
+- **Borders**: `0x444444` for panel separators
+- **Text Hierarchy**: White primary (`0xFFFFFF`), light gray secondary (`0xCCCCCC`), muted (`0x888888`)
+- **Status Colors**: Health progression (green → yellow → orange → red)
+- **Special Colors**: Gold for levels/XP (`0xFFD700`), sky blue for AC highlight (`0x87CEEB`)
+
+### UI Layout
+- **Character Panel**: Left-side panel (200x600px) with right border line
+- **ASCII Health Display**: Text-based health bars using `[##########]` format
+- **Bottom Corner UI**: Controls (bottom left), position coordinates (bottom right)
+- **Spacing**: Consistent 10px padding throughout UI elements
+
 ## Recent Development
 Latest features added (as of recent commits):
 - **Architectural Refactoring**: Extracted 4 major systems from monolithic Game class (40% code reduction)

@@ -1,0 +1,344 @@
+import { Application, Container, Text, Graphics } from 'pixi.js';
+import { Entity } from '../types';
+import { CharacterPortrait } from './CharacterPortrait';
+import { CharacterManager } from '../managers/CharacterManager';
+
+export class CharacterSheet {
+  private app: Application;
+  private container: Container;
+  private backgroundPanel!: Graphics;
+  private portraitText!: Text;
+  private nameText!: Text;
+  private classText!: Text;
+  private levelText!: Text;
+  private healthBarText!: Text;
+  private healthText!: Text;
+  private statsContainer!: Container;
+  private inventoryLabel!: Text;
+  private inventoryContainer!: Container;
+  
+  private readonly panelWidth = 200;
+  private readonly panelHeight = 600;
+  private readonly padding = 10;
+  
+  constructor(app: Application) {
+    this.app = app;
+    this.container = new Container();
+    this.setupUI();
+  }
+  
+  private setupUI() {
+    // Create background panel
+    this.backgroundPanel = new Graphics();
+    this.backgroundPanel.beginFill(0x000000);
+    this.backgroundPanel.drawRect(0, 0, this.panelWidth, this.panelHeight);
+    this.backgroundPanel.endFill();
+    
+    // Add right border line
+    const rightBorder = new Graphics();
+    rightBorder.lineStyle(2, 0x444444);
+    rightBorder.moveTo(this.panelWidth, 0);
+    rightBorder.lineTo(this.panelWidth, this.panelHeight);
+    this.container.addChild(rightBorder);
+    this.container.addChild(this.backgroundPanel);
+    
+    // Title
+    const titleText = new Text('CHARACTER', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 14,
+      fill: 0xFFFFFF,
+      fontWeight: 'bold'
+    });
+    titleText.x = this.padding;
+    titleText.y = this.padding;
+    this.container.addChild(titleText);
+    
+    // Portrait (large emoji)
+    this.portraitText = new Text('😊', {
+      fontFamily: 'Noto Sans Mono',
+      fontSize: 48,
+      fill: 0xFFFFFF
+    });
+    this.portraitText.x = this.panelWidth / 2 - 24; // Center the emoji
+    this.portraitText.y = 40;
+    this.container.addChild(this.portraitText);
+    
+    // Character Name
+    this.nameText = new Text('Hero', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 16,
+      fill: 0xFFFFFF,
+      fontWeight: 'bold'
+    });
+    this.nameText.x = this.padding;
+    this.nameText.y = 100;
+    this.container.addChild(this.nameText);
+    
+    // Character Class
+    this.classText = new Text('Warrior', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 12,
+      fill: 0xCCCCCC
+    });
+    this.classText.x = this.padding;
+    this.classText.y = 120;
+    this.container.addChild(this.classText);
+    
+    // Level
+    this.levelText = new Text('Level 1', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 12,
+      fill: 0xFFD700
+    });
+    this.levelText.x = this.panelWidth - this.padding - 50;
+    this.levelText.y = 120;
+    this.container.addChild(this.levelText);
+    
+    // Health Bar
+    this.setupHealthBar();
+    
+    // Stats Section
+    this.setupStatsSection();
+    
+    // Inventory Section (placeholder for future)
+    this.setupInventorySection();
+    
+    // Add main container to app
+    this.app.stage.addChild(this.container);
+  }
+  
+  private setupHealthBar() {
+    const startY = 150;
+    
+    // Health label
+    const healthLabel = new Text('Health', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 12,
+      fill: 0xFFFFFF
+    });
+    healthLabel.x = this.padding;
+    healthLabel.y = startY;
+    this.container.addChild(healthLabel);
+    
+    // ASCII Health bar
+    this.healthBarText = new Text('[##########] 20/20', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 11,
+      fill: 0xFFFFFF
+    });
+    this.healthBarText.x = this.padding;
+    this.healthBarText.y = startY + 20;
+    this.container.addChild(this.healthBarText);
+    
+    // Health text (numeric display)
+    this.healthText = new Text('20/20', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 11,
+      fill: 0xFFFFFF
+    });
+    this.healthText.x = this.padding;
+    this.healthText.y = startY + 40;
+    this.container.addChild(this.healthText);
+  }
+  
+  private setupStatsSection() {
+    const startY = 200;
+    
+    // Stats label
+    const statsLabel = new Text('STATS', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 12,
+      fill: 0xFFFFFF,
+      fontWeight: 'bold'
+    });
+    statsLabel.x = this.padding;
+    statsLabel.y = startY;
+    this.container.addChild(statsLabel);
+    
+    // Stats container
+    this.statsContainer = new Container();
+    this.statsContainer.x = this.padding;
+    this.statsContainer.y = startY + 25;
+    this.container.addChild(this.statsContainer);
+  }
+  
+  private setupInventorySection() {
+    const startY = 400;
+    
+    // Inventory label
+    this.inventoryLabel = new Text('EQUIPMENT', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 12,
+      fill: 0xFFFFFF,
+      fontWeight: 'bold'
+    });
+    this.inventoryLabel.x = this.padding;
+    this.inventoryLabel.y = startY;
+    this.container.addChild(this.inventoryLabel);
+    
+    // Placeholder for future inventory
+    const placeholderText = new Text('(Coming Soon)', {
+      fontFamily: 'Noto Sans Mono, monospace',
+      fontSize: 10,
+      fill: 0x888888,
+      fontStyle: 'italic'
+    });
+    placeholderText.x = this.padding;
+    placeholderText.y = startY + 25;
+    this.container.addChild(placeholderText);
+    
+    // Inventory container for future use
+    this.inventoryContainer = new Container();
+    this.inventoryContainer.x = this.padding;
+    this.inventoryContainer.y = startY + 50;
+    this.container.addChild(this.inventoryContainer);
+  }
+  
+  /**
+   * Update the character sheet with current player data
+   */
+  updateCharacterSheet(player: Entity) {
+    // Update portrait based on health
+    const portraitEmoji = CharacterPortrait.getPortraitEmoji(player);
+    this.portraitText.text = portraitEmoji;
+    
+    // Update character info
+    this.nameText.text = player.name;
+    
+    // Get character class info from CharacterManager
+    const characterManager = CharacterManager.getInstance();
+    const currentCharacter = characterManager.getCurrentCharacter();
+    if (currentCharacter) {
+      this.classText.text = currentCharacter.className.charAt(0).toUpperCase() + currentCharacter.className.slice(1);
+      this.levelText.text = `Level ${currentCharacter.level}`;
+      
+      // Show experience
+      const nextLevelXP = currentCharacter.level * 1000;
+      const progressText = new Text(`XP: ${currentCharacter.experience}/${nextLevelXP}`, {
+        fontFamily: 'Noto Sans Mono, monospace',
+        fontSize: 10,
+        fill: 0xCCCCCC
+      });
+      progressText.x = this.padding;
+      progressText.y = 135;
+      
+      // Remove old XP text if exists
+      this.container.children.forEach(child => {
+        if (child instanceof Text && child.text.startsWith('XP:')) {
+          this.container.removeChild(child);
+        }
+      });
+      this.container.addChild(progressText);
+    }
+    
+    // Update health bar
+    this.updateHealthBar(player);
+    
+    // Update stats
+    this.updateStats(player);
+  }
+  
+  private updateHealthBar(player: Entity) {
+    const healthPercentage = player.stats.hp / player.stats.maxHp;
+    const barLength = 10; // Number of characters in health bar
+    const filledChars = Math.floor(healthPercentage * barLength);
+    const emptyChars = barLength - filledChars;
+    
+    // Determine health bar color
+    let healthColor = 0x00FF00; // Green
+    if (healthPercentage <= 0.25) {
+      healthColor = 0xFF0000; // Red
+    } else if (healthPercentage <= 0.5) {
+      healthColor = 0xFF8800; // Orange
+    } else if (healthPercentage <= 0.75) {
+      healthColor = 0xFFFF00; // Yellow
+    }
+    
+    // Create ASCII health bar
+    const healthBar = '[' + '#'.repeat(filledChars) + '.'.repeat(emptyChars) + ']';
+    this.healthBarText.text = `${healthBar} ${player.stats.hp}/${player.stats.maxHp}`;
+    this.healthBarText.style.fill = healthColor;
+    
+    // Update health text
+    this.healthText.text = `${player.stats.hp}/${player.stats.maxHp}`;
+  }
+  
+  private updateStats(player: Entity) {
+    // Clear existing stats
+    this.statsContainer.removeChildren();
+    
+    const stats = [
+      { label: 'AC', value: player.stats.ac, color: 0x87CEEB },
+      { label: 'STR', value: player.stats.strength, modifier: this.getModifier(player.stats.strength) },
+      { label: 'DEX', value: player.stats.dexterity, modifier: this.getModifier(player.stats.dexterity) },
+      { label: 'CON', value: player.stats.constitution, modifier: this.getModifier(player.stats.constitution) },
+      { label: 'INT', value: player.stats.intelligence, modifier: this.getModifier(player.stats.intelligence) },
+      { label: 'WIS', value: player.stats.wisdom, modifier: this.getModifier(player.stats.wisdom) },
+      { label: 'CHA', value: player.stats.charisma, modifier: this.getModifier(player.stats.charisma) }
+    ];
+    
+    stats.forEach((stat, index) => {
+      const yPos = index * 20;
+      
+      // Stat label
+      const label = new Text(stat.label, {
+        fontFamily: 'Noto Sans Mono, monospace',
+        fontSize: 11,
+        fill: stat.color || 0xFFFFFF,
+        fontWeight: 'bold'
+      });
+      label.x = 0;
+      label.y = yPos;
+      this.statsContainer.addChild(label);
+      
+      // Stat value
+      const value = new Text(stat.value.toString(), {
+        fontFamily: 'Noto Sans Mono, monospace',
+        fontSize: 11,
+        fill: 0xFFFFFF
+      });
+      value.x = 35;
+      value.y = yPos;
+      this.statsContainer.addChild(value);
+      
+      // Modifier (for ability scores)
+      if (stat.modifier !== undefined) {
+        const modifierText = stat.modifier >= 0 ? `+${stat.modifier}` : stat.modifier.toString();
+        const modifier = new Text(`(${modifierText})`, {
+          fontFamily: 'Noto Sans Mono, monospace',
+          fontSize: 9,
+          fill: 0xCCCCCC
+        });
+        modifier.x = 60;
+        modifier.y = yPos + 1;
+        this.statsContainer.addChild(modifier);
+      }
+    });
+  }
+  
+  private getModifier(abilityScore: number): number {
+    return Math.floor((abilityScore - 10) / 2);
+  }
+  
+  /**
+   * Get the container for positioning
+   */
+  getContainer(): Container {
+    return this.container;
+  }
+  
+  /**
+   * Set position of the character sheet
+   */
+  setPosition(x: number, y: number) {
+    this.container.x = x;
+    this.container.y = y;
+  }
+  
+  /**
+   * Get panel width for layout calculations
+   */
+  getPanelWidth(): number {
+    return this.panelWidth;
+  }
+}

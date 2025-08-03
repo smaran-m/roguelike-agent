@@ -17,22 +17,8 @@ document.fonts.ready.then(async () => {
   // Expose to window for debugging
   (window as any).game = game;
   
-  // Update UI
-  const updateUI = () => {
-    const ui = document.getElementById('ui-overlay');
-    if (ui) {
-      ui.innerHTML = `
-        <div>Position: ${game.player.x}, ${game.player.y}</div>
-        <div>HP: ${game.player.stats.hp}/${game.player.stats.maxHp}</div>
-        <div>Controls: WASD/Arrows to move, Spacebar to attack</div>
-      `;
-    }
-  };
-  
-  updateUI();
-  
-  // Update UI on player move
-  window.addEventListener('keydown', () => {
-    setTimeout(updateUI, 150);
-  });
+  // UI is now handled by the Renderer system
+  // Position text is in bottom right of gameplay area
+  // Controls text is in bottom left of gameplay area  
+  // HP is shown in the character sheet panel
 });
