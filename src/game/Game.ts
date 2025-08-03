@@ -7,6 +7,12 @@ export class Game {
   tileMap: TileMap;
   player: Entity;
   entities: Entity[] = [];
+  keysPressed: Set<string> = new Set();
+  movementSpeed: number = 0.1; // tiles per frame
+  playerDisplayX: number = 25; // Visual position
+  playerDisplayY: number = 15;
+  lastValidX: number = 25; // Last valid grid position
+  lastValidY: number = 15;
   
   constructor() {
     this.renderer = new Renderer(50, 30);
@@ -41,88 +47,175 @@ export class Game {
     // Setup input
     this.setupInput();
     
+    // Start game loop
+    this.startGameLoop();
+    
     // Wait for Noto Emoji to be fully available before rendering
     this.waitForFontsAndRender();
   }
   
   setupInput() {
     window.addEventListener('keydown', (e) => {
-      let dx = 0, dy = 0;
-      
-      switch(e.key) {
-        case 'ArrowUp':
-        case 'w':
-          dy = -1;
-          break;
-        case 'ArrowDown':
-        case 's':
-          dy = 1;
-          break;
-        case 'ArrowLeft':
-        case 'a':
-          dx = -1;
-          break;
-        case 'ArrowRight':
-        case 'd':
-          dx = 1;
-          break;
-        default:
-          return;
+      const key = e.key.toLowerCase();
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+        e.preventDefault();
+        this.keysPressed.add(key);
       }
-      
-      e.preventDefault();
-      this.movePlayer(dx, dy);
+    });
+    
+    window.addEventListener('keyup', (e) => {
+      const key = e.key.toLowerCase();
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+        e.preventDefault();
+        this.keysPressed.delete(key);
+        
+        // Snap to grid when key is released
+        if (this.keysPressed.size === 0) {
+          this.snapPlayerToGrid();
+        }
+      }
     });
   }
   
-  movePlayer(dx: number, dy: number) {
-    const newX = this.player.x + dx;
-    const newY = this.player.y + dy;
+  startGameLoop() {
+    const gameLoop = () => {
+      this.updateMovement();
+      this.updateVisuals();
+      requestAnimationFrame(gameLoop);
+    };
+    requestAnimationFrame(gameLoop);
+  }
+  
+  updateMovement() {
+    if (this.keysPressed.size === 0) return;
     
+    let dx = 0, dy = 0;
+    
+    if (this.keysPressed.has('arrowup') || this.keysPressed.has('w')) dy -= this.movementSpeed;
+    if (this.keysPressed.has('arrowdown') || this.keysPressed.has('s')) dy += this.movementSpeed;
+    if (this.keysPressed.has('arrowleft') || this.keysPressed.has('a')) dx -= this.movementSpeed;
+    if (this.keysPressed.has('arrowright') || this.keysPressed.has('d')) dx += this.movementSpeed;
+    
+    const newDisplayX = this.playerDisplayX + dx;
+    const newDisplayY = this.playerDisplayY + dy;
+    
+    // Check if the new position is valid
+    if (this.isValidPosition(newDisplayX, newDisplayY)) {
+      this.playerDisplayX = newDisplayX;
+      this.playerDisplayY = newDisplayY;
+      
+      // Update last valid grid position if we're on a valid grid cell
+      const gridX = Math.round(this.playerDisplayX);
+      const gridY = Math.round(this.playerDisplayY);
+      if (this.isValidGridPosition(gridX, gridY)) {
+        this.lastValidX = gridX;
+        this.lastValidY = gridY;
+        this.player.x = gridX;
+        this.player.y = gridY;
+      }
+    }
+  }
+  
+  isValidPosition(x: number, y: number): boolean {
     // Check bounds
-    if (newX < 0 || newX >= this.tileMap.width ||
-        newY < 0 || newY >= this.tileMap.height) {
-      return;
+    if (x < 0 || x >= this.tileMap.width || y < 0 || y >= this.tileMap.height) {
+      return false;
     }
     
-    // Check collision with walls
-    if (!this.tileMap.getTile(newX, newY).walkable) {
-      // Shake effect on collision
-      this.renderer.shakeEntity(this.player);
-      return;
+    // Check if the position overlaps with any non-walkable tiles
+    const minX = Math.floor(x);
+    const maxX = Math.ceil(x);
+    const minY = Math.floor(y);
+    const maxY = Math.ceil(y);
+    
+    for (let checkX = minX; checkX <= maxX; checkX++) {
+      for (let checkY = minY; checkY <= maxY; checkY++) {
+        if (checkX >= 0 && checkX < this.tileMap.width && 
+            checkY >= 0 && checkY < this.tileMap.height) {
+          if (!this.tileMap.getTile(checkX, checkY).walkable) {
+            return false;
+          }
+        }
+      }
     }
     
-    // Check collision with other entities
-    const collidedEntity = this.entities.find(e => 
-      e.id !== this.player.id && e.x === newX && e.y === newY
-    );
-    
-    if (collidedEntity) {
-      // Combat: player attacks enemy, enemy takes damage
-      collidedEntity.hp -= 1;
-      this.player.hp -= 1;
-      
-      // Shake both entities when they collide
-      this.renderer.shakeEntity(this.player);
-      this.renderer.shakeEntity(collidedEntity);
-      
-      // Remove dead entities
-      this.entities = this.entities.filter(entity => entity.hp > 0);
-      
-      // Re-render to update HP display
-      this.render();
-      
-      return;
+    return true;
+  }
+  
+  isValidGridPosition(x: number, y: number): boolean {
+    if (x < 0 || x >= this.tileMap.width || y < 0 || y >= this.tileMap.height) {
+      return false;
     }
     
-    // Animate move
-    const oldX = this.player.x;
-    const oldY = this.player.y;
+    return this.tileMap.getTile(x, y).walkable;
+  }
+  
+  snapPlayerToGrid() {
+    const gridX = Math.round(this.playerDisplayX);
+    const gridY = Math.round(this.playerDisplayY);
     
-    this.player.x = newX;
-    this.player.y = newY;
+    // Check if the snapped position is valid
+    if (this.isValidGridPosition(gridX, gridY)) {
+      // Check collision with other entities
+      const collidedEntity = this.entities.find(e => 
+        e.id !== this.player.id && e.x === gridX && e.y === gridY
+      );
+      
+      if (collidedEntity) {
+        // Combat: player attacks enemy, enemy takes damage
+        collidedEntity.hp -= 1;
+        this.player.hp -= 1;
+        
+        // Shake both entities when they collide
+        this.renderer.shakeEntity(this.player);
+        this.renderer.shakeEntity(collidedEntity);
+        
+        // Remove dead entities
+        this.entities = this.entities.filter(entity => entity.hp > 0);
+        
+        // Re-render to update HP display
+        this.render();
+        
+        // Snap to last valid position instead of enemy position
+        this.snapToLastValidPosition();
+        return;
+      }
+      
+      // Valid position, snap to it
+      this.player.x = gridX;
+      this.player.y = gridY;
+      this.playerDisplayX = gridX;
+      this.playerDisplayY = gridY;
+      this.lastValidX = gridX;
+      this.lastValidY = gridY;
+    } else {
+      // Invalid position, snap to last valid position
+      this.snapToLastValidPosition();
+    }
+  }
+  
+  snapToLastValidPosition() {
+    this.player.x = this.lastValidX;
+    this.player.y = this.lastValidY;
+    this.playerDisplayX = this.lastValidX;
+    this.playerDisplayY = this.lastValidY;
+  }
+  
+  
+  updateVisuals() {
+    // Update entity visual positions using display coordinates
+    const playerText = this.renderer.entityTextMap.get(this.player.id);
+    const playerHp = this.renderer.hpTextMap.get(this.player.id);
     
-    this.renderer.animateMove(this.player, oldX, oldY, newX, newY);
+    if (playerText) {
+      playerText.x = this.playerDisplayX * this.renderer.tileSize + this.renderer.tileSize / 2;
+      playerText.y = this.playerDisplayY * this.renderer.tileSize + this.renderer.tileSize / 2;
+    }
+    
+    if (playerHp) {
+      playerHp.x = this.playerDisplayX * this.renderer.tileSize + this.renderer.tileSize / 2;
+      playerHp.y = this.playerDisplayY * this.renderer.tileSize + this.renderer.tileSize / 2 - 10;
+    }
   }
   
   async waitForFontsAndRender() {

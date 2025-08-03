@@ -131,7 +131,7 @@ export class Renderer {
     const targetX = toX * this.tileSize + this.tileSize / 2;
     const targetY = toY * this.tileSize + this.tileSize / 2;
     
-    const duration = 150; // ms
+    const duration = 60; // ms
     const startTime = performance.now();
     
     const animate = (currentTime: number) => {
