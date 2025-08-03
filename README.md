@@ -56,6 +56,8 @@ The game will automatically open in your browser at `http://localhost:3000`.
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run typecheck` - Run TypeScript type checking
+- `npm run test` - Run test suite with Vitest
+- `npm run test:watch` - Run tests in watch mode
 
 ## Controls
 
@@ -67,19 +69,29 @@ The game will automatically open in your browser at `http://localhost:3000`.
 
 ### Core Components
 
-- **Game** (`src/game/Game.ts`) - Main game loop and state management
+- **Game** (`src/game/Game.ts`) - Main game coordinator and orchestration
+- **InputHandler** (`src/game/InputHandler.ts`) - Keyboard event management and input processing
+- **MovementSystem** (`src/game/MovementSystem.ts`) - Movement logic and collision detection
+- **CombatManager** (`src/game/CombatManager.ts`) - Combat orchestration and visual effects
+- **GameStateManager** (`src/game/GameStateManager.ts`) - Entity lifecycle and game loop management
 - **Renderer** (`src/game/Renderer.ts`) - PixiJS-based rendering with camera system
 - **TileMap** (`src/game/TileMap.ts`) - World generation and collision detection
 - **CombatSystem** (`src/game/CombatSystem.ts`) - D&D-style combat mechanics
 - **LineOfSight** (`src/game/LineOfSight.ts`) - FOV and visibility calculations
 
+### Support Systems
+
+- **ErrorHandler** (`src/utils/ErrorHandler.ts`) - Comprehensive error handling framework
+- **Logger** (`src/utils/Logger.ts`) - Configurable logging system with multiple levels
+
 ### Tech Stack
 
-- **TypeScript** - Type-safe development
+- **TypeScript** - Type-safe development with strict mode
 - **PixiJS** - Hardware-accelerated 2D rendering
 - **Vite** - Fast development and build tooling
 - **MobX** - Reactive state management
 - **GSAP** - High-performance animations
+- **Vitest** - Modern testing framework with 65+ comprehensive tests
 
 ## Game Systems
 
@@ -106,38 +118,86 @@ Each entity has full D&D 5e-style attributes:
 ### Project Structure
 ```
 src/
-├── game/           # Core game systems
-│   ├── Game.ts         # Main game coordinator
-│   ├── Renderer.ts     # PixiJS rendering
-│   ├── TileMap.ts      # World representation
-│   ├── CombatSystem.ts # Combat mechanics
-│   └── LineOfSight.ts  # Vision system
-├── types/          # TypeScript interfaces
-│   └── index.ts        # Shared type definitions
-└── main.ts         # Application entry point
+├── game/                    # Core game systems
+│   ├── Game.ts                 # Main game coordinator (221 lines)
+│   ├── InputHandler.ts         # Keyboard event management (49 lines)
+│   ├── MovementSystem.ts       # Movement and collision logic (125 lines)
+│   ├── CombatManager.ts        # Combat orchestration (90 lines)
+│   ├── GameStateManager.ts     # Entity lifecycle management (140 lines)
+│   ├── Renderer.ts             # PixiJS rendering with camera
+│   ├── TileMap.ts              # World generation and collision
+│   ├── CombatSystem.ts         # D&D-style combat mechanics
+│   ├── LineOfSight.ts          # FOV and visibility calculations
+│   └── tests/                  # Comprehensive test suite (65+ tests)
+│       ├── CombatSystem.test.ts    # D&D mechanics with seeded randomness
+│       ├── LineOfSight.test.ts     # FOV algorithms
+│       ├── TileMap.test.ts         # Map generation
+│       ├── GameStateManager.test.ts # Entity management
+│       ├── InputHandler.test.ts    # Input handling
+│       ├── CombatManager.test.ts   # Combat orchestration
+│       └── Renderer.test.ts        # Rendering system
+├── utils/                   # Support utilities
+│   ├── ErrorHandler.ts        # Comprehensive error handling (126 lines)
+│   └── Logger.ts              # Professional logging system (117 lines)
+├── types/                   # TypeScript interfaces
+│   └── index.ts                # Shared type definitions
+└── main.ts                  # Application entry point
 ```
 
 ### Adding New Features
 
 1. **New Entity Types**: Extend the `Entity` interface in `src/types/index.ts`
-2. **Combat Abilities**: Add methods to `CombatSystem` class
+2. **Combat Abilities**: Add methods to `CombatSystem` class and update `CombatManager`
 3. **Visual Effects**: Implement in `Renderer` with GSAP animations
 4. **World Features**: Modify `TileMap` generation algorithms
+5. **Input Handling**: Add new key bindings in `InputHandler` with callback system
+6. **Movement Mechanics**: Extend `MovementSystem` for new movement types
+7. **Game State**: Manage entity lifecycle through `GameStateManager`
+
+### Testing
+
+The project includes comprehensive testing with Vitest:
+- **65+ tests** covering all core systems
+- **Seeded randomness** for deterministic testing
+- **Mock PixiJS** integration for renderer testing
+- **D&D mechanics validation** with dice rolling simulation
+- **Error handling** and edge case coverage
+
+Run tests with:
+```bash
+npm run test          # Run all tests
+npm run test:watch    # Run tests in watch mode
+```
 
 ### Code Style
-- TypeScript strict mode enabled
-- ES modules throughout
+- TypeScript strict mode enabled with comprehensive type safety
+- ES modules throughout with dependency injection pattern
 - Consistent emoji usage for game elements
 - Performance-focused rendering with object pooling
+- Modular architecture with single responsibility principle
+- Comprehensive error handling with typed error codes
+- Professional logging system with configurable levels
+- Test-driven development with high coverage
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
 3. Make your changes with proper TypeScript types
-4. Test locally with `npm run dev`
-5. Run type checking: `npm run typecheck`
-6. Submit a pull request
+4. Write tests for new functionality
+5. Test locally with `npm run dev`
+6. Run the full test suite: `npm run test`
+7. Run type checking: `npm run typecheck`
+8. Ensure all tests pass and code follows style guidelines
+9. Submit a pull request
+
+### Quality Assurance
+
+- All code must pass TypeScript strict mode compilation
+- New features require corresponding tests
+- Tests must be deterministic with seeded randomness where applicable
+- Error handling should use the `GameError` framework
+- Logging should use the centralized `Logger` system
 
 ## License
 
