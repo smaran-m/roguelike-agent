@@ -1,27 +1,95 @@
 import { Entity } from '../types';
 import { CombatSystem } from './CombatSystem';
 import { TileMap } from './TileMap';
+import { EnemyLoader } from '../utils/EnemyLoader';
+import { CharacterManager } from '../managers/CharacterManager';
 
 export class CreateEntity {
   /**
-   * Creates a player entity at a valid spawn position
+   * Creates a player entity using the CharacterManager system
    */
-  static createPlayer(tileMap?: TileMap): Entity {
+  static createPlayer(
+    tileMap?: TileMap, 
+    characterName?: string, 
+    className?: string,
+    customization?: {
+      selectedGlyph?: string;
+      selectedColor?: string;
+      customName?: string;
+    }
+  ): Entity {
+    const characterManager = CharacterManager.getInstance();
+    
+    // Create or get current character
+    let character = characterManager.getCurrentCharacter();
+    if (!character) {
+      character = characterManager.createCharacter(
+        characterName || 'Hero',
+        className || 'mage',
+        customization
+      );
+    }
+    
+    if (!character) {
+      // Fallback to old system if character creation fails
+      console.warn('Failed to create character, using fallback');
+      const spawnPos = tileMap?.findValidSpawnPosition();
+      const playerX = spawnPos?.x ?? 25;
+      const playerY = spawnPos?.y ?? 15;
+      
+      return {
+        id: 'player',
+        x: playerX,
+        y: playerY,
+        glyph: '🧙',
+        color: 0x4169E1,
+        name: 'Player',
+        isEmoji: true,
+        stats: CombatSystem.createPlayerStats(),
+        isPlayer: true
+      };
+    }
+
+    // Find spawn position
     const spawnPos = tileMap?.findValidSpawnPosition();
     const playerX = spawnPos?.x ?? 25;
     const playerY = spawnPos?.y ?? 15;
     
     return {
-      id: 'player',
+      id: character.id,
       x: playerX,
       y: playerY,
-      glyph: '🧙',
-      color: 0x4169E1,
-      name: 'Player',
+      glyph: character.appearance.glyph,
+      color: character.appearance.color,
+      name: character.name,
       isEmoji: true,
-      stats: CombatSystem.createPlayerStats(),
+      stats: character.stats,
       isPlayer: true
     };
+  }
+
+  /**
+   * Create a player with a specific character class (convenience method)
+   */
+  static createPlayerWithClass(className: string, tileMap?: TileMap, characterName?: string): Entity {
+    return this.createPlayer(tileMap, characterName, className);
+  }
+
+  /**
+   * Create a custom player with specific appearance
+   */
+  static createCustomPlayer(
+    tileMap: TileMap | undefined,
+    characterName: string,
+    className: string,
+    glyph: string,
+    color: string
+  ): Entity {
+    return this.createPlayer(tileMap, characterName, className, {
+      selectedGlyph: glyph,
+      selectedColor: color,
+      customName: characterName
+    });
   }
 
   /**
@@ -30,26 +98,36 @@ export class CreateEntity {
    * - Maintains at least 1 tile distance from other enemies
    * - Ensures no exact position conflicts with any entity
    */
-  static createEnemy(
+  static createEnemyFromType(
     enemyId: string,
-    name: string,
-    glyph: string,
-    color: number,
+    enemyType: string,
     tileMap: TileMap | undefined,
     existingEntities: Entity[],
     minDistanceFromPlayer: number = 2
   ): Entity | null {
+    const enemyDefinition = EnemyLoader.getEnemyDefinition(enemyType);
+    if (!enemyDefinition) {
+      console.warn(`Unknown enemy type: ${enemyType}`);
+      return null;
+    }
+
+    const stats = EnemyLoader.generateEnemyStats(enemyType);
+    if (!stats) {
+      console.warn(`Failed to generate stats for enemy type: ${enemyType}`);
+      return null;
+    }
+
     if (!tileMap) {
       // Fallback to default positions if no tileMap provided
       return {
         id: enemyId,
         x: 20,
         y: 10,
-        glyph,
-        color,
-        name,
+        glyph: enemyDefinition.glyph,
+        color: EnemyLoader.parseColor(enemyDefinition.color),
+        name: enemyDefinition.name,
         isEmoji: true,
-        stats: CombatSystem.createEnemyStats()
+        stats
       };
     }
     
@@ -103,11 +181,11 @@ export class CreateEntity {
         id: enemyId,
         x: spawnPos.x,
         y: spawnPos.y,
-        glyph,
-        color,
-        name,
+        glyph: enemyDefinition.glyph,
+        color: EnemyLoader.parseColor(enemyDefinition.color),
+        name: enemyDefinition.name,
         isEmoji: true,
-        stats: CombatSystem.createEnemyStats()
+        stats
       };
     }
     
@@ -115,18 +193,25 @@ export class CreateEntity {
   }
 
   /**
-   * Creates a goblin enemy with default settings
+   * Creates a goblin enemy with default settings (convenience method)
    */
   static createGoblin(goblinId: string, tileMap: TileMap | undefined, existingEntities: Entity[]): Entity | null {
-    return this.createEnemy(
-      goblinId,
-      'Goblin',
-      '👺',
-      0x00FF00,
-      tileMap,
-      existingEntities
-      // Uses default minDistanceFromPlayer = 2
-    );
+    return this.createEnemyFromType(goblinId, 'goblin', tileMap, existingEntities);
+  }
+
+  /**
+   * Creates a random enemy from the available enemy types
+   */
+  static createRandomEnemy(enemyId: string, tileMap: TileMap | undefined, existingEntities: Entity[]): Entity | null {
+    const enemyType = EnemyLoader.getRandomEnemyType();
+    return this.createEnemyFromType(enemyId, enemyType, tileMap, existingEntities);
+  }
+
+  /**
+   * Creates a specific enemy type (convenience method)
+   */
+  static createEnemyByType(enemyId: string, enemyType: string, tileMap: TileMap | undefined, existingEntities: Entity[]): Entity | null {
+    return this.createEnemyFromType(enemyId, enemyType, tileMap, existingEntities);
   }
 
   /**
@@ -135,9 +220,7 @@ export class CreateEntity {
   static createMultipleEnemies(
     enemyConfigs: Array<{
       id: string;
-      name: string;
-      glyph: string;
-      color: number;
+      type: string;
     }>,
     tileMap: TileMap | undefined,
     existingEntities: Entity[]
@@ -145,11 +228,9 @@ export class CreateEntity {
     const createdEnemies: Entity[] = [];
     
     for (const config of enemyConfigs) {
-      const enemy = this.createEnemy(
+      const enemy = this.createEnemyFromType(
         config.id,
-        config.name,
-        config.glyph,
-        config.color,
+        config.type,
         tileMap,
         [...existingEntities, ...createdEnemies] // Include already created enemies
       );
@@ -160,5 +241,26 @@ export class CreateEntity {
     }
     
     return createdEnemies;
+  }
+
+  /**
+   * Get all available enemy types
+   */
+  static getAvailableEnemyTypes(): string[] {
+    return EnemyLoader.getAvailableEnemyTypes();
+  }
+
+  /**
+   * Get all available character classes
+   */
+  static getAvailableCharacterClasses(): string[] {
+    return CharacterManager.getInstance().getAvailableClasses();
+  }
+
+  /**
+   * Get character manager instance
+   */
+  static getCharacterManager(): CharacterManager {
+    return CharacterManager.getInstance();
   }
 }

@@ -11,25 +11,20 @@ export class GameStateManager {
   }
 
   initializeEntities(tileMap?: any): Entity[] {
-    // Create player using CreateEntity class
-    const player = CreateEntity.createPlayer(tileMap);
+    // Create player using the new character system
+    // Try different classes: 'warrior', 'mage', 'rogue', 'cleric', 'ranger'
+    const player = CreateEntity.createCustomPlayer(tileMap, 'Gandalf', 'mage', '🧙', '0x4169E1');
     this.entities = [player];
     
-    // Create multiple enemies to demonstrate improved collision avoidance
-    const goblin1 = CreateEntity.createGoblin('goblin1', tileMap, this.entities);
-    if (goblin1) {
-      this.addEntity(goblin1);
-    }
+    // Create enemies using the new JSON-based system
+    const enemyConfigs = [
+      { id: 'goblin1', type: 'goblin' },
+      { id: 'orc1', type: 'orc' },
+      { id: 'skeleton1', type: 'skeleton' }
+    ];
     
-    const goblin2 = CreateEntity.createGoblin('goblin2', tileMap, this.entities);
-    if (goblin2) {
-      this.addEntity(goblin2);
-    }
-    
-    const goblin3 = CreateEntity.createGoblin('goblin3', tileMap, this.entities);
-    if (goblin3) {
-      this.addEntity(goblin3);
-    }
+    const createdEnemies = CreateEntity.createMultipleEnemies(enemyConfigs, tileMap, this.entities);
+    createdEnemies.forEach(enemy => this.addEntity(enemy));
     
     return [...this.entities];
   }

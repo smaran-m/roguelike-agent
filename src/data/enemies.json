@@ -1,0 +1,92 @@
+{
+  "goblin": {
+    "name": "Goblin",
+    "glyph": "👺",
+    "color": "0x00FF00",
+    "stats": {
+      "hp": "2d6+2",
+      "ac": 15,
+      "strength": "1d4+7",
+      "dexterity": "2d4+6",
+      "constitution": "1d4+9",
+      "intelligence": "1d4+6",
+      "wisdom": "1d4+7",
+      "charisma": "1d4+4",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "description": "A small, malicious humanoid creature"
+  },
+  "orc": {
+    "name": "Orc",
+    "glyph": "👹",
+    "color": "0x8B4513",
+    "stats": {
+      "hp": "2d8+6",
+      "ac": 13,
+      "strength": "2d4+10",
+      "dexterity": "1d4+10",
+      "constitution": "2d4+10",
+      "intelligence": "1d4+5",
+      "wisdom": "1d4+9",
+      "charisma": "1d4+8",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "description": "A savage humanoid warrior"
+  },
+  "skeleton": {
+    "name": "Skeleton",
+    "glyph": "💀",
+    "color": "0xC0C0C0",
+    "stats": {
+      "hp": "2d8+4",
+      "ac": 13,
+      "strength": "1d4+8",
+      "dexterity": "2d4+10",
+      "constitution": "2d4+10",
+      "intelligence": "1d4+4",
+      "wisdom": "1d4+6",
+      "charisma": "1d4+3",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "description": "An animated undead skeleton"
+  },
+  "wolf": {
+    "name": "Wolf",
+    "glyph": "🐺",
+    "color": "0x696969",
+    "stats": {
+      "hp": "2d8+2",
+      "ac": 13,
+      "strength": "1d4+10",
+      "dexterity": "2d4+10",
+      "constitution": "1d4+10",
+      "intelligence": "1d4+1",
+      "wisdom": "1d4+10",
+      "charisma": "1d4+5",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "description": "A fierce predatory canine"
+  },
+  "spider": {
+    "name": "Giant Spider",
+    "glyph": "🕷️",
+    "color": "0x4B0082",
+    "stats": {
+      "hp": "4d8+4",
+      "ac": 14,
+      "strength": "2d4+10",
+      "dexterity": "2d4+12",
+      "constitution": "1d4+10",
+      "intelligence": "1d4+0",
+      "wisdom": "1d4+9",
+      "charisma": "1d4+2",
+      "proficiencyBonus": 2,
+      "level": 2
+    },
+    "description": "A massive arachnid with venomous fangs"
+  }
+}

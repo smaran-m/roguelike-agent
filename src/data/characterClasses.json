@@ -1,0 +1,152 @@
+{
+  "warrior": {
+    "name": "Warrior",
+    "description": "A battle-hardened fighter skilled in combat and heavy armor",
+    "baseStats": {
+      "hp": "1d10+5",
+      "ac": 16,
+      "strength": "3d6+3",
+      "dexterity": "3d6",
+      "constitution": "3d6+2",
+      "intelligence": "3d6-1",
+      "wisdom": "3d6",
+      "charisma": "3d6-1",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "appearance": {
+      "defaultGlyph": "⚔️",
+      "alternativeGlyphs": ["🛡️", "🗡️", "⚔️"],
+      "defaultColor": "0xC0C0C0"
+    },
+    "startingEquipment": {
+      "weapon": "longsword",
+      "armor": "chain_mail",
+      "shield": true
+    },
+    "classFeatures": [
+      "Fighting Style",
+      "Second Wind"
+    ]
+  },
+  "mage": {
+    "name": "Mage",
+    "description": "A scholarly spellcaster who wields arcane magic",
+    "baseStats": {
+      "hp": "1d6+2",
+      "ac": 12,
+      "strength": "3d6-2",
+      "dexterity": "3d6",
+      "constitution": "3d6-1",
+      "intelligence": "3d6+3",
+      "wisdom": "3d6+1",
+      "charisma": "3d6",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "appearance": {
+      "defaultGlyph": "🧙",
+      "alternativeGlyphs": ["🔮", "📚", "⭐"],
+      "defaultColor": "0x4169E1"
+    },
+    "startingEquipment": {
+      "weapon": "staff",
+      "armor": "robes",
+      "shield": false
+    },
+    "classFeatures": [
+      "Spellcasting",
+      "Arcane Recovery"
+    ]
+  },
+  "rogue": {
+    "name": "Rogue",
+    "description": "A stealthy and agile character skilled in subterfuge",
+    "baseStats": {
+      "hp": "1d8+3",
+      "ac": 14,
+      "strength": "3d6-1",
+      "dexterity": "3d6+3",
+      "constitution": "3d6",
+      "intelligence": "3d6+1",
+      "wisdom": "3d6+1",
+      "charisma": "3d6",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "appearance": {
+      "defaultGlyph": "🗡️",
+      "alternativeGlyphs": ["🥷", "🏹", "💀"],
+      "defaultColor": "0x8B4513"
+    },
+    "startingEquipment": {
+      "weapon": "shortsword",
+      "armor": "leather_armor",
+      "shield": false
+    },
+    "classFeatures": [
+      "Sneak Attack",
+      "Thieves' Cant"
+    ]
+  },
+  "cleric": {
+    "name": "Cleric",
+    "description": "A divine spellcaster who channels the power of the gods",
+    "baseStats": {
+      "hp": "1d8+4",
+      "ac": 15,
+      "strength": "3d6",
+      "dexterity": "3d6-1",
+      "constitution": "3d6+1",
+      "intelligence": "3d6",
+      "wisdom": "3d6+3",
+      "charisma": "3d6+1",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "appearance": {
+      "defaultGlyph": "⛪",
+      "alternativeGlyphs": ["✨", "🕊️", "📿"],
+      "defaultColor": "0xFFD700"
+    },
+    "startingEquipment": {
+      "weapon": "mace",
+      "armor": "scale_mail",
+      "shield": true
+    },
+    "classFeatures": [
+      "Divine Domain",
+      "Channel Divinity"
+    ]
+  },
+  "ranger": {
+    "name": "Ranger",
+    "description": "A wilderness expert skilled in tracking and archery",
+    "baseStats": {
+      "hp": "1d10+3",
+      "ac": 13,
+      "strength": "3d6+1",
+      "dexterity": "3d6+2",
+      "constitution": "3d6+1",
+      "intelligence": "3d6",
+      "wisdom": "3d6+2",
+      "charisma": "3d6-1",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "appearance": {
+      "defaultGlyph": "🏹",
+      "alternativeGlyphs": ["🌲", "🐺", "🦅"],
+      "defaultColor": "0x228B22"
+    },
+    "startingEquipment": {
+      "weapon": "longbow",
+      "armor": "studded_leather",
+      "shield": false
+    },
+    "classFeatures": [
+      "Favored Enemy",
+      "Natural Explorer"
+    ]
+  }
+}
