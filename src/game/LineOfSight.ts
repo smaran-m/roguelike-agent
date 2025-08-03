@@ -6,7 +6,6 @@ export class LineOfSight {
     tileMap.clearVisibility();
     
     // Player position is always visible and explored
-    const centerVis = tileMap.getVisibility(centerX, centerY);
     tileMap.setVisibility(centerX, centerY, { explored: true, visible: true });
     
     // Cast rays in all directions
@@ -37,7 +36,6 @@ export class LineOfSight {
       }
       
       // Mark this tile as visible and explored
-      const currentVis = tileMap.getVisibility(tileX, tileY);
       tileMap.setVisibility(tileX, tileY, { explored: true, visible: true });
       
       // Check if this tile blocks light
@@ -69,7 +67,6 @@ export class LineOfSight {
         if (distance <= radius) {
           // Check if there's a clear line of sight
           if (this.hasLineOfSight(tileMap, centerX, centerY, x, y)) {
-            const currentVis = tileMap.getVisibility(x, y);
             tileMap.setVisibility(x, y, { explored: true, visible: true });
           }
         }

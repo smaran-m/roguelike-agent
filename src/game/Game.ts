@@ -274,7 +274,7 @@ export class Game {
       return; // render() will handle entity positioning
     }
     
-    // Otherwise, just update entity visual positions
+    // Update player visual position
     const playerText = this.renderer.entityTextMap.get(this.player.id);
     const playerHp = this.renderer.hpTextMap.get(this.player.id);
     
@@ -294,6 +294,13 @@ export class Game {
       playerHp.text = `${this.player.stats.hp}/${this.player.stats.maxHp}`;
       playerHp.style.fill = hpColor;
     }
+    
+    // Always update visibility alpha based on current player position
+    // This handles smooth FOV updates as player moves between grid positions
+    // Use rounded coordinates for line of sight calculations
+    const playerGridX = Math.round(this.playerDisplayX);
+    const playerGridY = Math.round(this.playerDisplayY);
+    this.renderer.updateVisibilityAlpha(playerGridX, playerGridY, this.tileMap, LineOfSight);
   }
   
   async waitForFontsAndRender() {

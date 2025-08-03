@@ -15,6 +15,7 @@ export class Renderer {
   messageContainer: Container;
   entityTextMap: Map<string, Text> = new Map(); // Track text objects by entity ID
   hpTextMap: Map<string, Text> = new Map(); // Track HP text objects by entity ID
+  entityPositions: Map<string, {x: number, y: number}> = new Map(); // Track entity world positions
   messages: string[] = [];
   messageText: Text;
   
@@ -136,12 +137,14 @@ export class Renderer {
   
   clearTiles() {
     this.tileContainer.removeChildren();
+    this.tileGraphicsMap.clear();
   }
   
   clearEntities() {
     this.entityContainer.removeChildren();
     this.entityTextMap.clear();
     this.hpTextMap.clear();
+    this.entityPositions.clear();
   }
 
   renderTileWithVisibility(worldX: number, worldY: number, tile: Tile, distance: number, hasLOS: boolean) {
@@ -196,6 +199,10 @@ export class Renderer {
     text.alpha = alpha;
     
     this.tileContainer.addChild(text);
+    
+    // Store graphics for alpha updates
+    const key = `${worldX},${worldY}`;
+    this.tileGraphicsMap.set(key, { bg, text, originalColor: tile.fgColor });
   }
 
   renderEntityWithVisibility(entity: Entity, distance: number, hasLOS: boolean) {
@@ -238,8 +245,9 @@ export class Renderer {
     text.anchor.set(0.5);
     text.alpha = alpha;
     
-    // Store reference for animations
+    // Store reference for animations and world position
     this.entityTextMap.set(entity.id, text);
+    this.entityPositions.set(entity.id, {x: entity.x, y: entity.y});
     this.entityContainer.addChild(text);
     
     // Render HP above entity with bar-like appearance
@@ -290,8 +298,9 @@ export class Renderer {
     text.y = screenY * this.tileSize + this.tileSize / 2;
     text.anchor.set(0.5);
     
-    // Store reference for animations
+    // Store reference for animations and world position
     this.entityTextMap.set(entity.id, text);
+    this.entityPositions.set(entity.id, {x: entity.x, y: entity.y});
     this.entityContainer.addChild(text);
     
     // Render HP above entity with bar-like appearance
@@ -567,5 +576,76 @@ export class Renderer {
       x: screenX + this.cameraX,
       y: screenY + this.cameraY
     };
+  }
+
+  // Store tile graphics for alpha updates
+  tileGraphicsMap: Map<string, {bg: Graphics, text: Text, originalColor: number}> = new Map();
+
+  updateVisibilityAlpha(playerX: number, playerY: number, tileMap: any, lineOfSight: any) {
+    // Ensure player coordinates are within bounds and integers
+    const safePlayerX = Math.max(0, Math.min(tileMap.width - 1, Math.round(playerX)));
+    const safePlayerY = Math.max(0, Math.min(tileMap.height - 1, Math.round(playerY)));
+    
+    // Update tile alphas based on current player position
+    this.tileGraphicsMap.forEach((graphics, key) => {
+      const [x, y] = key.split(',').map(Number);
+      
+      // Ensure tile coordinates are valid
+      if (x < 0 || x >= tileMap.width || y < 0 || y >= tileMap.height) {
+        return;
+      }
+      
+      const distance = Math.sqrt((x - safePlayerX) ** 2 + (y - safePlayerY) ** 2);
+      const hasLOS = lineOfSight.hasLineOfSight(tileMap, safePlayerX, safePlayerY, x, y);
+      
+      let alpha = 1.0;
+      let fgColor = graphics.originalColor;
+      
+      if (!hasLOS) {
+        alpha = 0.2;
+        fgColor = this.darkenColor(graphics.originalColor, 0.7);
+      } else {
+        fgColor = graphics.originalColor;
+        const maxDistance = 8;
+        alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
+      }
+      
+      graphics.bg.alpha = alpha;
+      graphics.text.alpha = alpha;
+      graphics.text.style.fill = fgColor;
+    });
+
+    // Update entity alphas
+    this.entityTextMap.forEach((entityText, entityId) => {
+      const hpText = this.hpTextMap.get(entityId);
+      const entityPos = this.entityPositions.get(entityId);
+      
+      if (!entityPos) return;
+      
+      // Skip player - they should always be fully visible
+      if (entityId === 'player') {
+        entityText.alpha = 1.0;
+        if (hpText) hpText.alpha = 1.0;
+        return;
+      }
+      
+      // Ensure entity coordinates are valid
+      if (entityPos.x < 0 || entityPos.x >= tileMap.width || entityPos.y < 0 || entityPos.y >= tileMap.height) {
+        return;
+      }
+      
+      const distance = Math.sqrt((entityPos.x - safePlayerX) ** 2 + (entityPos.y - safePlayerY) ** 2);
+      const hasLOS = lineOfSight.hasLineOfSight(tileMap, safePlayerX, safePlayerY, entityPos.x, entityPos.y);
+      
+      if (!hasLOS) {
+        entityText.alpha = 0;
+        if (hpText) hpText.alpha = 0;
+      } else {
+        const maxDistance = 8;
+        const alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
+        entityText.alpha = alpha;
+        if (hpText) hpText.alpha = alpha;
+      }
+    });
   }
 }
