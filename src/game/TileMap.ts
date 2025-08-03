@@ -72,6 +72,36 @@ export class TileMap {
     }
   }
   
+  findValidSpawnPosition(): { x: number, y: number } | null {
+    // Try to find a walkable position, starting from center and working outward
+    const centerX = Math.floor(this.width / 2);
+    const centerY = Math.floor(this.height / 2);
+    
+    // Check center first
+    if (this.getTile(centerX, centerY).walkable) {
+      return { x: centerX, y: centerY };
+    }
+    
+    // Spiral outward from center
+    for (let radius = 1; radius < Math.max(this.width, this.height) / 2; radius++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+          if (Math.abs(dx) === radius || Math.abs(dy) === radius) {
+            const x = centerX + dx;
+            const y = centerY + dy;
+            if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+              if (this.getTile(x, y).walkable) {
+                return { x, y };
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    return null; // No valid position found
+  }
+
   getTile(x: number, y: number): Tile {
     if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
       return {

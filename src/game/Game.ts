@@ -1,54 +1,76 @@
 import { Renderer } from './Renderer';
 import { TileMap } from './TileMap';
 import { Entity } from '../types';
-import { CombatSystem } from './CombatSystem';
 import { LineOfSight } from './LineOfSight';
+import { InputHandler, InputCallbacks } from './InputHandler';
+import { MovementSystem, MovementState } from './MovementSystem';
+import { CombatManager } from './CombatManager';
+import { GameStateManager } from './GameStateManager';
 
 export class Game {
   renderer: Renderer;
   tileMap: TileMap;
   player: Entity;
-  entities: Entity[] = [];
-  keysPressed: Set<string> = new Set();
-  movementSpeed: number = 0.1; // tiles per frame
-  playerDisplayX: number = 25; // Visual position
-  playerDisplayY: number = 15;
-  lastValidX: number = 25; // Last valid grid position
-  lastValidY: number = 15;
+  
+  // Extracted systems
+  private inputHandler: InputHandler;
+  private movementSystem: MovementSystem;
+  private combatManager: CombatManager;
+  private gameStateManager: GameStateManager;
+  
+  // Movement state
+  private movementState: MovementState;
   
   constructor() {
     this.renderer = new Renderer(50, 30);
     this.tileMap = new TileMap(50, 30);
     
-    // Create player
-    this.player = {
-      id: 'player',
-      x: 25,
-      y: 15,
-      glyph: '🧙',
-      color: 0x4169E1,
-      name: 'Player',
-      isEmoji: true,
-      stats: CombatSystem.createPlayerStats(),
-      isPlayer: true
+    // Initialize systems
+    this.gameStateManager = new GameStateManager();
+    this.movementSystem = new MovementSystem(0.1);
+    this.combatManager = new CombatManager(this.renderer);
+    
+    // Initialize entities through game state manager with safe spawn positions
+    this.gameStateManager.initializeEntities(this.tileMap);
+    this.player = this.gameStateManager.getPlayer()!;
+    
+    // Initialize movement state
+    this.movementState = {
+      displayX: this.player.x,
+      displayY: this.player.y,
+      lastValidX: this.player.x,
+      lastValidY: this.player.y
     };
     
-    this.entities.push(this.player);
-    
-    // Add some test enemies
-    this.entities.push({
-      id: 'goblin1',
-      x: 20,
-      y: 10,
-      glyph: '👺',
-      color: 0x00FF00,
-      name: 'Goblin',
-      isEmoji: true,
-      stats: CombatSystem.createEnemyStats()
-    });
-    
-    // Setup input
-    this.setupInput();
+    // Setup input with direct system callbacks
+    const inputCallbacks: InputCallbacks = {
+      onMovementKey: () => {}, // Movement handled in updateMovement
+      onMovementKeyRelease: (keys) => {
+        // Snap to grid when no keys are pressed
+        if (keys.size === 0) {
+          const entities = this.gameStateManager.getAllEntities();
+          this.movementSystem.snapPlayerToGrid(
+            this.movementState, 
+            this.player, 
+            entities, 
+            this.tileMap
+          );
+        }
+      },
+      onAttack: () => {
+        const entities = this.gameStateManager.getAllEntities();
+        const result = this.combatManager.attemptMeleeAttack(this.player, entities);
+        
+        if (result.success && result.targetKilled && result.target) {
+          this.gameStateManager.removeEntity(result.target.id);
+        }
+        
+        if (result.success) {
+          this.render();
+        }
+      }
+    };
+    this.inputHandler = new InputHandler(inputCallbacks);
     
     // Start game loop
     this.startGameLoop();
@@ -57,211 +79,37 @@ export class Game {
     this.waitForFontsAndRender();
   }
   
-  setupInput() {
-    window.addEventListener('keydown', (e) => {
-      const key = e.key.toLowerCase();
-      
-      // Movement keys
-      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
-        e.preventDefault();
-        this.keysPressed.add(key);
-      }
-      
-      // Attack key (spacebar)
-      if (key === ' ') {
-        e.preventDefault();
-        this.attemptMeleeAttack();
-      }
-    });
-    
-    window.addEventListener('keyup', (e) => {
-      const key = e.key.toLowerCase();
-      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
-        e.preventDefault();
-        this.keysPressed.delete(key);
-        
-        // Snap to grid when key is released
-        if (this.keysPressed.size === 0) {
-          this.snapPlayerToGrid();
-        }
-      }
-    });
-  }
   
   startGameLoop() {
-    const gameLoop = () => {
+    this.gameStateManager.startGameLoop(() => {
       this.updateMovement();
       this.updateVisuals();
-      requestAnimationFrame(gameLoop);
-    };
-    requestAnimationFrame(gameLoop);
+    });
   }
   
   updateMovement() {
-    if (this.keysPressed.size === 0) return;
-    
-    let dx = 0, dy = 0;
-    
-    if (this.keysPressed.has('arrowup') || this.keysPressed.has('w')) dy -= this.movementSpeed;
-    if (this.keysPressed.has('arrowdown') || this.keysPressed.has('s')) dy += this.movementSpeed;
-    if (this.keysPressed.has('arrowleft') || this.keysPressed.has('a')) dx -= this.movementSpeed;
-    if (this.keysPressed.has('arrowright') || this.keysPressed.has('d')) dx += this.movementSpeed;
-    
-    const newDisplayX = this.playerDisplayX + dx;
-    const newDisplayY = this.playerDisplayY + dy;
-    
-    // Check if the new position is valid
-    if (this.isValidPosition(newDisplayX, newDisplayY)) {
-      this.playerDisplayX = newDisplayX;
-      this.playerDisplayY = newDisplayY;
-      
-      // Update last valid grid position if we're on a valid grid cell
-      const gridX = Math.round(this.playerDisplayX);
-      const gridY = Math.round(this.playerDisplayY);
-      if (this.isValidGridPosition(gridX, gridY)) {
-        this.lastValidX = gridX;
-        this.lastValidY = gridY;
-        this.player.x = gridX;
-        this.player.y = gridY;
-      }
-    }
-  }
-  
-  isValidPosition(x: number, y: number): boolean {
-    // Check bounds
-    if (x < 0 || x >= this.tileMap.width || y < 0 || y >= this.tileMap.height) {
-      return false;
-    }
-    
-    // Check if the position overlaps with any non-walkable tiles
-    const minX = Math.floor(x);
-    const maxX = Math.ceil(x);
-    const minY = Math.floor(y);
-    const maxY = Math.ceil(y);
-    
-    for (let checkX = minX; checkX <= maxX; checkX++) {
-      for (let checkY = minY; checkY <= maxY; checkY++) {
-        if (checkX >= 0 && checkX < this.tileMap.width && 
-            checkY >= 0 && checkY < this.tileMap.height) {
-          if (!this.tileMap.getTile(checkX, checkY).walkable) {
-            return false;
-          }
-        }
-      }
-    }
-    
-    return true;
-  }
-  
-  isValidGridPosition(x: number, y: number): boolean {
-    if (x < 0 || x >= this.tileMap.width || y < 0 || y >= this.tileMap.height) {
-      return false;
-    }
-    
-    return this.tileMap.getTile(x, y).walkable;
-  }
-  
-  snapPlayerToGrid() {
-    const gridX = Math.round(this.playerDisplayX);
-    const gridY = Math.round(this.playerDisplayY);
-    
-    // Check if the snapped position is valid
-    if (this.isValidGridPosition(gridX, gridY)) {
-      // Check collision with other entities
-      const collidedEntity = this.entities.find(e => 
-        e.id !== this.player.id && e.x === gridX && e.y === gridY
-      );
-      
-      if (collidedEntity) {
-        // Don't allow movement into enemy space, but don't trigger combat
-        // Combat is now handled separately via spacebar
-        this.snapToLastValidPosition();
-        return;
-      }
-      
-      // Valid position, snap to it
-      this.player.x = gridX;
-      this.player.y = gridY;
-      this.playerDisplayX = gridX;
-      this.playerDisplayY = gridY;
-      this.lastValidX = gridX;
-      this.lastValidY = gridY;
-    } else {
-      // Invalid position, snap to last valid position
-      this.snapToLastValidPosition();
-    }
-  }
-  
-  snapToLastValidPosition() {
-    this.player.x = this.lastValidX;
-    this.player.y = this.lastValidY;
-    this.playerDisplayX = this.lastValidX;
-    this.playerDisplayY = this.lastValidY;
-  }
-  
-  
-  attemptMeleeAttack() {
-    // Find all enemies within melee range
-    const targets = this.entities.filter(entity => 
-      entity.id !== this.player.id && 
-      CombatSystem.isInMeleeRange(this.player, entity)
+    const keysPressed = this.inputHandler.getKeysPressed();
+    this.movementSystem.updateMovement(
+      keysPressed, 
+      this.movementState, 
+      this.tileMap, 
+      this.player
     );
-    
-    if (targets.length === 0) {
-      this.renderer.addMessage("No enemies in range!");
-      return;
-    }
-    
-    // For now, attack the first target in range
-    const target = targets[0];
-    const attackResult = CombatSystem.meleeAttack(this.player, target);
-    
-    // Player nudges toward enemy when attacking
-    this.renderer.nudgeEntity(this.player, target.x, target.y);
-    
-    this.renderer.addMessage(`${this.player.name} attacks ${target.name}!`);
-    this.renderer.addMessage(`Attack: ${attackResult.attackRoll} vs AC ${target.stats.ac}`);
-    
-    if (attackResult.hit) {
-      const died = CombatSystem.applyDamage(target, attackResult.damage);
-      
-      if (attackResult.critical) {
-        this.renderer.addMessage(`CRITICAL HIT! ${attackResult.damageRoll} = ${attackResult.damage} damage`);
-      } else {
-        this.renderer.addMessage(`Hit! ${attackResult.damageRoll} = ${attackResult.damage} damage`);
-      }
-      
-      // Visual effects for hit
-      this.renderer.shakeEntity(target);
-      this.renderer.showFloatingDamage(target, attackResult.damage);
-      
-      if (died) {
-        this.renderer.addMessage(`${target.name} died!`);
-        this.entities = this.entities.filter(entity => entity.id !== target.id);
-      } else {
-        this.renderer.addMessage(`${target.name}: ${target.stats.hp}/${target.stats.maxHp} HP`);
-      }
-      
-      // Re-render to update HP display
-      this.render();
-      
-    } else {
-      this.renderer.addMessage("Miss!");
-      // Shake player to indicate miss
-      this.renderer.shakeEntity(this.player);
-    }
   }
+  
+  
+  
 
   updateVisuals() {
     // Check if camera needs to move based on player position
     const cameraMoved = this.renderer.updateCameraForPlayer({ 
-      x: Math.round(this.playerDisplayX), 
-      y: Math.round(this.playerDisplayY) 
+      x: Math.round(this.movementState.displayX), 
+      y: Math.round(this.movementState.displayY) 
     } as Entity);
     
     // Check if player moved to a new grid position (for FOV updates)
-    const currentGridX = Math.round(this.playerDisplayX);
-    const currentGridY = Math.round(this.playerDisplayY);
+    const currentGridX = Math.round(this.movementState.displayX);
+    const currentGridY = Math.round(this.movementState.displayY);
     const playerMoved = currentGridX !== this.player.x || currentGridY !== this.player.y;
     
     // If camera moved or player moved to new grid position, need to re-render everything
@@ -279,13 +127,13 @@ export class Game {
     const playerHp = this.renderer.hpTextMap.get(this.player.id);
     
     if (playerText) {
-      const screenPos = this.renderer.worldToScreen(this.playerDisplayX, this.playerDisplayY);
+      const screenPos = this.renderer.worldToScreen(this.movementState.displayX, this.movementState.displayY);
       playerText.x = screenPos.x * this.renderer.tileSize + this.renderer.tileSize / 2;
       playerText.y = screenPos.y * this.renderer.tileSize + this.renderer.tileSize / 2;
     }
     
     if (playerHp) {
-      const screenPos = this.renderer.worldToScreen(this.playerDisplayX, this.playerDisplayY);
+      const screenPos = this.renderer.worldToScreen(this.movementState.displayX, this.movementState.displayY);
       playerHp.x = screenPos.x * this.renderer.tileSize + this.renderer.tileSize / 2;
       playerHp.y = screenPos.y * this.renderer.tileSize + this.renderer.tileSize / 2 - 10;
       // Update HP text content and color
@@ -298,8 +146,8 @@ export class Game {
     // Always update visibility alpha based on current player position
     // This handles smooth FOV updates as player moves between grid positions
     // Use rounded coordinates for line of sight calculations
-    const playerGridX = Math.round(this.playerDisplayX);
-    const playerGridY = Math.round(this.playerDisplayY);
+    const playerGridX = Math.round(this.movementState.displayX);
+    const playerGridY = Math.round(this.movementState.displayY);
     this.renderer.updateVisibilityAlpha(playerGridX, playerGridY, this.tileMap, LineOfSight);
   }
   
@@ -358,10 +206,17 @@ export class Game {
     }
     
     // Render entities with line of sight check
-    for (const entity of this.entities) {
+    const entities = this.gameStateManager.getAllEntities();
+    for (const entity of entities) {
       const distance = Math.sqrt((entity.x - this.player.x) ** 2 + (entity.y - this.player.y) ** 2);
       const hasLOS = LineOfSight.hasLineOfSight(this.tileMap, this.player.x, this.player.y, entity.x, entity.y);
       this.renderer.renderEntityWithVisibility(entity, distance, hasLOS);
     }
+  }
+
+  // Cleanup method for proper resource management
+  destroy() {
+    this.inputHandler.destroy();
+    this.gameStateManager.cleanup();
   }
 }
