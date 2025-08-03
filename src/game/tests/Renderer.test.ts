@@ -7,8 +7,11 @@ import { CombatSystem } from '../CombatSystem';
 const mockContainer = {
   addChild: vi.fn(),
   removeChild: vi.fn(),
+  removeChildren: vi.fn(),
   children: [],
-  destroy: vi.fn()
+  destroy: vi.fn(),
+  x: 0,
+  y: 0
 };
 
 const mockGraphics = {
@@ -16,7 +19,12 @@ const mockGraphics = {
   drawRect: vi.fn().mockReturnThis(),
   endFill: vi.fn().mockReturnThis(),
   clear: vi.fn().mockReturnThis(),
-  destroy: vi.fn()
+  destroy: vi.fn(),
+  lineStyle: vi.fn().mockReturnThis(),
+  moveTo: vi.fn().mockReturnThis(),
+  lineTo: vi.fn().mockReturnThis(),
+  x: 0,
+  y: 0
 };
 
 const mockApplication = {
@@ -50,11 +58,11 @@ describe('Renderer', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    renderer = new Renderer(20, 15);
+    renderer = new Renderer(50, 30); // Use larger map so camera can move freely
     
     testEntity = {
       id: 'test-entity',
-      x: 10,
+      x: 12,
       y: 7,
       glyph: '🧙',
       color: 0x4169E1,
@@ -65,9 +73,9 @@ describe('Renderer', () => {
   });
 
   it('should initialize with correct dimensions', () => {
-    expect(renderer.viewportWidth).toBe(20);
+    expect(renderer.viewportWidth).toBe(25);
     expect(renderer.viewportHeight).toBe(15);
-    expect(renderer.tileSize).toBe(24);
+    expect(renderer.tileSize).toBe(32);
   });
 
   it('should initialize camera at origin', () => {
@@ -114,8 +122,8 @@ describe('Renderer', () => {
   it('should detect camera movement when updating for player', () => {
     const player = {
       ...testEntity,
-      x: 15,
-      y: 10
+      x: 30,
+      y: 20
     };
     
     const cameraMoved = renderer.updateCameraForPlayer(player);
@@ -176,10 +184,10 @@ describe('Renderer', () => {
 
   it('should handle visibility alpha correctly', () => {
     const mockTileMap = {
-      width: 20,
-      height: 15,
-      tiles: Array(15).fill(null).map(() => 
-        Array(20).fill({
+      width: 50,
+      height: 30,
+      tiles: Array(30).fill(null).map(() => 
+        Array(50).fill({
           glyph: '·',
           fgColor: 0x404040,
           bgColor: 0x000000,
@@ -267,8 +275,8 @@ describe('Renderer', () => {
     const expectedPixelX = screenPos.x * renderer.tileSize + renderer.tileSize / 2;
     const expectedPixelY = screenPos.y * renderer.tileSize + renderer.tileSize / 2;
     
-    expect(expectedPixelX).toBe(3 * 24 + 12); // (8-5) * 24 + 12
-    expect(expectedPixelY).toBe(3 * 24 + 12); // (6-3) * 24 + 12
+    expect(expectedPixelX).toBe(3 * 32 + 16); // (8-5) * 32 + 16
+    expect(expectedPixelY).toBe(3 * 32 + 16); // (6-3) * 32 + 16
   });
 
   it('should handle entities without stats gracefully', () => {

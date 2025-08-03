@@ -293,7 +293,7 @@ export class Renderer {
     this.entityContainer.addChild(text);
     
     // Render HP above entity with bar-like appearance (only for non-player entities)
-    if (!entity.isPlayer) {
+    if (!entity.isPlayer && entity.stats) {
       const hpRatio = entity.stats.hp / entity.stats.maxHp;
       const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
       
