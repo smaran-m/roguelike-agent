@@ -16,6 +16,7 @@ describe('CombatManager', () => {
       nudgeEntity: vi.fn(),
       shakeEntity: vi.fn(),
       showFloatingDamage: vi.fn(),
+      removeEntity: vi.fn(),
       animationSystem: {
         nudgeEntity: vi.fn(),
         shakeEntity: vi.fn(),
