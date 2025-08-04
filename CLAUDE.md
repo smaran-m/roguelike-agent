@@ -40,7 +40,7 @@ The project uses Vite for development with hot module replacement. The game auto
 
 This is an emoji-based roguelike game built with TypeScript, PixiJS for rendering, featuring D&D-style combat mechanics, line of sight system, and smooth animations. The architecture follows a layered approach:
 
-**For comprehensive technical architecture documentation**, see [architecture.md](architecture.md) which covers:
+**For comprehensive technical architecture documentation**, see [docs/architecture.md](docs/architecture.md) which covers:
 - System interconnections and data flow
 - Position management (logical vs rendering positions)
 - Rendering pipeline and camera system

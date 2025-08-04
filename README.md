@@ -115,7 +115,7 @@ The game will automatically open in your browser at `http://localhost:3000`.
 
 ### Detailed Architecture
 
-For comprehensive technical documentation including system interconnections, position management, rendering pipeline, and data flow patterns, see [architecture.md](architecture.md).
+For comprehensive technical documentation including system interconnections, position management, rendering pipeline, and data flow patterns, see [docs/architecture.md](docs/architecture.md).
 
 ### Tech Stack
 
