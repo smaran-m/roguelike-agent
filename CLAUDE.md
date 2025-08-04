@@ -2,6 +2,21 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 📝 Documentation Maintenance Notes
+
+**IMPORTANT**: When making changes to the codebase, please update the following sections in this file:
+
+- **Test count** (currently 114+): Update when adding/removing test files
+- **Component list**: Add new systems, managers, or utilities as they're created
+- **Architecture section**: Update when system responsibilities change
+- **Available scripts**: Sync with package.json when scripts are modified
+- **Dependencies**: Update version numbers when upgrading packages
+
+**Auto-sync locations**: 
+- Test count: Search for "114+" and update across all documentation
+- Scripts: Match package.json scripts section exactly
+- File structure: Reflect actual src/ directory organization
+
 ## Development Commands
 
 ### Building and Running
@@ -10,14 +25,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run preview` - Preview production build
 - `npm run typecheck` - Run TypeScript type checking without emitting files
 - `npm run test` - Run comprehensive test suite (65+ tests) with Vitest
-- `npm run test:watch` - Run tests in watch mode for development
+- `npm run test:ui` - Run tests with UI interface for development
 
 ### Development Workflow
 The project uses Vite for development with hot module replacement. The game automatically opens in the browser at http://localhost:3000 when running `npm run dev`.
 
+**Critical Development Process**:
+1. **Always run `npm run dev` BEFORE running tests** - Manual verification should come first
+2. Tests should be considered an additional validation step after manual functionality checks
+3. Development workflow: `npm run dev` → manual testing → `npm run test` → `npm run typecheck`
+4. This ensures that features work correctly in the actual game environment before automated testing
+
 ## Architecture Overview
 
 This is an emoji-based roguelike game built with TypeScript, PixiJS for rendering, featuring D&D-style combat mechanics, line of sight system, and smooth animations. The architecture follows a layered approach:
+
+**For comprehensive technical architecture documentation**, see [architecture.md](architecture.md) which covers:
+- System interconnections and data flow
+- Position management (logical vs rendering positions)
+- Rendering pipeline and camera system
+- Animation system architecture
+- Memory management and performance optimizations
 
 ### Core Structure
 - **Game Layer** (`src/game/Game.ts`) - Main game coordinator and orchestration (221 lines, 40% reduction from refactoring)
@@ -32,6 +60,11 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - **Error Handling** (`src/utils/ErrorHandler.ts`) - Comprehensive error handling framework with typed error codes (126 lines)
 - **Logging System** (`src/utils/Logger.ts`) - Professional logging system with configurable levels (117 lines)
 - **Type Definitions** (`src/types/index.ts`) - Shared interfaces for Tile, Entity, Combat, and WorldSchema
+- **Character Management** (`src/managers/CharacterManager.ts`) - Singleton character progression and class system
+- **Enemy System** (`src/utils/EnemyLoader.ts`) - Enemy data loading and validation from JSON
+- **UI Components** (`src/ui/`) - Character sheets, portraits, and UI elements
+- **Animation System** (`src/game/AnimationSystem.ts`) - Dedicated visual effects and animation management
+- **Data Files** (`src/data/`) - JSON configuration for character classes and enemy definitions
 
 ### Key Components
 
@@ -129,7 +162,7 @@ Smooth movement animations are implemented using requestAnimationFrame with line
 - Targets modern browsers with `esnext` build target
 - Dependencies: PixiJS 7.4+, MobX 6.12+, MobX State Tree 5.4+, GSAP 3.12+
 - TypeScript configuration includes both main and Node.js configs
-- Comprehensive test framework with Vitest and jsdom environment
+- Comprehensive test framework with Vitest and jsdom environment (114+ tests)
 - Modular architecture with dependency injection and single responsibility principle
 - Professional error handling with typed error codes and context
 - Configurable logging system with multiple levels (DEBUG, INFO, WARN, ERROR)
@@ -160,7 +193,7 @@ The project uses consistent dark theme styling throughout:
 ## Recent Development
 Latest features added (as of recent commits):
 - **Architectural Refactoring**: Extracted 4 major systems from monolithic Game class (40% code reduction)
-- **Comprehensive Testing**: 65+ tests covering all core systems with deterministic seeded randomness
+- **Comprehensive Testing**: 114+ tests covering all core systems with deterministic seeded randomness
 - **Error Handling Framework**: Professional error management with GameError class and typed error codes
 - **Logging Infrastructure**: Configurable logging system with multiple levels and context
 - **Input System**: Centralized keyboard management with callback-based architecture
@@ -175,7 +208,7 @@ Latest features added (as of recent commits):
 ## Testing Infrastructure
 
 - **Test Framework**: Vitest with jsdom environment for browser simulation
-- **Test Coverage**: 65+ comprehensive tests across 8 test files
+- **Test Coverage**: 114+ comprehensive tests across 10 test files
 - **Deterministic Testing**: Seeded randomness for combat system validation
 - **Mock Integration**: PixiJS mocking for renderer testing without graphics dependencies
 - **Edge Case Coverage**: Boundary conditions, error scenarios, and invalid input handling
@@ -184,11 +217,14 @@ Latest features added (as of recent commits):
 Test files:
 - `CombatSystem.test.ts` - D&D mechanics with seeded randomness (16 tests)
 - `LineOfSight.test.ts` - FOV algorithms and visibility (12 tests)
-- `TileMap.test.ts` - Map generation and collision detection (14 tests)
+- `TileMap.test.ts` - Map generation and collision detection (14 tests) 
+- `Renderer.test.ts` - Rendering system with PixiJS mocks (19 tests)
+- `CharacterManager.test.ts` - Character management and progression (14 tests)
 - `GameStateManager.test.ts` - Entity lifecycle management (9 tests)
-- `InputHandler.test.ts` - Input handling and callbacks (5 tests)
 - `CombatManager.test.ts` - Combat orchestration (9 tests)
-- `Renderer.test.ts` - Rendering system with PixiJS mocks
+- `MovementSystem.test.ts` - Movement logic and collision detection (8 tests)
+- `EnemyLoader.test.ts` - Enemy data loading and validation (8 tests)
+- `InputHandler.test.ts` - Input handling and callbacks (5 tests)
 
 ## Architecture Patterns
 
@@ -203,7 +239,7 @@ Test files:
 
 ### Running Tests
 - Use `npm run test` to run the full test suite before making changes
-- Use `npm run test:watch` during development for immediate feedback
+- Use `npm run test:ui` during development for immediate feedback with visual interface
 - Tests use seeded randomness - maintain deterministic behavior in combat tests
 - All tests should pass before considering work complete
 
