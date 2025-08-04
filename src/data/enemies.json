@@ -19,7 +19,7 @@
   },
   "orc": {
     "name": "Orc",
-    "glyph": "👹",
+    "glyph": "🧌",
     "color": "0x8B4513",
     "stats": {
       "hp": "2d8+6",

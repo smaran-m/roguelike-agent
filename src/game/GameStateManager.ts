@@ -13,7 +13,7 @@ export class GameStateManager {
   initializeEntities(tileMap?: any): Entity[] {
     // Create player using the new character system
     // Try different classes: 'warrior', 'mage', 'rogue', 'cleric', 'ranger'
-    const player = CreateEntity.createCustomPlayer(tileMap, 'Gandalf', 'mage', '🧙', '0x4169E1');
+    const player = CreateEntity.createCustomPlayer(tileMap, 'Hattori', 'rogue', '🥷', '0xC0C0C0');
     this.entities = [player];
     
     // Create enemies using the new JSON-based system
