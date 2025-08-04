@@ -1,6 +1,7 @@
 import { Application, Container, Graphics, Text } from 'pixi.js';
 import { Tile, Entity } from '../types';
 import { CharacterSheet } from '../ui/CharacterSheet';
+import { AnimationSystem } from './AnimationSystem';
 
 export class Renderer {
   app: Application;
@@ -20,6 +21,7 @@ export class Renderer {
   messages: string[] = [];
   messageText: Text;
   characterSheet: CharacterSheet;
+  animationSystem: AnimationSystem;
   private readonly characterSheetWidth = 220; // Width of character sheet panel
   
   // Bottom corner UI elements
@@ -55,6 +57,14 @@ export class Renderer {
     // Initialize character sheet
     this.characterSheet = new CharacterSheet(this.app);
     this.characterSheet.setPosition(10, 10);
+    
+    // Initialize animation system
+    this.animationSystem = new AnimationSystem(
+      this.tileSize,
+      this.entityContainer,
+      this.entityTextMap,
+      this.hpTextMap
+    );
     
     // Initialize bottom corner UI elements
     this.setupBottomCornerUI();
@@ -183,10 +193,61 @@ export class Renderer {
   }
   
   clearEntities() {
+    // Full clear - used for cleanup/shutdown
     this.entityContainer.removeChildren();
+    
+    // Destroy text objects to free memory
+    for (const text of this.entityTextMap.values()) {
+      text.destroy();
+    }
+    for (const text of this.hpTextMap.values()) {
+      text.destroy();
+    }
+    
     this.entityTextMap.clear();
     this.hpTextMap.clear();
     this.entityPositions.clear();
+  }
+
+  removeEntity(entityId: string) {
+    // Remove specific entity (e.g., when it dies)
+    const text = this.entityTextMap.get(entityId);
+    const hpText = this.hpTextMap.get(entityId);
+    
+    if (text) {
+      this.entityContainer.removeChild(text);
+      text.destroy();
+      this.entityTextMap.delete(entityId);
+    }
+    
+    if (hpText) {
+      this.entityContainer.removeChild(hpText);
+      hpText.destroy();
+      this.hpTextMap.delete(entityId);
+    }
+    
+    this.entityPositions.delete(entityId);
+  }
+
+  updateEntityPositions() {
+    // Update screen positions for all visible entities after camera change
+    for (const [entityId, worldPos] of this.entityPositions.entries()) {
+      const text = this.entityTextMap.get(entityId);
+      const hpText = this.hpTextMap.get(entityId);
+      
+      if (text) {
+        const screenX = worldPos.x - this.cameraX;
+        const screenY = worldPos.y - this.cameraY;
+        
+        text.x = screenX * this.tileSize + this.tileSize / 2;
+        text.y = screenY * this.tileSize + this.tileSize / 2;
+        
+        if (hpText) {
+          hpText.x = screenX * this.tileSize + this.tileSize / 2;
+          hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10;
+        }
+      }
+    }
   }
 
   renderTileWithVisibility(worldX: number, worldY: number, tile: Tile, distance: number, hasLOS: boolean) {
@@ -252,66 +313,71 @@ export class Renderer {
     const screenX = entity.x - this.cameraX;
     const screenY = entity.y - this.cameraY;
     
-    // Only render if within viewport
-    if (screenX < 0 || screenX >= this.viewportWidth || 
-        screenY < 0 || screenY >= this.viewportHeight) {
-      return;
-    }
+    // Check if within viewport
+    const inViewport = screenX >= 0 && screenX < this.viewportWidth && 
+                      screenY >= 0 && screenY < this.viewportHeight;
     
     // Calculate alpha based on distance and line of sight
-    let alpha = 1.0;
-    
-    if (!hasLOS) {
-      // No line of sight - don't render at all
-      return;
-    } else {
-      // Line of sight - fade based on distance
+    let alpha = 0;
+    if (hasLOS && inViewport) {
       const maxDistance = 8;
       alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
     }
     
-    const text = new Text(entity.glyph, {
-      fontFamily: entity.isEmoji ? 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif' : 'Noto Sans Mono, monospace',
-      fontSize: entity.isEmoji ? 28 : 24,
-      fill: entity.isEmoji ? 0xFFFFFF : entity.color,
-      align: 'center'
-    });
-    
-    // Apply color tint for emojis
-    if (entity.isEmoji) {
-      text.tint = entity.color;
+    // Get or create entity text object (persistent across frames)
+    let text = this.entityTextMap.get(entity.id);
+    if (!text) {
+      text = new Text(entity.glyph, {
+        fontFamily: entity.isEmoji ? 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif' : 'Noto Sans Mono, monospace',
+        fontSize: entity.isEmoji ? 28 : 24,
+        fill: entity.isEmoji ? 0xFFFFFF : entity.color,
+        align: 'center'
+      });
+      text.anchor.set(0.5);
+      
+      // Apply color tint for emojis  
+      if (entity.isEmoji) {
+        text.tint = entity.color;
+      }
+      
+      this.entityTextMap.set(entity.id, text);
+      this.entityContainer.addChild(text);
     }
     
+    // Update position and visibility (properties only, object persists)
     text.x = screenX * this.tileSize + this.tileSize / 2;
     text.y = screenY * this.tileSize + this.tileSize / 2;
-    text.anchor.set(0.5);
     text.alpha = alpha;
+    text.visible = alpha > 0;
     
-    // Store reference for animations and world position
-    this.entityTextMap.set(entity.id, text);
+    // Store world position for animations
     this.entityPositions.set(entity.id, {x: entity.x, y: entity.y});
-    this.entityContainer.addChild(text);
     
-    // Render HP above entity with bar-like appearance (only for non-player entities)
+    // Handle HP text for non-player entities (persistent objects)
     if (!entity.isPlayer && entity.stats) {
+      let hpText = this.hpTextMap.get(entity.id);
+      if (!hpText) {
+        hpText = new Text('', {
+          fontFamily: 'Noto Sans Mono, monospace',
+          fontSize: 10,
+          fill: 0x00FF00,
+          align: 'center'
+        });
+        hpText.anchor.set(0.5);
+        this.hpTextMap.set(entity.id, hpText);
+        this.entityContainer.addChild(hpText);
+      }
+      
+      // Update HP display properties
       const hpRatio = entity.stats.hp / entity.stats.maxHp;
       const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
       
-      const hpText = new Text(`${entity.stats.hp}/${entity.stats.maxHp}`, {
-      fontFamily: 'Noto Sans Mono, monospace',
-      fontSize: 10,
-      fill: hpColor,
-      align: 'center'
-    });
-    
-    hpText.x = screenX * this.tileSize + this.tileSize / 2;
-    hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10; // Above entity
-    hpText.anchor.set(0.5);
-      hpText.alpha = alpha; // Same alpha as entity
-      
-      // Store reference for animations
-      this.hpTextMap.set(entity.id, hpText);
-      this.entityContainer.addChild(hpText);
+      hpText.text = `${entity.stats.hp}/${entity.stats.maxHp}`;
+      hpText.style.fill = hpColor;
+      hpText.x = screenX * this.tileSize + this.tileSize / 2;
+      hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10;
+      hpText.alpha = alpha;
+      hpText.visible = alpha > 0;
     }
     
     // Update character sheet and position text if this is the player
@@ -349,6 +415,7 @@ export class Renderer {
     text.anchor.set(0.5);
     
     // Store reference for animations and world position
+    console.log('Renderer: storing entity in entityTextMap with ID:', entity.id);
     this.entityTextMap.set(entity.id, text);
     this.entityPositions.set(entity.id, {x: entity.x, y: entity.y});
     this.entityContainer.addChild(text);
@@ -427,103 +494,11 @@ export class Renderer {
   }
   
   shakeEntity(entity: Entity) {
-    const text = this.entityTextMap.get(entity.id);
-    const hpText = this.hpTextMap.get(entity.id);
-    if (!text) return;
-    
-    const originalX = text.x;
-    const originalY = text.y;
-    const hpOriginalX = hpText?.x || 0;
-    const hpOriginalY = hpText?.y || 0;
-    const shakeAmount = 2;
-    const duration = 150;
-    
-    let startTime = performance.now();
-    
-    const shake = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = elapsed / duration;
-      
-      if (progress < 1) {
-        const offsetX = (Math.random() - 0.5) * shakeAmount * 2;
-        const offsetY = (Math.random() - 0.5) * shakeAmount * 2;
-        
-        text.x = originalX + offsetX;
-        text.y = originalY + offsetY;
-        
-        if (hpText) {
-          hpText.x = hpOriginalX + offsetX;
-          hpText.y = hpOriginalY + offsetY;
-        }
-        
-        requestAnimationFrame(shake);
-      } else {
-        text.x = originalX;
-        text.y = originalY;
-        if (hpText) {
-          hpText.x = hpOriginalX;
-          hpText.y = hpOriginalY;
-        }
-      }
-    };
-    
-    requestAnimationFrame(shake);
+    this.animationSystem.shakeEntity(entity);
   }
   
   nudgeEntity(entity: Entity, targetX: number, targetY: number) {
-    const text = this.entityTextMap.get(entity.id);
-    const hpText = this.hpTextMap.get(entity.id);
-    if (!text) return;
-    
-    const originalX = text.x;
-    const originalY = text.y;
-    const hpOriginalX = hpText?.x || 0;
-    const hpOriginalY = hpText?.y || 0;
-    
-    // Calculate direction toward target
-    const dx = targetX * this.tileSize + this.tileSize / 2 - originalX;
-    const dy = targetY * this.tileSize + this.tileSize / 2 - originalY;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    if (distance === 0) return;
-    
-    const nudgeAmount = 4;
-    const nudgeX = (dx / distance) * nudgeAmount;
-    const nudgeY = (dy / distance) * nudgeAmount;
-    
-    const duration = 200;
-    let startTime = performance.now();
-    
-    const nudge = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = elapsed / duration;
-      
-      if (progress < 1) {
-        // Ease out
-        const easeProgress = 1 - Math.pow(1 - progress, 3);
-        const currentNudgeX = nudgeX * (1 - easeProgress);
-        const currentNudgeY = nudgeY * (1 - easeProgress);
-        
-        text.x = originalX + currentNudgeX;
-        text.y = originalY + currentNudgeY;
-        
-        if (hpText) {
-          hpText.x = hpOriginalX + currentNudgeX;
-          hpText.y = hpOriginalY + currentNudgeY;
-        }
-        
-        requestAnimationFrame(nudge);
-      } else {
-        text.x = originalX;
-        text.y = originalY;
-        if (hpText) {
-          hpText.x = hpOriginalX;
-          hpText.y = hpOriginalY;
-        }
-      }
-    };
-    
-    requestAnimationFrame(nudge);
+    this.animationSystem.nudgeEntity(entity, targetX, targetY);
   }
   
   addMessage(message: string) {
@@ -539,42 +514,10 @@ export class Renderer {
   }
   
   showFloatingDamage(entity: Entity, damage: number) {
-    const damageText = new Text(`-${damage}`, {
-      fontFamily: 'Noto Sans Mono, monospace',
-      fontSize: 22,
-      fill: 0xFF4444,
-      align: 'center'
-    });
-    
-    const startX = entity.x * this.tileSize + this.tileSize / 2;
-    const startY = entity.y * this.tileSize + this.tileSize / 2 - 5;
-    
-    damageText.x = startX;
-    damageText.y = startY;
-    damageText.anchor.set(0.5);
-    
-    this.entityContainer.addChild(damageText);
-    
-    const duration = 1000;
-    let startTime = performance.now();
-    
-    const float = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = elapsed / duration;
-      
-      if (progress < 1) {
-        // Float upward and fade out
-        damageText.y = startY - (progress * 20);
-        damageText.alpha = 1 - progress;
-        requestAnimationFrame(float);
-      } else {
-        this.entityContainer.removeChild(damageText);
-      }
-    };
-    
-    requestAnimationFrame(float);
+    this.animationSystem.showFloatingDamage(entity, damage);
   }
   
+
   updateCameraForPlayer(entity: Entity): boolean {
     const oldCameraX = this.cameraX;
     const oldCameraY = this.cameraY;
@@ -600,8 +543,14 @@ export class Renderer {
       this.cameraY = Math.min(this.gridHeight - this.viewportHeight, entity.y - this.viewportHeight + 1);
     }
     
+    // Update animation system camera if it moved
+    const cameraMoved = oldCameraX !== this.cameraX || oldCameraY !== this.cameraY;
+    if (cameraMoved) {
+      this.animationSystem.updateCamera(this.cameraX, this.cameraY);
+    }
+    
     // Return true if camera actually moved
-    return oldCameraX !== this.cameraX || oldCameraY !== this.cameraY;
+    return cameraMoved;
   }
   
   centerCameraOn(entity: Entity) {
@@ -612,6 +561,9 @@ export class Renderer {
     // Clamp camera to map bounds
     this.cameraX = Math.max(0, Math.min(this.gridWidth - this.viewportWidth, targetCameraX));
     this.cameraY = Math.max(0, Math.min(this.gridHeight - this.viewportHeight, targetCameraY));
+    
+    // Update animation system camera
+    this.animationSystem.updateCamera(this.cameraX, this.cameraY);
   }
   
   worldToScreen(worldX: number, worldY: number): {x: number, y: number} {

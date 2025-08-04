@@ -55,8 +55,8 @@ export class CharacterSheet {
     
     // Portrait (large emoji)
     this.portraitText = new Text('😊', {
-      fontFamily: 'Noto Sans Mono',
-      fontSize: 48,
+      fontFamily: 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif',
+      fontSize: 36,
       fill: 0xFFFFFF
     });
     this.portraitText.x = this.panelWidth / 2 - 24; // Center the emoji

@@ -15,7 +15,12 @@ describe('CombatManager', () => {
       addMessage: vi.fn(),
       nudgeEntity: vi.fn(),
       shakeEntity: vi.fn(),
-      showFloatingDamage: vi.fn()
+      showFloatingDamage: vi.fn(),
+      animationSystem: {
+        nudgeEntity: vi.fn(),
+        shakeEntity: vi.fn(),
+        showFloatingDamage: vi.fn()
+      }
     };
     
     combatManager = new CombatManager(mockRenderer);
@@ -87,7 +92,7 @@ describe('CombatManager', () => {
     expect(result.targetKilled).toBe(false);
     expect(result.target).toBe(enemy);
     expect(mockRenderer.addMessage).toHaveBeenCalledWith('Player attacks Goblin!');
-    expect(mockRenderer.nudgeEntity).toHaveBeenCalledWith(player, enemy.x, enemy.y);
+    expect(mockRenderer.animationSystem.nudgeEntity).toHaveBeenCalledWith(player, enemy.x, enemy.y);
   });
 
   it('should handle no targets in range', () => {
@@ -116,7 +121,7 @@ describe('CombatManager', () => {
     
     expect(result.success).toBe(true);
     expect(mockRenderer.addMessage).toHaveBeenCalledWith('CRITICAL HIT! 2d6+4 = 10 damage');
-    expect(mockRenderer.showFloatingDamage).toHaveBeenCalledWith(enemy, 10);
+    expect(mockRenderer.animationSystem.showFloatingDamage).toHaveBeenCalledWith(enemy, 10);
   });
 
   it('should handle target death', () => {
@@ -150,6 +155,6 @@ describe('CombatManager', () => {
     
     expect(result.success).toBe(true);
     expect(mockRenderer.addMessage).toHaveBeenCalledWith('Miss!');
-    expect(mockRenderer.shakeEntity).toHaveBeenCalledWith(player);
+    expect(mockRenderer.animationSystem.shakeEntity).toHaveBeenCalledWith(player);
   });
 });

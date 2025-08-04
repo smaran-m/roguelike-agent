@@ -1,6 +1,7 @@
 import { Entity } from '../types';
 import { CombatSystem } from './CombatSystem';
 import { Renderer } from './Renderer';
+import { AnimationSystem } from './AnimationSystem';
 
 export interface CombatResult {
   success: boolean;
@@ -11,9 +12,11 @@ export interface CombatResult {
 
 export class CombatManager {
   private renderer: Renderer;
+  private animationSystem: AnimationSystem;
 
   constructor(renderer: Renderer) {
     this.renderer = renderer;
+    this.animationSystem = renderer.animationSystem;
   }
 
   attemptMeleeAttack(attacker: Entity, entities: Entity[]): CombatResult {
@@ -33,7 +36,7 @@ export class CombatManager {
     const attackResult = CombatSystem.meleeAttack(attacker, target);
     
     // Visual effects for attack attempt
-    this.renderer.nudgeEntity(attacker, target.x, target.y);
+    this.animationSystem.nudgeEntity(attacker, target.x, target.y);
     
     this.renderer.addMessage(`${attacker.name} attacks ${target.name}!`);
     this.renderer.addMessage(`Attack: ${attackResult.attackRoll} vs AC ${target.stats.ac}`);
@@ -50,11 +53,12 @@ export class CombatManager {
       }
       
       // Visual effects for hit
-      this.renderer.shakeEntity(target);
-      this.renderer.showFloatingDamage(target, attackResult.damage);
+      this.animationSystem.shakeEntity(target);
+      this.animationSystem.showFloatingDamage(target, attackResult.damage);
       
       if (targetKilled) {
         this.renderer.addMessage(`${target.name} died!`);
+        this.renderer.removeEntity(target.id);
       } else {
         this.renderer.addMessage(`${target.name}: ${target.stats.hp}/${target.stats.maxHp} HP`);
       }
@@ -62,7 +66,7 @@ export class CombatManager {
     } else {
       this.renderer.addMessage("Miss!");
       // Shake attacker to indicate miss
-      this.renderer.shakeEntity(attacker);
+      this.animationSystem.shakeEntity(attacker);
     }
 
     return {

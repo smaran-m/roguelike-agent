@@ -187,9 +187,10 @@ export class Game {
     // Update camera to follow player
     this.renderer.centerCameraOn(this.player);
     
-    // Clear previous frame
+    // Clear tiles each frame (needed for viewport changes)
     this.renderer.clearTiles();
-    this.renderer.clearEntities();
+    
+    // Don't clear entities - they persist and update properties only
     
     // Only render tiles that are visible in the camera viewport
     const startX = Math.max(0, this.renderer.cameraX);
