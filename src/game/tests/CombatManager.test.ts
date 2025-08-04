@@ -2,6 +2,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CombatManager } from '../CombatManager';
 import { Entity } from '../../types';
 import { CombatSystem } from '../CombatSystem';
+import { CharacterManager } from '../../managers/CharacterManager';
+
+// Mock CharacterManager
+vi.mock('../../managers/CharacterManager');
 
 describe('CombatManager', () => {
   let combatManager: CombatManager;
@@ -23,6 +27,13 @@ describe('CombatManager', () => {
         showFloatingDamage: vi.fn()
       }
     };
+    
+    // Set up default CharacterManager mock
+    const defaultCharacterManager = {
+      getWeaponDamage: vi.fn().mockReturnValue('1d6'),
+      getEquippedWeapon: vi.fn().mockReturnValue(null)
+    };
+    vi.mocked(CharacterManager.getInstance).mockReturnValue(defaultCharacterManager as any);
     
     combatManager = new CombatManager(mockRenderer);
     
@@ -92,7 +103,7 @@ describe('CombatManager', () => {
     expect(result.success).toBe(true);
     expect(result.targetKilled).toBe(false);
     expect(result.target).toBe(enemy);
-    expect(mockRenderer.addMessage).toHaveBeenCalledWith('Player attacks Goblin!');
+    expect(mockRenderer.addMessage).toHaveBeenCalledWith('Player makes a melee attack with fists against Goblin!');
     expect(mockRenderer.animationSystem.nudgeEntity).toHaveBeenCalledWith(player, enemy.x, enemy.y);
   });
 
@@ -157,5 +168,57 @@ describe('CombatManager', () => {
     expect(result.success).toBe(true);
     expect(mockRenderer.addMessage).toHaveBeenCalledWith('Miss!');
     expect(mockRenderer.animationSystem.shakeEntity).toHaveBeenCalledWith(player);
+  });
+
+  it('should show weapon name in combat messages when player has equipped weapon', () => {
+    // Mock character manager to return a weapon
+    const mockCharacterManager = {
+      getWeaponDamage: vi.fn().mockReturnValue('1d8'),
+      getEquippedWeapon: vi.fn().mockReturnValue({
+        name: 'Longsword',
+        abilities: ['Versatile']
+      })
+    };
+    vi.mocked(CharacterManager.getInstance).mockReturnValue(mockCharacterManager as any);
+    
+    // Mock combat result
+    vi.spyOn(CombatSystem, 'meleeAttack').mockReturnValue({
+      hit: true,
+      damage: 8,
+      critical: false,
+      attackRoll: 15,
+      damageRoll: '1d8+3'
+    });
+    
+    const result = combatManager.attemptMeleeAttack(player, entities);
+    
+    expect(result.success).toBe(true);
+    expect(mockRenderer.addMessage).toHaveBeenCalledWith('Player makes a melee attack with Longsword against Goblin!');
+  });
+
+  it('should detect ranged attacks from weapon abilities', () => {
+    // Mock character manager to return a ranged weapon
+    const mockCharacterManager = {
+      getWeaponDamage: vi.fn().mockReturnValue('1d8'),
+      getEquippedWeapon: vi.fn().mockReturnValue({
+        name: 'Longbow',
+        abilities: ['Ammunition', 'Heavy', 'Two-Handed']
+      })
+    };
+    vi.mocked(CharacterManager.getInstance).mockReturnValue(mockCharacterManager as any);
+    
+    // Mock combat result
+    vi.spyOn(CombatSystem, 'meleeAttack').mockReturnValue({
+      hit: true,
+      damage: 6,
+      critical: false,
+      attackRoll: 14,
+      damageRoll: '1d8+2'
+    });
+    
+    const result = combatManager.attemptMeleeAttack(player, entities);
+    
+    expect(result.success).toBe(true);
+    expect(mockRenderer.addMessage).toHaveBeenCalledWith('Player makes a ranged attack with Longbow against Goblin!');
   });
 });

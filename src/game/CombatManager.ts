@@ -35,11 +35,24 @@ export class CombatManager {
     // For now, attack the first target in range
     const target = targets[0];
     
-    // Get weapon damage for player attacks
+    // Get weapon damage and info for player attacks
     let weaponDamage: string | undefined;
+    let weaponName = "fists"; // Default unarmed attack
+    let attackType = "melee attack";
+    
     if (attacker.isPlayer) {
       const characterManager = CharacterManager.getInstance();
       weaponDamage = characterManager.getWeaponDamage();
+      const equippedWeapon = characterManager.getEquippedWeapon();
+      if (equippedWeapon) {
+        weaponName = equippedWeapon.name;
+        // Determine attack type based on weapon abilities
+        if (equippedWeapon.abilities?.includes('Ammunition')) {
+          attackType = "ranged attack";
+        } else {
+          attackType = "melee attack";
+        }
+      }
     }
     
     const attackResult = CombatSystem.meleeAttack(attacker, target, weaponDamage);
@@ -47,7 +60,8 @@ export class CombatManager {
     // Visual effects for attack attempt
     this.animationSystem.nudgeEntity(attacker, target.x, target.y);
     
-    this.renderer.addMessage(`${attacker.name} attacks ${target.name}!`);
+    // Enhanced attack message with weapon and attack type
+    this.renderer.addMessage(`${attacker.name} makes a ${attackType} with ${weaponName} against ${target.name}!`);
     this.renderer.addMessage(`Attack: ${attackResult.attackRoll} vs AC ${target.stats.ac}`);
     
     let targetKilled = false;
