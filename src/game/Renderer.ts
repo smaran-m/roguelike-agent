@@ -526,27 +526,31 @@ export class Renderer {
     const playerScreenX = entity.x - this.cameraX;
     const playerScreenY = entity.y - this.cameraY;
     
-    // Move camera if player is at edges
+    // Move camera if player is at edges (1/4 viewport ahead)
+    const quarterViewportX = Math.floor(this.viewportWidth / 5);
+    const quarterViewportY = Math.floor(this.viewportHeight / 5);
+    
     if (playerScreenX < 0) {
-      // Player moved off left edge
-      this.cameraX = Math.max(0, entity.x);
+      // Player moved off left edge - position them 1/4 from right edge
+      this.cameraX = Math.max(0, entity.x - (this.viewportWidth - quarterViewportX));
     } else if (playerScreenX >= this.viewportWidth) {
-      // Player moved off right edge
-      this.cameraX = Math.min(this.gridWidth - this.viewportWidth, entity.x - this.viewportWidth + 1);
+      // Player moved off right edge - position them 1/4 from left edge
+      this.cameraX = Math.min(this.gridWidth - this.viewportWidth, entity.x - quarterViewportX);
     }
     
     if (playerScreenY < 0) {
-      // Player moved off top edge
-      this.cameraY = Math.max(0, entity.y);
+      // Player moved off top edge - position them 1/4 from bottom edge
+      this.cameraY = Math.max(0, entity.y - (this.viewportHeight - quarterViewportY));
     } else if (playerScreenY >= this.viewportHeight) {
-      // Player moved off bottom edge
-      this.cameraY = Math.min(this.gridHeight - this.viewportHeight, entity.y - this.viewportHeight + 1);
+      // Player moved off bottom edge - position them 1/4 from top edge
+      this.cameraY = Math.min(this.gridHeight - this.viewportHeight, entity.y - quarterViewportY);
     }
     
     // Update animation system camera if it moved
     const cameraMoved = oldCameraX !== this.cameraX || oldCameraY !== this.cameraY;
     if (cameraMoved) {
       this.animationSystem.updateCamera(this.cameraX, this.cameraY);
+      this.updateEntityPositions();
     }
     
     // Return true if camera actually moved

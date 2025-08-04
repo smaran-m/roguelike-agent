@@ -184,8 +184,8 @@ export class Game {
   }
 
   render() {
-    // Update camera to follow player
-    this.renderer.centerCameraOn(this.player);
+    // Update camera to follow player (edge-following, not centering)
+    this.renderer.updateCameraForPlayer(this.player);
     
     // Clear tiles each frame (needed for viewport changes)
     this.renderer.clearTiles();
