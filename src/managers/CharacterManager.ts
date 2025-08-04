@@ -1,6 +1,7 @@
 import { PlayerCharacter, CharacterClass, EntityStats } from '../types';
 import { CombatSystem } from '../game/CombatSystem';
 import { EnemyLoader } from '../utils/EnemyLoader';
+import { ItemSystem } from '../game/Item';
 import characterClassesData from '../data/characterClasses.json';
 
 export class CharacterManager {
@@ -65,6 +66,9 @@ export class CharacterManager {
     const selectedGlyph = customization?.selectedGlyph || characterClass.appearance.defaultGlyph;
     const selectedColor = customization?.selectedColor || characterClass.appearance.defaultColor;
 
+    // Create starting inventory with weapon
+    const startingWeapon = ItemSystem.getStartingWeapon(characterClass.startingEquipment.weapon);
+
     const character: PlayerCharacter = {
       id: 'player',
       name: customization?.customName || characterName,
@@ -78,6 +82,7 @@ export class CharacterManager {
       },
       equipment: { ...characterClass.startingEquipment },
       features: [...characterClass.classFeatures],
+      inventory: [startingWeapon],
       customization: customization || {}
     };
 
@@ -247,5 +252,44 @@ export class CharacterManager {
       console.error('Failed to load character:', error);
       return false;
     }
+  }
+
+  /**
+   * Get character's equipped weapon (first weapon in inventory)
+   */
+  getEquippedWeapon(): import('../types').Item | null {
+    if (!this.currentCharacter) return null;
+    
+    const weapon = this.currentCharacter.inventory.find(item => item.type === 'weapon');
+    return weapon || null;
+  }
+
+  /**
+   * Get weapon damage for combat
+   */
+  getWeaponDamage(): string {
+    const weapon = this.getEquippedWeapon();
+    return weapon?.damage || '1d4'; // Default unarmed damage
+  }
+
+  /**
+   * Add item to character inventory
+   */
+  addItemToInventory(item: import('../types').Item): boolean {
+    if (!this.currentCharacter) return false;
+    
+    this.currentCharacter.inventory.push(item);
+    return true;
+  }
+
+  /**
+   * Remove item from character inventory
+   */
+  removeItemFromInventory(itemId: string): boolean {
+    if (!this.currentCharacter) return false;
+    
+    const initialLength = this.currentCharacter.inventory.length;
+    this.currentCharacter.inventory = this.currentCharacter.inventory.filter(item => item.id !== itemId);
+    return this.currentCharacter.inventory.length < initialLength;
   }
 }

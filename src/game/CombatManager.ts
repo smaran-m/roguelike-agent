@@ -2,6 +2,7 @@ import { Entity } from '../types';
 import { CombatSystem } from './CombatSystem';
 import { Renderer } from './Renderer';
 import { AnimationSystem } from './AnimationSystem';
+import { CharacterManager } from '../managers/CharacterManager';
 
 export interface CombatResult {
   success: boolean;
@@ -33,7 +34,15 @@ export class CombatManager {
     
     // For now, attack the first target in range
     const target = targets[0];
-    const attackResult = CombatSystem.meleeAttack(attacker, target);
+    
+    // Get weapon damage for player attacks
+    let weaponDamage: string | undefined;
+    if (attacker.isPlayer) {
+      const characterManager = CharacterManager.getInstance();
+      weaponDamage = characterManager.getWeaponDamage();
+    }
+    
+    const attackResult = CombatSystem.meleeAttack(attacker, target, weaponDamage);
     
     // Visual effects for attack attempt
     this.animationSystem.nudgeEntity(attacker, target.x, target.y);

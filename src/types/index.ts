@@ -81,6 +81,7 @@ export interface PlayerCharacter {
   };
   equipment: StartingEquipment;
   features: string[];
+  inventory: Item[];
   customization: {
     selectedGlyph?: string;
     selectedColor?: string;
@@ -106,6 +107,24 @@ export interface AttackResult {
   critical: boolean;
   attackRoll: number;
   damageRoll: string;
+}
+
+export interface Item {
+  id: string;
+  name: string;
+  description: string;
+  glyph: string;
+  color: number;
+  isEmoji: boolean;
+  type: 'weapon' | 'armor' | 'consumable' | 'tool' | 'misc';
+  rarity: 'common' | 'uncommon' | 'rare' | 'very_rare' | 'legendary';
+  weight: number; // Weight in pounds (D&D standard)
+  damage?: string; // D&D dice notation like "1d6+1"
+  armorClass?: number; // AC bonus for armor
+  abilities?: string[]; // Special abilities granted by the item
+  statusEffects?: string[]; // Status effects applied when used
+  quantity?: number; // For stackable items
+  value?: number; // Gold piece value
 }
 
 export interface WorldSchema {

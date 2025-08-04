@@ -57,8 +57,8 @@ export class CombatSystem {
     return strMod + attacker.stats.proficiencyBonus;
   }
   
-  // Perform a melee attack
-  static meleeAttack(attacker: Entity, target: Entity): AttackResult {
+  // Perform a melee attack with optional weapon damage
+  static meleeAttack(attacker: Entity, target: Entity, weaponDamage?: string): AttackResult {
     // Roll d20 + attack bonus
     const d20Roll = this.rollD20();
     const attackBonus = this.getAttackBonus(attacker);
@@ -74,18 +74,19 @@ export class CombatSystem {
     let damageRoll = "0";
     
     if (hit) {
-      // Base damage: 1d6 + strength modifier (simple sword)
+      // Use weapon damage or default to 1d6
+      const damageDice = weaponDamage || "1d6";
       const strMod = this.getModifier(attacker.stats.strength);
-      const baseDamage = this.rollDice("1d6");
+      const baseDamage = this.rollDice(damageDice);
       damage = baseDamage.total + strMod;
       
       // Double damage on critical
       if (critical) {
-        const critDamage = this.rollDice("1d6");
+        const critDamage = this.rollDice(damageDice);
         damage += critDamage.total;
-        damageRoll = `${baseDamage.rolls[0]}+${critDamage.rolls[0]}+${strMod} (crit)`;
+        damageRoll = `${baseDamage.rolls.join('+')}+${critDamage.rolls.join('+')}+${strMod} (crit)`;
       } else {
-        damageRoll = `${baseDamage.rolls[0]}+${strMod}`;
+        damageRoll = `${baseDamage.rolls.join('+')}+${strMod}`;
       }
       
       // Minimum 1 damage

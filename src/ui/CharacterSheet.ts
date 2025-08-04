@@ -176,21 +176,10 @@ export class CharacterSheet {
     this.inventoryLabel.y = startY;
     this.container.addChild(this.inventoryLabel);
     
-    // Placeholder for future inventory
-    const placeholderText = new Text('(Coming Soon)', {
-      fontFamily: 'Noto Sans Mono, monospace',
-      fontSize: 10,
-      fill: 0x888888,
-      fontStyle: 'italic'
-    });
-    placeholderText.x = this.padding;
-    placeholderText.y = startY + 25;
-    this.container.addChild(placeholderText);
-    
-    // Inventory container for future use
+    // Inventory container
     this.inventoryContainer = new Container();
     this.inventoryContainer.x = this.padding;
-    this.inventoryContainer.y = startY + 50;
+    this.inventoryContainer.y = startY + 25;
     this.container.addChild(this.inventoryContainer);
   }
   
@@ -236,6 +225,9 @@ export class CharacterSheet {
     
     // Update stats
     this.updateStats(player);
+    
+    // Update inventory
+    this.updateInventory();
   }
   
   private updateHealthBar(player: Entity) {
@@ -318,6 +310,72 @@ export class CharacterSheet {
   
   private getModifier(abilityScore: number): number {
     return Math.floor((abilityScore - 10) / 2);
+  }
+  
+  private updateInventory() {
+    // Clear existing inventory items
+    this.inventoryContainer.removeChildren();
+    
+    const characterManager = CharacterManager.getInstance();
+    const currentCharacter = characterManager.getCurrentCharacter();
+    
+    if (!currentCharacter || !currentCharacter.inventory || currentCharacter.inventory.length === 0) {
+      // Show "empty" message
+      const emptyText = new Text('(Empty)', {
+        fontFamily: 'Noto Sans Mono, monospace',
+        fontSize: 10,
+        fill: 0x888888,
+        fontStyle: 'italic'
+      });
+      emptyText.x = 0;
+      emptyText.y = 0;
+      this.inventoryContainer.addChild(emptyText);
+      return;
+    }
+    
+    // Display inventory items
+    currentCharacter.inventory.forEach((item, index) => {
+      const yPos = index * 25;
+      
+      // Item emoji
+      const itemEmoji = new Text(item.glyph, {
+        fontFamily: item.isEmoji ? 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif' : 'Noto Sans Mono, monospace',
+        fontSize: 16,
+        fill: item.color
+      });
+      itemEmoji.x = 0;
+      itemEmoji.y = yPos;
+      this.inventoryContainer.addChild(itemEmoji);
+      
+      // Item name
+      const itemName = new Text(item.name, {
+        fontFamily: 'Noto Sans Mono, monospace',
+        fontSize: 10,
+        fill: 0xFFFFFF
+      });
+      itemName.x = 25;
+      itemName.y = yPos + 3;
+      this.inventoryContainer.addChild(itemName);
+      
+      // Item type/damage info
+      let infoText = '';
+      if (item.type === 'weapon' && item.damage) {
+        infoText = `${item.damage} dmg`;
+      } else if (item.type === 'armor' && item.armorClass) {
+        infoText = `+${item.armorClass} AC`;
+      }
+      
+      if (infoText) {
+        const itemInfo = new Text(infoText, {
+          fontFamily: 'Noto Sans Mono, monospace',
+          fontSize: 9,
+          fill: 0xCCCCCC
+        });
+        itemInfo.x = 25;
+        itemInfo.y = yPos + 15;
+        this.inventoryContainer.addChild(itemInfo);
+      }
+    });
   }
   
   /**
