@@ -127,6 +127,22 @@ export interface Item {
   value?: number; // Gold piece value
 }
 
+export interface ItemDefinition {
+  name: string;
+  description: string;
+  glyph: string;
+  color: string; // Hex color as string
+  type: 'weapon' | 'armor' | 'consumable' | 'tool' | 'misc';
+  rarity: 'common' | 'uncommon' | 'rare' | 'very_rare' | 'legendary';
+  weight: number;
+  damage?: string;
+  armorClass?: number;
+  abilities?: string[];
+  statusEffects?: string[];
+  quantity?: number;
+  value?: number;
+}
+
 export interface WorldSchema {
   theme: string;
   playerClass: string;

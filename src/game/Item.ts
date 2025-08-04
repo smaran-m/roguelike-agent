@@ -1,191 +1,59 @@
 import { Item } from '../types';
-import { EnemyLoader } from '../utils/EnemyLoader';
+import { ItemLoader } from '../utils/ItemLoader';
 
 export class ItemSystem {
   
   /**
-   * Create a weapon item
+   * Create an item from JSON definition by key
    */
-  static createWeapon(
-    id: string,
-    name: string,
-    description: string,
-    glyph: string,
-    color: string,
-    damage: string,
-    weight: number,
-    rarity: Item['rarity'] = 'common',
-    abilities: string[] = [],
-    value: number = 10
-  ): Item {
-    return {
-      id,
-      name,
-      description,
-      glyph,
-      color: EnemyLoader.parseColor(color),
-      isEmoji: glyph.length > 1 || /[\u{1F000}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(glyph),
-      type: 'weapon',
-      rarity,
-      weight,
-      damage,
-      abilities,
-      value,
-      quantity: 1
-    };
+  static createItem(itemKey: string, customId?: string): Item | null {
+    return ItemLoader.getItem(itemKey, customId);
   }
 
   /**
-   * Create an armor item
+   * Create a weapon item by key
    */
-  static createArmor(
-    id: string,
-    name: string,
-    description: string,
-    glyph: string,
-    color: string,
-    armorClass: number,
-    weight: number,
-    rarity: Item['rarity'] = 'common',
-    abilities: string[] = [],
-    value: number = 50
-  ): Item {
-    return {
-      id,
-      name,
-      description,
-      glyph,
-      color: EnemyLoader.parseColor(color),
-      isEmoji: glyph.length > 1 || /[\u{1F000}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(glyph),
-      type: 'armor',
-      rarity,
-      weight,
-      armorClass,
-      abilities,
-      value,
-      quantity: 1
-    };
+  static createWeapon(itemKey: string, customId?: string): Item | null {
+    const item = ItemLoader.getItem(itemKey, customId);
+    return item && item.type === 'weapon' ? item : null;
   }
 
   /**
-   * Create a consumable item
+   * Create an armor item by key
    */
-  static createConsumable(
-    id: string,
-    name: string,
-    description: string,
-    glyph: string,
-    color: string,
-    weight: number,
-    statusEffects: string[] = [],
-    rarity: Item['rarity'] = 'common',
-    abilities: string[] = [],
-    value: number = 5,
-    quantity: number = 1
-  ): Item {
-    return {
-      id,
-      name,
-      description,
-      glyph,
-      color: EnemyLoader.parseColor(color),
-      isEmoji: glyph.length > 1 || /[\u{1F000}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(glyph),
-      type: 'consumable',
-      rarity,
-      weight,
-      statusEffects,
-      abilities,
-      value,
-      quantity
-    };
+  static createArmor(itemKey: string, customId?: string): Item | null {
+    const item = ItemLoader.getItem(itemKey, customId);
+    return item && item.type === 'armor' ? item : null;
+  }
+
+  /**
+   * Create a consumable item by key
+   */
+  static createConsumable(itemKey: string, customId?: string): Item | null {
+    const item = ItemLoader.getItem(itemKey, customId);
+    return item && item.type === 'consumable' ? item : null;
+  }
+
+  /**
+   * Create a tool item by key
+   */
+  static createTool(itemKey: string, customId?: string): Item | null {
+    const item = ItemLoader.getItem(itemKey, customId);
+    return item && item.type === 'tool' ? item : null;
   }
 
   /**
    * Get starting weapon for a character class
    */
-  static getStartingWeapon(weaponName: string): Item {
-    const weaponData = this.getWeaponData(weaponName);
-    return this.createWeapon(
-      `starting_${weaponName}`,
-      weaponData.name,
-      weaponData.description,
-      weaponData.glyph,
-      weaponData.color,
-      weaponData.damage,
-      weaponData.weight,
-      'common',
-      weaponData.abilities,
-      weaponData.value
-    );
-  }
-
-  /**
-   * Get weapon data for different weapon types
-   */
-  private static getWeaponData(weaponName: string): {
-    name: string;
-    description: string;
-    glyph: string;
-    color: string;
-    damage: string;
-    weight: number;
-    abilities: string[];
-    value: number;
-  } {
-    const weapons: { [key: string]: any } = {
-      longsword: {
-        name: 'Longsword',
-        description: 'A versatile martial weapon with a straight, double-edged blade.',
-        glyph: '⚔️',
-        color: '0xC0C0C0',
-        damage: '1d8',
-        weight: 3,
-        abilities: ['Versatile'],
-        value: 15
-      },
-      shortsword: {
-        name: 'Shortsword',
-        description: 'A light, finesse weapon perfect for quick strikes.',
-        glyph: '🗡️',
-        color: '0xC0C0C0',
-        damage: '1d6',
-        weight: 2,
-        abilities: ['Finesse', 'Light'],
-        value: 10
-      },
-      staff: {
-        name: 'Quarterstaff',
-        description: 'A simple wooden staff that can be used as a focus for magic.',
-        glyph: '🪄',
-        color: '0x8B4513',
-        damage: '1d6',
-        weight: 4,
-        abilities: ['Versatile', 'Arcane Focus'],
-        value: 2
-      },
-      mace: {
-        name: 'Mace',
-        description: 'A heavy bludgeoning weapon with a weighted head.',
-        glyph: '🔨',
-        color: '0x696969',
-        damage: '1d6',
-        weight: 4,
-        abilities: [],
-        value: 5
-      },
-      longbow: {
-        name: 'Longbow',
-        description: 'A martial ranged weapon for skilled archers.',
-        glyph: '🏹',
-        color: '0x8B4513',
-        damage: '1d8',
-        weight: 2,
-        abilities: ['Ammunition', 'Heavy', 'Two-Handed'],
-        value: 50
-      }
-    };
-
-    return weapons[weaponName] || weapons.longsword;
+  static getStartingWeapon(weaponName: string): Item | null {
+    const item = ItemLoader.getItem(weaponName, `starting_${weaponName}`);
+    if (item && item.type === 'weapon') {
+      return item;
+    }
+    
+    // Fallback to dagger if weapon not found
+    console.warn(`Starting weapon '${weaponName}' not found, falling back to dagger`);
+    return ItemLoader.getItem('dagger', 'starting_dagger');
   }
 
   /**
@@ -214,5 +82,83 @@ export class ItemSystem {
       legendary: 0xFF8000   // Orange
     };
     return rarityColors[rarity];
+  }
+
+  /**
+   * Get all available item keys
+   */
+  static getAvailableItems(): string[] {
+    return ItemLoader.getAvailableItemKeys();
+  }
+
+  /**
+   * Get items by type
+   */
+  static getItemsByType(type: Item['type']): string[] {
+    return Object.keys(ItemLoader.getItemsByType(type));
+  }
+
+  /**
+   * Get items by rarity
+   */
+  static getItemsByRarity(rarity: Item['rarity']): string[] {
+    return Object.keys(ItemLoader.getItemsByRarity(rarity));
+  }
+
+  /**
+   * Get a random item by type
+   */
+  static getRandomItemByType(type: Item['type']): Item | null {
+    const itemKey = ItemLoader.getRandomItemByType(type);
+    return itemKey ? ItemLoader.getItem(itemKey) : null;
+  }
+
+  /**
+   * Check if item exists
+   */
+  static hasItem(itemKey: string): boolean {
+    return ItemLoader.hasItem(itemKey);
+  }
+
+  /**
+   * Validate all item data and log any issues
+   */
+  static validateItemData(): boolean {
+    const validation = ItemLoader.validateItemData();
+    
+    if (!validation.valid) {
+      console.error('Item data validation failed:');
+      validation.errors.forEach(error => console.error(`  - ${error}`));
+      return false;
+    }
+    
+    console.log(`✓ Item data validation passed. Found ${ItemLoader.getAvailableItemKeys().length} items.`);
+    return true;
+  }
+
+  /**
+   * Initialize and validate item system
+   */
+  static initialize(): boolean {
+    console.log('Initializing Item System...');
+    
+    const isValid = this.validateItemData();
+    if (!isValid) {
+      console.error('Item system initialization failed due to data validation errors.');
+      return false;
+    }
+    
+    // Test loading a few key items
+    const testItems = ['longsword', 'dagger', 'healing_potion'];
+    for (const itemKey of testItems) {
+      const item = ItemLoader.getItem(itemKey);
+      if (!item) {
+        console.error(`Failed to load test item: ${itemKey}`);
+        return false;
+      }
+    }
+    
+    console.log('✓ Item System initialized successfully');
+    return true;
   }
 }

@@ -68,6 +68,10 @@ export class CharacterManager {
 
     // Create starting inventory with weapon
     const startingWeapon = ItemSystem.getStartingWeapon(characterClass.startingEquipment.weapon);
+    const inventory: import('../types').Item[] = [];
+    if (startingWeapon) {
+      inventory.push(startingWeapon);
+    }
 
     const character: PlayerCharacter = {
       id: 'player',
@@ -82,7 +86,7 @@ export class CharacterManager {
       },
       equipment: { ...characterClass.startingEquipment },
       features: [...characterClass.classFeatures],
-      inventory: [startingWeapon],
+      inventory,
       customization: customization || {}
     };
 

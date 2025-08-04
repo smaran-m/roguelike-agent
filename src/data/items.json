@@ -1,0 +1,239 @@
+{
+  "weapons": {
+    "longsword": {
+      "name": "Longsword",
+      "description": "A versatile martial weapon with a straight, double-edged blade.",
+      "glyph": "⚔️",
+      "color": "0xC0C0C0",
+      "type": "weapon",
+      "rarity": "common",
+      "weight": 3,
+      "damage": "1d8",
+      "abilities": ["Versatile"],
+      "value": 15
+    },
+    "shortsword": {
+      "name": "Shortsword",
+      "description": "A light, finesse weapon perfect for quick strikes.",
+      "glyph": "🗡️",
+      "color": "0xC0C0C0",
+      "type": "weapon",
+      "rarity": "common",
+      "weight": 2,
+      "damage": "1d6",
+      "abilities": ["Finesse", "Light"],
+      "value": 10
+    },
+    "staff": {
+      "name": "Quarterstaff",
+      "description": "A simple wooden staff that can be used as a focus for magic.",
+      "glyph": "🪄",
+      "color": "0x8B4513",
+      "type": "weapon",
+      "rarity": "common",
+      "weight": 4,
+      "damage": "1d6",
+      "abilities": ["Versatile", "Arcane Focus"],
+      "value": 2
+    },
+    "mace": {
+      "name": "Mace",
+      "description": "A heavy bludgeoning weapon with a weighted head.",
+      "glyph": "🔨",
+      "color": "0x696969",
+      "type": "weapon",
+      "rarity": "common",
+      "weight": 4,
+      "damage": "1d6",
+      "abilities": [],
+      "value": 5
+    },
+    "longbow": {
+      "name": "Longbow",
+      "description": "A martial ranged weapon for skilled archers.",
+      "glyph": "🏹",
+      "color": "0x8B4513",
+      "type": "weapon",
+      "rarity": "common",
+      "weight": 2,
+      "damage": "1d8",
+      "abilities": ["Ammunition", "Heavy", "Two-Handed"],
+      "value": 50
+    },
+    "dagger": {
+      "name": "Dagger",
+      "description": "A small, versatile blade good for both melee and throwing.",
+      "glyph": "🗡️",
+      "color": "0xC0C0C0",
+      "type": "weapon",
+      "rarity": "common",
+      "weight": 1,
+      "damage": "1d4",
+      "abilities": ["Finesse", "Light", "Thrown"],
+      "value": 2
+    },
+    "greataxe": {
+      "name": "Greataxe",
+      "description": "A massive two-handed axe that cleaves through armor.",
+      "glyph": "🪓",
+      "color": "0x8B4513",
+      "type": "weapon",
+      "rarity": "common",
+      "weight": 7,
+      "damage": "1d12",
+      "abilities": ["Heavy", "Two-Handed"],
+      "value": 30
+    },
+    "warhammer": {
+      "name": "Warhammer",
+      "description": "A heavy war hammer designed to crush armor and bone.",
+      "glyph": "🔨",
+      "color": "0x696969",
+      "type": "weapon",
+      "rarity": "common",
+      "weight": 2,
+      "damage": "1d8",
+      "abilities": ["Versatile"],
+      "value": 15
+    }
+  },
+  "armor": {
+    "leather_armor": {
+      "name": "Leather Armor",
+      "description": "Basic protection made from hardened leather.",
+      "glyph": "🦺",
+      "color": "0x8B4513",
+      "type": "armor",
+      "rarity": "common",
+      "weight": 10,
+      "armorClass": 11,
+      "abilities": [],
+      "value": 10
+    },
+    "studded_leather": {
+      "name": "Studded Leather",
+      "description": "Leather armor reinforced with metal studs.",
+      "glyph": "🦺",
+      "color": "0x654321",
+      "type": "armor",
+      "rarity": "common",
+      "weight": 13,
+      "armorClass": 12,
+      "abilities": [],
+      "value": 45
+    },
+    "chain_mail": {
+      "name": "Chain Mail",
+      "description": "Interlocking metal rings provide solid protection.",
+      "glyph": "🛡️",
+      "color": "0xC0C0C0",
+      "type": "armor",
+      "rarity": "common",
+      "weight": 55,
+      "armorClass": 16,
+      "abilities": [],
+      "value": 75
+    },
+    "scale_mail": {
+      "name": "Scale Mail",
+      "description": "Armor made of overlapping metal scales.",
+      "glyph": "🛡️",
+      "color": "0x708090",
+      "type": "armor",
+      "rarity": "common",
+      "weight": 45,
+      "armorClass": 14,
+      "abilities": [],
+      "value": 50
+    },
+    "robes": {
+      "name": "Robes",
+      "description": "Simple cloth robes that offer minimal protection.",
+      "glyph": "👘",
+      "color": "0x4169E1",
+      "type": "armor",
+      "rarity": "common",
+      "weight": 4,
+      "armorClass": 10,
+      "abilities": ["Arcane Focus"],
+      "value": 1
+    }
+  },
+  "consumables": {
+    "healing_potion": {
+      "name": "Healing Potion",
+      "description": "A red liquid that restores health when consumed.",
+      "glyph": "🧪",
+      "color": "0xFF0000",
+      "type": "consumable",
+      "rarity": "common",
+      "weight": 0.5,
+      "abilities": ["Heal 2d4+2"],
+      "statusEffects": ["healing"],
+      "value": 50,
+      "quantity": 1
+    },
+    "mana_potion": {
+      "name": "Mana Potion",
+      "description": "A blue liquid that restores magical energy.",
+      "glyph": "🧪",
+      "color": "0x0000FF",
+      "type": "consumable",
+      "rarity": "common",
+      "weight": 0.5,
+      "abilities": ["Restore Mana"],
+      "statusEffects": ["mana_restore"],
+      "value": 40,
+      "quantity": 1
+    },
+    "antidote": {
+      "name": "Antidote",
+      "description": "A green potion that neutralizes poison.",
+      "glyph": "🧪",
+      "color": "0x00FF00",
+      "type": "consumable",
+      "rarity": "uncommon",
+      "weight": 0.5,
+      "abilities": ["Cure Poison"],
+      "statusEffects": ["cure_poison"],
+      "value": 100,
+      "quantity": 1
+    }
+  },
+  "tools": {
+    "rope": {
+      "name": "Rope (50 feet)",
+      "description": "Strong hemp rope useful for climbing and binding.",
+      "glyph": "🪢",
+      "color": "0x8B4513",
+      "type": "tool",
+      "rarity": "common",
+      "weight": 10,
+      "abilities": ["Climbing", "Binding"],
+      "value": 2
+    },
+    "lockpicks": {
+      "name": "Thieves' Tools",
+      "description": "A set of fine tools for picking locks and disabling traps.",
+      "glyph": "🔧",
+      "color": "0xC0C0C0",
+      "type": "tool",
+      "rarity": "common",
+      "weight": 1,
+      "abilities": ["Lock Picking", "Trap Disarming"],
+      "value": 25
+    },
+    "torch": {
+      "name": "Torch",
+      "description": "A wooden torch that provides light and can be used as a weapon.",
+      "glyph": "🔥",
+      "color": "0xFF4500",
+      "type": "tool",
+      "rarity": "common",
+      "weight": 1,
+      "damage": "1d4",
+      "abilities": ["Light Source"],
+      "value": 1
+    }
+  }
+}
