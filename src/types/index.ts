@@ -229,6 +229,7 @@ export interface ResourceDefinition {
   defaultChangeRate?: number;
   color?: string;
   description?: string;
+  display?: 'bar' | 'text'; // UI display mode - bar for visual bars, text for numeric display
 }
 
 export interface ResourceOperation {
@@ -254,11 +255,6 @@ export interface WorldConfig {
   weaponTypes: string[];
   resistanceSystem: ResistanceSystem;
   mechanics: GameMechanics;
-  tiles: {
-    wall: string;
-    floor: string;
-    door: string;
-  };
 }
 
 export interface WorldsCollection {

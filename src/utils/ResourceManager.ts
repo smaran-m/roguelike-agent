@@ -295,4 +295,50 @@ export class ResourceManager {
     
     return resourceId in worldConfig.mechanics.resources;
   }
+
+  /**
+   * Generate a visual representation of a resource for UI display
+   */
+  static getResourceDisplay(entity: Entity, resourceId: string, barLength: number = 10): string {
+    const resource = this.getResource(entity, resourceId);
+    if (!resource) return '';
+
+    const resourceDef = WorldConfigLoader.getResourceDefinition(resourceId);
+    const displayMode = resourceDef?.display || 'bar';
+
+    if (displayMode === 'text' || !resource.maximum) {
+      // Text display for uncapped resources or text-preferred resources
+      return `${resource.current}`;
+    }
+
+    // Bar display for capped resources
+    const percentage = resource.current / resource.maximum;
+    const filledChars = Math.floor(percentage * barLength);
+    const emptyChars = barLength - filledChars;
+    
+    const filled = '#'.repeat(filledChars);
+    const empty = '-'.repeat(emptyChars);
+    
+    return `[${filled}${empty}] ${resource.current}/${resource.maximum}`;
+  }
+
+  /**
+   * Get color for resource display based on current value percentage
+   */
+  static getResourceColor(entity: Entity, resourceId: string): number {
+    const resource = this.getResource(entity, resourceId);
+    if (!resource || !resource.maximum) {
+      // Default color for uncapped resources
+      const resourceDef = WorldConfigLoader.getResourceDefinition(resourceId);
+      return resourceDef?.color ? parseInt(resourceDef.color.replace('#', '0x')) : 0xFFFFFF;
+    }
+
+    const percentage = resource.current / resource.maximum;
+    
+    // Color gradient based on percentage
+    if (percentage > 0.75) return 0x00FF00; // Green
+    if (percentage >= 0.5) return 0xFFFF00;  // Yellow
+    if (percentage >= 0.25) return 0xFF8000; // Orange
+    return 0xFF0000; // Red
+  }
 }

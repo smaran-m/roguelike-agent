@@ -29,7 +29,8 @@
           "defaultMinimum": 0,
           "defaultMaximum": 20,
           "color": "#FF0000",
-          "description": "Physical health and vitality"
+          "description": "Physical health and vitality",
+          "display": "bar"
         },
         "mana": {
           "id": "mana",
@@ -38,7 +39,8 @@
           "defaultMinimum": 0,
           "defaultMaximum": 10,
           "color": "#0080FF",
-          "description": "Magical energy for casting spells"
+          "description": "Magical energy for casting spells",
+          "display": "bar"
         },
         "money": {
           "id": "money",
@@ -46,14 +48,10 @@
           "hasCap": false,
           "defaultMinimum": 0,
           "color": "#FFD700",
-          "description": "Coins and currency"
+          "description": "Coins and currency",
+          "display": "text"
         }
       }
-    },
-    "tiles": {
-      "wall": "🧱",
-      "floor": "⬜",
-      "door": "🚪"
     }
   },
   "cyberpunk": {
@@ -86,7 +84,8 @@
           "defaultMinimum": 0,
           "defaultMaximum": 15,
           "color": "#00FF80",
-          "description": "Biological and cybernetic health"
+          "description": "Biological and cybernetic health",
+          "display": "bar"
         },
         "heat": {
           "id": "heat",
@@ -96,7 +95,8 @@
           "defaultMaximum": 100,
           "defaultChangeRate": -2,
           "color": "#FF8000",
-          "description": "Cybernetic heat buildup from overuse"
+          "description": "Cybernetic heat buildup from overuse",
+          "display": "bar"
         },
         "credits": {
           "id": "credits",
@@ -104,7 +104,8 @@
           "hasCap": false,
           "defaultMinimum": 0,
           "color": "#00FFFF",
-          "description": "Digital currency and corporate scrip"
+          "description": "Digital currency and corporate scrip",
+          "display": "text"
         },
         "neural": {
           "id": "neural",
@@ -113,14 +114,10 @@
           "defaultMinimum": 0,
           "defaultMaximum": 50,
           "color": "#FF00FF",
-          "description": "Mental stability and brain function"
+          "description": "Mental stability and brain function",
+          "display": "bar"
         }
       }
-    },
-    "tiles": {
-      "wall": "🏢",
-      "floor": "⬛",
-      "door": "🚪"
     }
   },
   "steampunk": {
@@ -153,7 +150,8 @@
           "defaultMinimum": 0,
           "defaultMaximum": 22,
           "color": "#CD853F",
-          "description": "Physical health and mechanical efficiency"
+          "description": "Physical health and mechanical efficiency",
+          "display": "bar"
         },
         "steam": {
           "id": "steam",
@@ -163,7 +161,8 @@
           "defaultMaximum": 50,
           "defaultChangeRate": -1,
           "color": "#F0F8FF",
-          "description": "Steam power for mechanical abilities"
+          "description": "Steam power for mechanical abilities",
+          "display": "bar"
         },
         "money": {
           "id": "money",
@@ -171,7 +170,8 @@
           "hasCap": false,
           "defaultMinimum": 0,
           "color": "#B8860B",
-          "description": "Mechanical currency and components"
+          "description": "Mechanical currency and components",
+          "display": "text"
         },
         "oil": {
           "id": "oil",
@@ -180,14 +180,10 @@
           "defaultMinimum": 0,
           "defaultMaximum": 25,
           "color": "#2F4F4F",
-          "description": "Lubrication for mechanical systems"
+          "description": "Lubrication for mechanical systems",
+          "display": "bar"
         }
       }
-    },
-    "tiles": {
-      "wall": "🏭",
-      "floor": "🟫",
-      "door": "🚪"
     }
   },
   "horror": {
@@ -221,7 +217,8 @@
           "defaultMinimum": 0,
           "defaultMaximum": 18,
           "color": "#8B0000",
-          "description": "Physical health in a twisted reality"
+          "description": "Physical health in a twisted reality",
+          "display": "bar"
         },
         "sanity": {
           "id": "sanity",
@@ -230,7 +227,8 @@
           "defaultMinimum": 0,
           "defaultMaximum": 100,
           "color": "#4B0082",
-          "description": "Mental stability when facing cosmic horrors"
+          "description": "Mental stability when facing cosmic horrors",
+          "display": "bar"
         },
         "corruption": {
           "id": "corruption",
@@ -240,7 +238,8 @@
           "defaultMaximum": 100,
           "defaultChangeRate": 1,
           "color": "#228B22",
-          "description": "Eldritch corruption affecting body and soul"
+          "description": "Eldritch corruption affecting body and soul",
+          "display": "bar"
         },
         "money": {
           "id": "money",
@@ -248,14 +247,10 @@
           "hasCap": false,
           "defaultMinimum": 0,
           "color": "#B8860B",
-          "description": "Whatever passes for currency in this reality"
+          "description": "Whatever passes for currency in this reality",
+          "display": "text"
         }
       }
-    },
-    "tiles": {
-      "wall": "🕳️",
-      "floor": "🌫️",
-      "door": "🚪"
     }
   }
 }

@@ -7,6 +7,7 @@ import { MovementSystem, MovementState } from './MovementSystem';
 import { CombatManager } from './CombatManager';
 import { GameStateManager } from './GameStateManager';
 import { ResourceManager } from '../utils/ResourceManager';
+import { WorldConfigLoader } from '../utils/WorldConfigLoader';
 
 export class Game {
   renderer: Renderer;
@@ -23,6 +24,9 @@ export class Game {
   private movementState: MovementState;
   
   constructor() {
+    // Initialize world configuration system first
+    WorldConfigLoader.initialize('fantasy');
+    
     this.renderer = new Renderer(50, 30);
     this.tileMap = new TileMap(50, 30);
     

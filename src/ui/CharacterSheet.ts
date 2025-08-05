@@ -3,6 +3,7 @@ import { Entity } from '../types';
 import { CharacterPortrait } from './CharacterPortrait';
 import { CharacterManager } from '../managers/CharacterManager';
 import { ResourceManager } from '../utils/ResourceManager';
+import { WorldConfigLoader } from '../utils/WorldConfigLoader';
 
 export class CharacterSheet {
   private app: Application;
@@ -14,6 +15,7 @@ export class CharacterSheet {
   private levelText!: Text;
   private healthBarText!: Text;
   private healthText!: Text;
+  private statsLabel!: Text;
   private statsContainer!: Container;
   private inventoryLabel!: Text;
   private inventoryContainer!: Container;
@@ -146,15 +148,15 @@ export class CharacterSheet {
     const startY = 200;
     
     // Stats label
-    const statsLabel = new Text('STATS', {
+    this.statsLabel = new Text('STATS', {
       fontFamily: 'Noto Sans Mono, monospace',
       fontSize: 12,
       fill: 0xFFFFFF,
       fontWeight: 'bold'
     });
-    statsLabel.x = this.padding;
-    statsLabel.y = startY;
-    this.container.addChild(statsLabel);
+    this.statsLabel.x = this.padding;
+    this.statsLabel.y = startY;
+    this.container.addChild(this.statsLabel);
     
     // Stats container
     this.statsContainer = new Container();
@@ -221,44 +223,79 @@ export class CharacterSheet {
       this.container.addChild(progressText);
     }
     
-    // Update health bar
-    this.updateHealthBar(player);
+    // Update resources (HP, mana, etc.) and get the next Y position
+    const statsYPosition = this.updateResources(player);
     
-    // Update stats
-    this.updateStats(player);
+    // Update stats with dynamic positioning
+    this.updateStats(player, statsYPosition);
     
     // Update inventory
     this.updateInventory();
   }
   
-  private updateHealthBar(player: Entity) {
-    const currentHp = ResourceManager.getCurrentValue(player, 'hp');
-    const maxHp = ResourceManager.getMaximumValue(player, 'hp') || currentHp;
-    const healthPercentage = currentHp / maxHp;
-    const barLength = 10; // Number of characters in health bar
-    const filledChars = Math.floor(healthPercentage * barLength);
-    const emptyChars = barLength - filledChars;
-    
-    // Determine health bar color
-    let healthColor = 0x00FF00; // Green
-    if (healthPercentage <= 0.25) {
-      healthColor = 0xFF0000; // Red
-    } else if (healthPercentage <= 0.5) {
-      healthColor = 0xFF8800; // Orange
-    } else if (healthPercentage <= 0.75) {
-      healthColor = 0xFFFF00; // Yellow
+  private updateResources(player: Entity): number {
+    // First, ensure the player has resources initialized
+    if (!ResourceManager.hasResource(player, 'hp')) {
+      ResourceManager.initializeResources(player);
     }
-    
-    // Create ASCII health bar
-    const healthBar = '[' + '#'.repeat(filledChars) + '.'.repeat(emptyChars) + ']';
-    this.healthBarText.text = `${healthBar} ${player.stats.hp}/${player.stats.maxHp}`;
-    this.healthBarText.style.fill = healthColor;
-    
-    // Update health text
-    this.healthText.text = `${player.stats.hp}/${player.stats.maxHp}`;
+
+    // Update the existing health bar elements
+    if (this.healthBarText && this.healthText) {
+      const healthDisplay = ResourceManager.getResourceDisplay(player, 'hp', 10);
+      const healthColor = ResourceManager.getResourceColor(player, 'hp');
+      
+      this.healthBarText.text = healthDisplay;
+      this.healthBarText.style.fill = healthColor;
+      
+      // Hide the duplicate numeric health text
+      this.healthText.visible = false;
+    }
+
+    // Add additional resources display below the health bar
+    const availableResources = WorldConfigLoader.getAvailableResourceIds();
+    let yOffset = 210; // Start below the health bar
+
+    // Remove any existing additional resource displays first
+    this.container.children.forEach(child => {
+      if (child instanceof Text && child.y >= 210 && child.y <= 400) {
+        const text = child as Text;
+        if (text.text.includes(':') && (text.text.includes('[') || /\d+/.test(text.text))) {
+          this.container.removeChild(child);
+        }
+      }
+    });
+
+    // Count and display additional resources (excluding HP which is already displayed)
+    const additionalResources = availableResources.filter(id => id !== 'hp');
+    additionalResources.forEach((resourceId: string) => {
+      if (ResourceManager.hasResource(player, resourceId)) {
+        const resourceDef = WorldConfigLoader.getResourceDefinition(resourceId);
+        const display = ResourceManager.getResourceDisplay(player, resourceId, 8); // Smaller bars for additional resources
+        const color = ResourceManager.getResourceColor(player, resourceId);
+
+        // Create resource display text
+        const resourceText = new Text(`${resourceDef?.displayName || resourceId}: ${display}`, {
+          fontFamily: 'Noto Sans Mono, monospace',
+          fontSize: 9,
+          fill: color
+        });
+        resourceText.x = this.padding;
+        resourceText.y = yOffset;
+        
+        this.container.addChild(resourceText);
+        yOffset += 12; // Move down for next resource
+      }
+    });
+
+    // Return the next available Y position for the stats section
+    return yOffset + 10; // Add some padding before stats
   }
   
-  private updateStats(player: Entity) {
+  private updateStats(player: Entity, yPosition: number = 200) {
+    // Reposition the stats label and container dynamically
+    this.statsLabel.y = yPosition;
+    this.statsContainer.y = yPosition + 25;
+    
     // Clear existing stats
     this.statsContainer.removeChildren();
     

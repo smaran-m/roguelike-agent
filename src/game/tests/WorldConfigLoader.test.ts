@@ -84,14 +84,19 @@ describe('WorldConfigLoader', () => {
     expect(WorldConfigLoader.calculateDamage(10, 0.61)).toBe(7); // ceiling(6.1) = 7
   });
 
-  it('should get world-specific tiles', () => {
+  it('should get available resource IDs', () => {
     WorldConfigLoader.setCurrentWorld('fantasy');
-    const fantasyTiles = WorldConfigLoader.getCurrentTiles();
-    expect(fantasyTiles.wall).toBe('🧱');
+    const fantasyResources = WorldConfigLoader.getAvailableResourceIds();
+    expect(fantasyResources).toContain('hp');
+    expect(fantasyResources).toContain('mana');
+    expect(fantasyResources).toContain('money');
     
     WorldConfigLoader.setCurrentWorld('cyberpunk');
-    const cyberpunkTiles = WorldConfigLoader.getCurrentTiles();
-    expect(cyberpunkTiles.wall).toBe('🏢');
+    const cyberpunkResources = WorldConfigLoader.getAvailableResourceIds();
+    expect(cyberpunkResources).toContain('hp');
+    expect(cyberpunkResources).toContain('heat');
+    expect(cyberpunkResources).toContain('credits');
+    expect(cyberpunkResources).toContain('neural');
   });
 
   it('should handle invalid world gracefully', () => {

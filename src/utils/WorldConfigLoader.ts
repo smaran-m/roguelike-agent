@@ -128,16 +128,6 @@ export class WorldConfigLoader {
     return Math.max(mechanics.minimumDamage, finalDamage);
   }
 
-  /**
-   * Get world-specific tiles
-   */
-  static getCurrentTiles() {
-    return this.currentWorld?.tiles || {
-      wall: '🧱',
-      floor: '⬜',
-      door: '🚪'
-    };
-  }
 
   /**
    * Get resource definitions for the current world
