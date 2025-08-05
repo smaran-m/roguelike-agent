@@ -1,4 +1,4 @@
-import { Entity, AttackResult } from '../types';
+import { Entity, AttackResult, DamageType } from '../types';
 
 export class CombatSystem {
   
@@ -57,8 +57,30 @@ export class CombatSystem {
     return strMod + attacker.stats.proficiencyBonus;
   }
   
+  // Calculate final damage after applying resistances/vulnerabilities/immunities
+  static calculateFinalDamage(baseDamage: number, damageType: DamageType, target: Entity): number {
+    // Check for immunity first
+    if (target.stats.damageImmunities?.includes(damageType)) {
+      return 0;
+    }
+    
+    let finalDamage = baseDamage;
+    
+    // Apply resistances (reduce damage)
+    if (target.stats.damageResistances && target.stats.damageResistances[damageType]) {
+      finalDamage *= target.stats.damageResistances[damageType];
+    }
+    
+    // Apply vulnerabilities (increase damage)
+    if (target.stats.damageVulnerabilities && target.stats.damageVulnerabilities[damageType]) {
+      finalDamage *= target.stats.damageVulnerabilities[damageType];
+    }
+    
+    return Math.floor(Math.max(1, finalDamage)); // Minimum 1 damage, rounded down
+  }
+
   // Perform a melee attack with optional weapon damage
-  static meleeAttack(attacker: Entity, target: Entity, weaponDamage?: string): AttackResult {
+  static meleeAttack(attacker: Entity, target: Entity, weaponDamage?: string, damageType: DamageType = DamageType.BLUDGEONING): AttackResult {
     // Roll d20 + attack bonus
     const d20Roll = this.rollD20();
     const attackBonus = this.getAttackBonus(attacker);
@@ -71,6 +93,7 @@ export class CombatSystem {
     const hit = critical || attackRoll >= target.stats.ac;
     
     let damage = 0;
+    let finalDamage = 0;
     let damageRoll = "0";
     
     if (hit) {
@@ -89,8 +112,11 @@ export class CombatSystem {
         damageRoll = `${baseDamage.rolls.join('+')}+${strMod}`;
       }
       
-      // Minimum 1 damage
+      // Minimum 1 damage before resistances
       damage = Math.max(1, damage);
+      
+      // Apply damage type modifiers
+      finalDamage = this.calculateFinalDamage(damage, damageType, target);
     }
     
     return {
@@ -98,7 +124,9 @@ export class CombatSystem {
       damage,
       critical,
       attackRoll,
-      damageRoll
+      damageRoll,
+      damageType,
+      finalDamage
     };
   }
   

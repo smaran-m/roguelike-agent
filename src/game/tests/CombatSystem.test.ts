@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CombatSystem } from '../CombatSystem';
-import { Entity } from '../../types';
+import { Entity, DamageType } from '../../types';
 
 describe('CombatSystem', () => {
   let player: Entity;
@@ -231,5 +231,103 @@ describe('CombatSystem', () => {
     // HP should equal maxHp for new entities
     expect(playerStats.hp).toBe(playerStats.maxHp);
     expect(enemyStats.hp).toBe(enemyStats.maxHp);
+  });
+
+  describe('Damage Type System', () => {
+    it('should apply damage resistance correctly', () => {
+      const target: Entity = {
+        ...enemy,
+        stats: {
+          ...enemy.stats,
+          damageResistances: {
+            [DamageType.FIRE]: 0.5
+          }
+        }
+      };
+
+      const baseDamage = 10;
+      const finalDamage = CombatSystem.calculateFinalDamage(baseDamage, DamageType.FIRE, target);
+      
+      expect(finalDamage).toBe(5); // 10 * 0.5 = 5
+    });
+
+    it('should apply damage vulnerability correctly', () => {
+      const target: Entity = {
+        ...enemy,
+        stats: {
+          ...enemy.stats,
+          damageVulnerabilities: {
+            [DamageType.FIRE]: 2.0
+          }
+        }
+      };
+
+      const baseDamage = 8;
+      const finalDamage = CombatSystem.calculateFinalDamage(baseDamage, DamageType.FIRE, target);
+      
+      expect(finalDamage).toBe(16); // 8 * 2.0 = 16
+    });
+
+    it('should handle damage immunity', () => {
+      const target: Entity = {
+        ...enemy,
+        stats: {
+          ...enemy.stats,
+          damageImmunities: [DamageType.POISON]
+        }
+      };
+
+      const baseDamage = 15;
+      const finalDamage = CombatSystem.calculateFinalDamage(baseDamage, DamageType.POISON, target);
+      
+      expect(finalDamage).toBe(0); // Immune to poison
+    });
+
+    it('should apply multiple modifiers correctly', () => {
+      const target: Entity = {
+        ...enemy,
+        stats: {
+          ...enemy.stats,
+          damageResistances: {
+            [DamageType.FIRE]: 0.75
+          },
+          damageVulnerabilities: {
+            [DamageType.COLD]: 1.5
+          }
+        }
+      };
+
+      // Test fire resistance
+      const fireDamage = CombatSystem.calculateFinalDamage(12, DamageType.FIRE, target);
+      expect(fireDamage).toBe(9); // 12 * 0.75 = 9
+
+      // Test cold vulnerability  
+      const coldDamage = CombatSystem.calculateFinalDamage(6, DamageType.COLD, target);
+      expect(coldDamage).toBe(9); // 6 * 1.5 = 9
+    });
+
+    it('should ensure minimum 1 damage unless immune', () => {
+      const target: Entity = {
+        ...enemy,
+        stats: {
+          ...enemy.stats,
+          damageResistances: {
+            [DamageType.BLUDGEONING]: 0.1
+          }
+        }
+      };
+
+      const baseDamage = 2;
+      const finalDamage = CombatSystem.calculateFinalDamage(baseDamage, DamageType.BLUDGEONING, target);
+      
+      expect(finalDamage).toBe(1); // Minimum 1 damage even with heavy resistance
+    });
+
+    it('should include damage type in attack result', () => {
+      const result = CombatSystem.meleeAttack(player, enemy, '1d6', DamageType.SLASHING);
+      
+      expect(result.damageType).toBe(DamageType.SLASHING);
+      expect(result.finalDamage).toBeDefined();
+    });
   });
 });

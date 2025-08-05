@@ -9,6 +9,8 @@
       "rarity": "common",
       "weight": 3,
       "damage": "1d8",
+      "damageType": "slashing",
+      "weaponType": "melee",
       "abilities": ["Versatile"],
       "value": 15
     },
@@ -21,6 +23,8 @@
       "rarity": "common",
       "weight": 2,
       "damage": "1d6",
+      "damageType": "piercing",
+      "weaponType": "melee",
       "abilities": ["Finesse", "Light"],
       "value": 10
     },
@@ -33,6 +37,8 @@
       "rarity": "common",
       "weight": 4,
       "damage": "1d6",
+      "damageType": "bludgeoning",
+      "weaponType": "magic",
       "abilities": ["Versatile", "Arcane Focus"],
       "value": 2
     },
@@ -45,6 +51,8 @@
       "rarity": "common",
       "weight": 4,
       "damage": "1d6",
+      "damageType": "bludgeoning",
+      "weaponType": "melee",
       "abilities": [],
       "value": 5
     },
@@ -57,6 +65,8 @@
       "rarity": "common",
       "weight": 2,
       "damage": "1d8",
+      "damageType": "piercing",
+      "weaponType": "ranged",
       "abilities": ["Ammunition", "Heavy", "Two-Handed"],
       "value": 50
     },
@@ -69,6 +79,8 @@
       "rarity": "common",
       "weight": 1,
       "damage": "1d4",
+      "damageType": "piercing",
+      "weaponType": "melee",
       "abilities": ["Finesse", "Light", "Thrown"],
       "value": 2
     },
@@ -81,6 +93,8 @@
       "rarity": "common",
       "weight": 7,
       "damage": "1d12",
+      "damageType": "slashing",
+      "weaponType": "melee",
       "abilities": ["Heavy", "Two-Handed"],
       "value": 30
     },
@@ -93,6 +107,8 @@
       "rarity": "common",
       "weight": 2,
       "damage": "1d8",
+      "damageType": "bludgeoning",
+      "weaponType": "melee",
       "abilities": ["Versatile"],
       "value": 15
     }
@@ -232,6 +248,8 @@
       "rarity": "common",
       "weight": 1,
       "damage": "1d4",
+      "damageType": "fire",
+      "weaponType": "melee",
       "abilities": ["Light Source"],
       "value": 1
     }

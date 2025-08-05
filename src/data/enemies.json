@@ -15,7 +15,13 @@
       "proficiencyBonus": 2,
       "level": 1
     },
-    "description": "A small, malicious humanoid creature"
+    "description": "A small, malicious humanoid creature",
+    "damageVulnerabilities": {
+      "fire": 1.5
+    },
+    "damageResistances": {
+      "poison": 0.5
+    }
   },
   "orc": {
     "name": "Orc",
@@ -33,7 +39,13 @@
       "proficiencyBonus": 2,
       "level": 1
     },
-    "description": "A savage humanoid warrior"
+    "description": "A savage humanoid warrior",
+    "damageResistances": {
+      "bludgeoning": 0.75
+    },
+    "damageVulnerabilities": {
+      "psychic": 2.0
+    }
   },
   "skeleton": {
     "name": "Skeleton",
@@ -51,7 +63,15 @@
       "proficiencyBonus": 2,
       "level": 1
     },
-    "description": "An animated undead skeleton"
+    "description": "An animated undead skeleton",
+    "damageVulnerabilities": {
+      "bludgeoning": 2.0
+    },
+    "damageResistances": {
+      "piercing": 0.5,
+      "slashing": 0.5
+    },
+    "damageImmunities": ["poison"]
   },
   "wolf": {
     "name": "Wolf",
@@ -69,7 +89,13 @@
       "proficiencyBonus": 2,
       "level": 1
     },
-    "description": "A fierce predatory canine"
+    "description": "A fierce predatory canine",
+    "damageVulnerabilities": {
+      "fire": 1.25
+    },
+    "damageResistances": {
+      "cold": 0.75
+    }
   },
   "spider": {
     "name": "Giant Spider",
@@ -87,6 +113,12 @@
       "proficiencyBonus": 2,
       "level": 2
     },
-    "description": "A massive arachnid with venomous fangs"
+    "description": "A massive arachnid with venomous fangs",
+    "damageVulnerabilities": {
+      "fire": 1.5
+    },
+    "damageResistances": {
+      "poison": 0.25
+    }
   }
 }

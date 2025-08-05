@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ItemLoader } from '../../utils/ItemLoader';
 import { ItemSystem } from '../Item';
+import { ItemCategory } from '../../types';
 
 describe('ItemLoader', () => {
   it('should load item definitions from JSON', () => {
@@ -44,7 +45,7 @@ describe('ItemLoader', () => {
   });
 
   it('should get items by type', () => {
-    const weapons = ItemLoader.getItemsByType('weapon');
+    const weapons = ItemLoader.getItemsByType(ItemCategory.WEAPON);
     const weaponKeys = Object.keys(weapons);
     expect(weaponKeys).toContain('longsword');
     expect(weaponKeys).toContain('dagger');
@@ -70,11 +71,11 @@ describe('ItemLoader', () => {
   });
 
   it('should get random items by type', () => {
-    const randomWeaponKey = ItemLoader.getRandomItemByType('weapon');
+    const randomWeaponKey = ItemLoader.getRandomItemByType(ItemCategory.WEAPON);
     expect(randomWeaponKey).toBeTruthy();
     
     const randomWeapon = ItemLoader.getItem(randomWeaponKey!);
-    expect(randomWeapon?.type).toBe('weapon');
+    expect(randomWeapon?.type).toBe(ItemCategory.WEAPON);
   });
 });
 
@@ -126,7 +127,7 @@ describe('ItemSystem', () => {
     expect(ItemSystem.hasItem('longsword')).toBe(true);
     expect(ItemSystem.hasItem('nonexistent')).toBe(false);
 
-    const weaponKeys = ItemSystem.getItemsByType('weapon');
+    const weaponKeys = ItemSystem.getItemsByType(ItemCategory.WEAPON);
     expect(weaponKeys).toContain('longsword');
 
     const commonKeys = ItemSystem.getItemsByRarity('common');

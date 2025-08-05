@@ -1,9 +1,9 @@
-import { EnemyDefinition, EntityStats } from '../types';
+import { EnemyDefinition, EntityStats, DamageType } from '../types';
 import { CombatSystem } from '../game/CombatSystem';
 import enemiesData from '../data/enemies.json';
 
 export class EnemyLoader {
-  private static enemies: { [key: string]: EnemyDefinition } = enemiesData;
+  private static enemies: { [key: string]: any } = enemiesData;
 
   /**
    * Get all available enemy types
@@ -13,10 +13,28 @@ export class EnemyLoader {
   }
 
   /**
+   * Convert raw JSON data to proper EnemyDefinition
+   */
+  private static convertToEnemyDefinition(rawData: any): EnemyDefinition {
+    return {
+      name: rawData.name,
+      glyph: rawData.glyph,
+      color: rawData.color,
+      stats: rawData.stats,
+      description: rawData.description,
+      damageResistances: rawData.damageResistances,
+      damageVulnerabilities: rawData.damageVulnerabilities,
+      damageImmunities: rawData.damageImmunities ? rawData.damageImmunities.map((immunity: string) => immunity as DamageType) : undefined
+    };
+  }
+
+  /**
    * Get a specific enemy definition by type
    */
   static getEnemyDefinition(enemyType: string): EnemyDefinition | null {
-    return this.enemies[enemyType] || null;
+    const rawData = this.enemies[enemyType];
+    if (!rawData) return null;
+    return this.convertToEnemyDefinition(rawData);
   }
 
   /**
@@ -44,7 +62,10 @@ export class EnemyLoader {
       wisdom: CombatSystem.rollDice(stats.wisdom).total,
       charisma: CombatSystem.rollDice(stats.charisma).total,
       proficiencyBonus: stats.proficiencyBonus,
-      level: stats.level
+      level: stats.level,
+      damageResistances: definition.damageResistances,
+      damageVulnerabilities: definition.damageVulnerabilities,
+      damageImmunities: definition.damageImmunities
     };
   }
 

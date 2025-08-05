@@ -1,4 +1,4 @@
-import { ItemDefinition, Item } from '../types';
+import { ItemDefinition, Item, DamageType, WeaponType } from '../types';
 import itemsData from '../data/items.json';
 
 export class ItemLoader {
@@ -90,6 +90,8 @@ export class ItemLoader {
       rarity: definition.rarity,
       weight: definition.weight,
       damage: definition.damage,
+      damageType: definition.damageType as DamageType,
+      weaponType: definition.weaponType as WeaponType,
       armorClass: definition.armorClass,
       abilities: definition.abilities ? [...definition.abilities] : [],
       statusEffects: definition.statusEffects ? [...definition.statusEffects] : [],
@@ -154,6 +156,40 @@ export class ItemLoader {
     const keys = Object.keys(items);
     if (keys.length === 0) return null;
     return keys[Math.floor(Math.random() * keys.length)];
+  }
+
+  /**
+   * Get weapons by damage type
+   */
+  static getWeaponsByDamageType(damageType: DamageType): { [key: string]: any } {
+    const result: { [key: string]: any } = {};
+    
+    Object.entries(this.allItems).forEach(([_category, items]) => {
+      Object.entries(items).forEach(([key, item]) => {
+        if (item.type === 'weapon' && item.damageType === damageType) {
+          result[key] = item;
+        }
+      });
+    });
+    
+    return result;
+  }
+
+  /**
+   * Get weapons by weapon type (melee, ranged, magic)
+   */
+  static getWeaponsByWeaponType(weaponType: WeaponType): { [key: string]: any } {
+    const result: { [key: string]: any } = {};
+    
+    Object.entries(this.allItems).forEach(([_category, items]) => {
+      Object.entries(items).forEach(([key, item]) => {
+        if (item.type === 'weapon' && item.weaponType === weaponType) {
+          result[key] = item;
+        }
+      });
+    });
+    
+    return result;
   }
 
   /**

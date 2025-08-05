@@ -24,6 +24,9 @@ export interface EntityStats {
   charisma: number;
   proficiencyBonus: number;
   level: number;
+  damageResistances?: DamageResistance;
+  damageVulnerabilities?: DamageResistance;
+  damageImmunities?: DamageType[];
 }
 
 export interface EnemyStatRanges {
@@ -45,6 +48,9 @@ export interface EnemyDefinition {
   color: string;
   stats: EnemyStatRanges;
   description: string;
+  damageResistances?: DamageResistance;
+  damageVulnerabilities?: DamageResistance;
+  damageImmunities?: DamageType[];
 }
 
 export interface CharacterAppearance {
@@ -101,12 +107,63 @@ export interface Entity {
   isPlayer?: boolean;
 }
 
+export enum DamageType {
+  // Physical damage types
+  SLASHING = 'slashing',
+  PIERCING = 'piercing', 
+  BLUDGEONING = 'bludgeoning',
+  
+  // Elemental damage types
+  FIRE = 'fire',
+  COLD = 'cold',
+  LIGHTNING = 'lightning',
+  ACID = 'acid',
+  POISON = 'poison',
+  
+  // Magical damage types
+  FORCE = 'force',
+  NECROTIC = 'necrotic',
+  RADIANT = 'radiant',
+  PSYCHIC = 'psychic'
+}
+
+export enum ItemCategory {
+  WEAPON = 'weapon',
+  ARMOR = 'armor', 
+  CONSUMABLE = 'consumable',
+  TOOL = 'tool',
+  MISC = 'misc'
+}
+
+export enum WeaponType {
+  MELEE = 'melee',
+  RANGED = 'ranged',
+  MAGIC = 'magic'
+}
+
+export interface DamageResistance {
+  [DamageType.SLASHING]?: number;
+  [DamageType.PIERCING]?: number;
+  [DamageType.BLUDGEONING]?: number;
+  [DamageType.FIRE]?: number;
+  [DamageType.COLD]?: number;
+  [DamageType.LIGHTNING]?: number;
+  [DamageType.ACID]?: number;
+  [DamageType.POISON]?: number;
+  [DamageType.FORCE]?: number;
+  [DamageType.NECROTIC]?: number;
+  [DamageType.RADIANT]?: number;
+  [DamageType.PSYCHIC]?: number;
+}
+
 export interface AttackResult {
   hit: boolean;
   damage: number;
   critical: boolean;
   attackRoll: number;
   damageRoll: string;
+  damageType?: DamageType;
+  finalDamage?: number; // After resistance/vulnerability calculation
 }
 
 export interface Item {
@@ -116,10 +173,12 @@ export interface Item {
   glyph: string;
   color: number;
   isEmoji: boolean;
-  type: 'weapon' | 'armor' | 'consumable' | 'tool' | 'misc';
+  type: ItemCategory;
   rarity: 'common' | 'uncommon' | 'rare' | 'very_rare' | 'legendary';
   weight: number; // Weight in pounds (D&D standard)
   damage?: string; // D&D dice notation like "1d6+1"
+  damageType?: DamageType; // Type of damage dealt (for weapons)
+  weaponType?: WeaponType; // Melee, ranged, or magic (for weapons)
   armorClass?: number; // AC bonus for armor
   abilities?: string[]; // Special abilities granted by the item
   statusEffects?: string[]; // Status effects applied when used
@@ -132,10 +191,12 @@ export interface ItemDefinition {
   description: string;
   glyph: string;
   color: string; // Hex color as string
-  type: 'weapon' | 'armor' | 'consumable' | 'tool' | 'misc';
+  type: ItemCategory;
   rarity: 'common' | 'uncommon' | 'rare' | 'very_rare' | 'legendary';
   weight: number;
   damage?: string;
+  damageType?: DamageType;
+  weaponType?: WeaponType;
   armorClass?: number;
   abilities?: string[];
   statusEffects?: string[];
