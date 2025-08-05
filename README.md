@@ -97,14 +97,18 @@ The game will automatically open in your browser at `http://localhost:3000`.
 - **GameStateManager** (`src/game/GameStateManager.ts`) - Entity lifecycle and game loop management
 - **Renderer** (`src/game/Renderer.ts`) - PixiJS-based rendering with camera system
 - **TileMap** (`src/game/TileMap.ts`) - World generation and collision detection
-- **CombatSystem** (`src/game/CombatSystem.ts`) - D&D-style combat mechanics
+- **CombatSystem** (`src/game/CombatSystem.ts`) - D&D-style combat mechanics with damage types
 - **LineOfSight** (`src/game/LineOfSight.ts`) - FOV and visibility calculations
 - **AnimationSystem** (`src/game/AnimationSystem.ts`) - Dedicated visual effects and animation management
+- **CreateEntity** (`src/game/CreateEntity.ts`) - Centralized entity creation utilities
 
 ### Support Systems
 
 - **CharacterManager** (`src/managers/CharacterManager.ts`) - Singleton character progression and class system
 - **EnemyLoader** (`src/utils/EnemyLoader.ts`) - Enemy data loading and validation from JSON
+- **ItemLoader** (`src/utils/ItemLoader.ts`) - Item data loading and validation from JSON
+- **ResourceManager** (`src/utils/ResourceManager.ts`) - Multi-resource system management (HP, mana, etc.)
+- **WorldConfigLoader** (`src/utils/WorldConfigLoader.ts`) - World theme and configuration management
 - **ErrorHandler** (`src/utils/ErrorHandler.ts`) - Comprehensive error handling framework
 - **Logger** (`src/utils/Logger.ts`) - Configurable logging system with multiple levels
 
@@ -136,15 +140,19 @@ Each entity has full D&D 5e-style attributes:
 
 ### Combat Mechanics
 - **Attack Rolls**: d20 + ability modifier + proficiency bonus
-- **Damage**: Weapon dice + ability modifier
-- **Critical Hits**: Natural 20s deal double damage
+- **Damage Types**: Physical, elemental, magical (varies by world theme)
+- **Damage Resistance**: Configurable resistance/vulnerability system
+- **Critical Hits**: Multiple critical hit rules (double damage, max+roll, double dice)
 - **Range**: Melee attacks require adjacent positioning
+- **Multi-Resource System**: HP, mana, stamina, and theme-specific resources
 
 ### World Generation
 - Procedurally generated dungeon layouts
 - Wall and floor tile placement
 - Enemy spawn locations
-- Configurable themes and tilesets
+- Multi-theme world system (Fantasy, Cyberpunk, Steampunk, Horror)
+- Theme-specific damage types and resistance systems
+- Configurable resource systems per world theme
 
 ## Development
 
@@ -181,11 +189,18 @@ src/
 │   └── CharacterPortrait.ts    # Dynamic health-based portraits
 ├── utils/                   # Support utilities
 │   ├── EnemyLoader.ts          # Enemy data loading and validation
+│   ├── ItemLoader.ts           # Item data loading and validation
+│   ├── ResourceManager.ts      # Multi-resource system management
+│   ├── WorldConfigLoader.ts    # World theme configuration loading
 │   ├── ErrorHandler.ts         # Comprehensive error handling (126 lines)
 │   └── Logger.ts               # Professional logging system (117 lines)
 ├── data/                    # JSON configuration files
 │   ├── characterClasses.json   # Character class definitions
-│   └── enemies.json            # Enemy type definitions
+│   ├── enemies.json            # Enemy type definitions
+│   ├── items.json              # Item definitions with damage types
+│   ├── cyberpunk-enemies.json  # Cyberpunk-themed enemies
+│   ├── cyberpunk-items.json    # Cyberpunk-themed items
+│   └── worlds.json             # World configurations and themes
 ├── demo/                    # Demo and example code
 │   ├── characterDemo.ts        # Character system demo
 │   └── enemyDemo.ts            # Enemy system demo
@@ -228,6 +243,23 @@ npm run test:ui       # Run tests with UI interface
 - Comprehensive error handling with typed error codes
 - Professional logging system with configurable levels
 - Test-driven development with high coverage
+
+## Recent Development
+
+Latest features added (as of recent commits):
+- **Multi-World System**: Fantasy, Cyberpunk, Steampunk, and Horror world themes with unique mechanics
+- **Advanced Resource Management**: Multi-resource system supporting HP, mana, heat, sanity, corruption, etc.
+- **Enhanced Combat System**: Damage types, resistance/vulnerability system, theme-specific mechanics
+- **Item System**: JSON-based item loading with damage types and world-specific variants
+- **World Configuration**: Dynamic world loading with theme-specific rules and resources
+- **UI Resource Display**: Character sheet integration with new resource system
+- **Entity Creation System**: Centralized entity creation utilities for consistency
+- **Comprehensive Testing**: 114+ tests covering all core systems with deterministic seeded randomness
+- **Error Handling Framework**: Professional error management with GameError class and typed error codes
+- **Logging Infrastructure**: Configurable logging system with multiple levels and context
+- **Architectural Refactoring**: Extracted 4 major systems from monolithic Game class (40% code reduction)
+- Line of sight system with ray casting FOV
+- Scrolling camera that follows player movement
 
 ## Contributing
 

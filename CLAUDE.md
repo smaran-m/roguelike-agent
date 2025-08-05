@@ -55,16 +55,26 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - **State Management** (`src/game/GameStateManager.ts`) - Entity lifecycle and game loop management (140 lines)
 - **Rendering Layer** (`src/game/Renderer.ts`) - PixiJS-based rendering with emoji support, animations, and camera system
 - **World Layer** (`src/game/TileMap.ts`) - Tile-based world generation, collision detection, and visibility tracking
-- **Combat System** (`src/game/CombatSystem.ts`) - D&D 5e-inspired combat mechanics with dice rolling
+- **Combat System** (`src/game/CombatSystem.ts`) - D&D 5e-inspired combat mechanics with dice rolling and damage types
 - **Line of Sight** (`src/game/LineOfSight.ts`) - FOV calculation and visibility management
+- **Entity Creation** (`src/game/CreateEntity.ts`) - Centralized entity creation utilities for consistency
 - **Error Handling** (`src/utils/ErrorHandler.ts`) - Comprehensive error handling framework with typed error codes (126 lines)
 - **Logging System** (`src/utils/Logger.ts`) - Professional logging system with configurable levels (117 lines)
 - **Type Definitions** (`src/types/index.ts`) - Shared interfaces for Tile, Entity, Combat, and WorldSchema
 - **Character Management** (`src/managers/CharacterManager.ts`) - Singleton character progression and class system
 - **Enemy System** (`src/utils/EnemyLoader.ts`) - Enemy data loading and validation from JSON
+- **Item System** (`src/utils/ItemLoader.ts`) - Item data loading and validation from JSON with damage types
+- **Resource Management** (`src/utils/ResourceManager.ts`) - Multi-resource system supporting HP, mana, and theme-specific resources
+- **World Configuration** (`src/utils/WorldConfigLoader.ts`) - World theme and configuration management system
 - **UI Components** (`src/ui/`) - Character sheets, portraits, and UI elements
 - **Animation System** (`src/game/AnimationSystem.ts`) - Dedicated visual effects and animation management
-- **Data Files** (`src/data/`) - JSON configuration for character classes and enemy definitions
+- **Data Files** (`src/data/`) - JSON configuration for character classes, enemy definitions, items, and world themes
+  - `characterClasses.json` - Character class definitions
+  - `enemies.json` - Standard enemy definitions
+  - `items.json` - Item definitions with damage types
+  - `worlds.json` - World theme configurations (Fantasy, Cyberpunk, Steampunk, Horror)
+  - `cyberpunk-enemies.json` - Cyberpunk-themed enemies
+  - `cyberpunk-items.json` - Cyberpunk-themed items
 
 ### Key Components
 
@@ -132,10 +142,13 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 ### Game Systems
 
 **Combat Mechanics**:
-- Turn-based D&D-style combat
+- Turn-based D&D-style combat with theme-specific variations
 - Melee attacks with range checking (1 grid square)
 - Attack rolls: d20 + ability modifier + proficiency bonus
-- Damage rolls with critical hit doubling
+- Damage types: Physical, elemental, magical (varies by world theme)
+- Damage resistance/vulnerability system with configurable multipliers
+- Multiple critical hit rules: double damage, max+roll, double dice
+- Multi-resource system: HP, mana, theme-specific resources (heat, sanity, corruption, etc.)
 - Character death at 0 HP
 
 **Visibility System**:
@@ -146,7 +159,9 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 
 **Entity System**:
 - Full D&D-style character stats (6 abilities, HP, AC, level)
+- Multi-resource entities with configurable resource types per world theme
 - Player and enemy entities with different stat blocks
+- Item-based damage types and resistance systems
 - Unique entity IDs and visual representation
 - Support for both emoji and ASCII character rendering
 
@@ -181,17 +196,27 @@ The project uses consistent dark theme styling throughout:
 - **Dark Backgrounds**: `0x000000` (panels and overlays)
 - **Borders**: `0x444444` for panel separators
 - **Text Hierarchy**: White primary (`0xFFFFFF`), light gray secondary (`0xCCCCCC`), muted (`0x888888`)
+- **Resource Colors**: Configurable per world theme (HP: red, Mana: blue, Heat: orange, Sanity: purple, etc.)
 - **Status Colors**: Health progression (green → yellow → orange → red)
 - **Special Colors**: Gold for levels/XP (`0xFFD700`), sky blue for AC highlight (`0x87CEEB`)
 
 ### UI Layout
 - **Character Panel**: Left-side panel (200x600px) with right border line
-- **ASCII Health Display**: Text-based health bars using `[##########]` format
+- **Multi-Resource Display**: Text-based resource bars for HP, mana, and theme-specific resources
+- **ASCII Resource Bars**: Text-based bars using `[##########]` format with theme-appropriate colors
+- **Dynamic Resource Layout**: Adapts to active world theme's resource configuration
 - **Bottom Corner UI**: Controls (bottom left), position coordinates (bottom right)
 - **Spacing**: Consistent 10px padding throughout UI elements
 
 ## Recent Development
 Latest features added (as of recent commits):
+- **Multi-World System**: Fantasy, Cyberpunk, Steampunk, and Horror world themes with unique mechanics
+- **Advanced Resource Management**: Multi-resource system supporting HP, mana, heat, sanity, corruption, etc.
+- **Enhanced Combat System**: Damage types, resistance/vulnerability system, theme-specific mechanics
+- **Item System**: JSON-based item loading with damage types and world-specific variants
+- **World Configuration**: Dynamic world loading with theme-specific rules and resources
+- **UI Resource Display**: Character sheet integration with new resource system
+- **Entity Creation System**: Centralized entity creation utilities for consistency
 - **Architectural Refactoring**: Extracted 4 major systems from monolithic Game class (40% code reduction)
 - **Comprehensive Testing**: 114+ tests covering all core systems with deterministic seeded randomness
 - **Error Handling Framework**: Professional error management with GameError class and typed error codes
@@ -225,6 +250,9 @@ Test files:
 - `MovementSystem.test.ts` - Movement logic and collision detection (8 tests)
 - `EnemyLoader.test.ts` - Enemy data loading and validation (8 tests)
 - `InputHandler.test.ts` - Input handling and callbacks (5 tests)
+- `ResourceDisplay.test.ts` - Resource system UI display testing
+- `WorldConfigLoader.test.ts` - World configuration loading and validation
+- `ItemLoader.test.ts` - Item system data loading and validation
 
 ## Architecture Patterns
 

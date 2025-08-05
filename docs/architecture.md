@@ -201,11 +201,12 @@ interface InputCallbacks {
 
 **Combat Flow**:
 1. **Range checking**: `CombatSystem.isInMeleeRange(attacker, target)`
-2. **Attack calculation**: `CombatSystem.meleeAttack(attacker, target)`
-3. **Damage application**: `CombatSystem.applyDamage(target, damage)`
-4. **Visual feedback**: Animation system triggers (shake, nudge, floating damage)
-5. **Message logging**: Combat results displayed in UI
-6. **Entity cleanup**: Removal of defeated entities
+2. **Attack calculation**: `CombatSystem.meleeAttack(attacker, target)` with damage type support
+3. **Damage calculation**: Applies resistance/vulnerability multipliers based on damage types
+4. **Resource application**: Multi-resource damage system (HP, stamina, etc.)
+5. **Visual feedback**: Animation system triggers (shake, nudge, floating damage)
+6. **Message logging**: Combat results displayed in UI
+7. **Entity cleanup**: Removal of defeated entities
 
 **Animation Integration**:
 - **Attack feedback**: Nudge attacker toward target
@@ -262,14 +263,16 @@ screenToPixel(screenX, screenY) // Convert screen to pixel coordinates
 - **Fixed positioning**: Left panel (200px width)
 - **Hierarchical containers**: Organized UI sections
 - **Real-time updates**: Reflects current player state
-- **ASCII health bars**: Text-based health visualization
+- **Multi-resource display**: ASCII bars for HP, mana, and theme-specific resources
+- **Dynamic theming**: Resource colors and types adapt to active world theme
 
 **UI Elements**:
 ```
 Character Sheet (200x600px)
 ├── Portrait (36px emoji)
 ├── Name & Class Info
-├── Health Bar (ASCII style)
+├── Multi-Resource Display (HP, mana, theme-specific)
+├── ASCII Resource Bars (configurable colors)
 ├── Stats Section (7 D&D attributes)
 └── Equipment Section (placeholder)
 ```
@@ -302,10 +305,11 @@ Key presses → Movement/Combat → Entity state → Visual output
 1. **Input**: User presses spacebar
 2. **InputHandler**: Calls `onAttack` callback
 3. **CombatManager**: Finds targets in range
-4. **CombatSystem**: Calculates attack roll and damage
-5. **AnimationSystem**: Triggers visual effects (nudge, shake, damage numbers)
-6. **Renderer**: Updates health displays and message log
-7. **GameStateManager**: Removes defeated entities if necessary
+4. **CombatSystem**: Calculates attack roll, damage types, and resistance modifiers
+5. **ResourceManager**: Applies damage to appropriate resource pools
+6. **AnimationSystem**: Triggers visual effects (nudge, shake, damage numbers)
+7. **Renderer**: Updates multi-resource displays and message log
+8. **GameStateManager**: Removes defeated entities if necessary
 
 ## Technical Implementation Details
 
@@ -363,4 +367,45 @@ Key presses → Movement/Combat → Entity state → Visual output
 - Entity lifecycle management
 - Input handling and callback systems
 
-This architecture enables a maintainable, extensible roguelike game with smooth gameplay, professional error handling, and comprehensive testing coverage.
+## Multi-World System Architecture
+
+### World Configuration System
+**File**: `src/utils/WorldConfigLoader.ts`
+
+The game implements a sophisticated multi-world system supporting different themes with unique mechanics:
+
+#### Supported World Themes:
+1. **Fantasy Realm**: Traditional D&D-style mechanics with HP/Mana resources
+2. **Neon City 2088**: Cyberpunk theme with Bio-Status, Heat, Neural Integrity, and Credits
+3. **Victorian Steam Age**: Steampunk theme with Vitality, Steam Pressure, and Oil Reserves
+4. **Eldritch Nightmare**: Horror theme with HP, Sanity, and Corruption mechanics
+
+#### Theme-Specific Features:
+- **Damage Types**: Each world has unique damage categories (physical/elemental/magical vs kinetic/energy/cyber)
+- **Resistance Systems**: Configurable multipliers for immunity, resistance, vulnerability
+- **Critical Hit Rules**: Multiple variants (double damage, max+roll, double dice)
+- **Resource Systems**: Dynamic resource pools with configurable caps, colors, and mechanics
+- **Combat Mechanics**: Theme-appropriate minimum damage and rounding rules
+
+#### Resource Management:
+```typescript
+interface Resource {
+  id: string;
+  displayName: string;
+  current: number;
+  maximum?: number;
+  minimum: number;
+  color: string;
+  description: string;
+  display: 'bar' | 'text';
+  changeRate?: number;  // Automatic resource regeneration/decay
+}
+```
+
+#### Integration Points:
+- **CharacterSheet**: Dynamically displays resources based on active world theme
+- **CombatSystem**: Applies theme-specific damage calculations and critical hit rules
+- **ResourceManager**: Handles multi-resource entities with backward compatibility
+- **UI Systems**: Automatically adapts colors and layout based on world configuration
+
+This architecture enables a maintainable, extensible roguelike game with smooth gameplay, professional error handling, comprehensive testing coverage, and rich thematic variety through the multi-world system.
