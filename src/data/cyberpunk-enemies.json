@@ -1,0 +1,151 @@
+{
+  "corporate_security": {
+    "name": "Corporate Security",
+    "glyph": "👮",
+    "color": "0x000080",
+    "stats": {
+      "hp": "2d8+4",
+      "ac": 14,
+      "strength": "1d4+10",
+      "dexterity": "2d4+8",
+      "constitution": "1d4+10",
+      "intelligence": "1d4+8",
+      "wisdom": "1d4+9",
+      "charisma": "1d4+6",
+      "proficiencyBonus": 2,
+      "level": 2
+    },
+    "description": "Corporate enforcers with military-grade equipment",
+    "damageResistances": {
+      "kinetic": 0.8
+    },
+    "damageVulnerabilities": {
+      "emp": 1.5
+    }
+  },
+  "cyber_assassin": {
+    "name": "Cyber Assassin",
+    "glyph": "🥷",
+    "color": "0xFF0080",
+    "stats": {
+      "hp": "3d6+6",
+      "ac": 16,
+      "strength": "1d4+8",
+      "dexterity": "3d4+10",
+      "constitution": "1d4+9",
+      "intelligence": "2d4+10",
+      "wisdom": "2d4+8",
+      "charisma": "1d4+7",
+      "proficiencyBonus": 3,
+      "level": 3
+    },
+    "description": "Elite assassin with extensive cybernetic modifications",
+    "damageResistances": {
+      "kinetic": 0.6,
+      "thermal": 0.7
+    },
+    "damageVulnerabilities": {
+      "viral": 2.0
+    }
+  },
+  "street_gang": {
+    "name": "Street Ganger",
+    "glyph": "😠",
+    "color": "0xFF4500",
+    "stats": {
+      "hp": "2d6+2",
+      "ac": 12,
+      "strength": "2d4+8",
+      "dexterity": "1d4+9",
+      "constitution": "1d4+9",
+      "intelligence": "1d4+6",
+      "wisdom": "1d4+7",
+      "charisma": "1d4+8",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "description": "Low-level street criminal with basic augmentations",
+    "damageVulnerabilities": {
+      "sonic": 1.3,
+      "neural": 1.4
+    }
+  },
+  "ai_drone": {
+    "name": "Security Drone",
+    "glyph": "🤖",
+    "color": "0xC0C0C0",
+    "stats": {
+      "hp": "2d8+6",
+      "ac": 15,
+      "strength": "1d4+6",
+      "dexterity": "3d4+8",
+      "constitution": "2d4+12",
+      "intelligence": "2d4+12",
+      "wisdom": "2d4+10",
+      "charisma": "1d4+2",
+      "proficiencyBonus": 2,
+      "level": 2
+    },
+    "description": "Autonomous security drone with advanced AI",
+    "damageResistances": {
+      "kinetic": 0.5,
+      "plasma": 0.4
+    },
+    "damageVulnerabilities": {
+      "emp": 2.5
+    },
+    "damageImmunities": ["neural", "viral"]
+  },
+  "netrunner": {
+    "name": "Hostile Netrunner",
+    "glyph": "🧑‍💻",
+    "color": "0x00FF00",
+    "stats": {
+      "hp": "2d6+4",
+      "ac": 11,
+      "strength": "1d4+6",
+      "dexterity": "1d4+8",
+      "constitution": "1d4+8",
+      "intelligence": "3d4+12",
+      "wisdom": "2d4+9",
+      "charisma": "1d4+7",
+      "proficiencyBonus": 3,
+      "level": 2
+    },
+    "description": "Elite hacker specializing in cyber warfare",
+    "damageResistances": {
+      "viral": 0.3,
+      "neural": 0.4
+    },
+    "damageVulnerabilities": {
+      "kinetic": 1.6,
+      "thermal": 1.4
+    }
+  },
+  "corpo_exec": {
+    "name": "Corporate Executive",
+    "glyph": "🤵",
+    "color": "0x8B4513",
+    "stats": {
+      "hp": "4d8+8",
+      "ac": 18,
+      "strength": "1d4+8",
+      "dexterity": "1d4+9",
+      "constitution": "2d4+10",
+      "intelligence": "3d4+12",
+      "wisdom": "2d4+11",
+      "charisma": "3d4+14",
+      "proficiencyBonus": 4,
+      "level": 4
+    },
+    "description": "High-ranking corporate official with premium cybernetics",
+    "damageResistances": {
+      "kinetic": 0.3,
+      "plasma": 0.4,
+      "emp": 0.2
+    },
+    "damageVulnerabilities": {
+      "quantum": 1.8
+    }
+  }
+}

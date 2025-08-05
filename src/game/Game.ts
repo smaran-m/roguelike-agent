@@ -6,6 +6,7 @@ import { InputHandler, InputCallbacks } from './InputHandler';
 import { MovementSystem, MovementState } from './MovementSystem';
 import { CombatManager } from './CombatManager';
 import { GameStateManager } from './GameStateManager';
+import { ResourceManager } from '../utils/ResourceManager';
 
 export class Game {
   renderer: Renderer;
@@ -139,9 +140,11 @@ export class Game {
       playerHp.x = screenPos.x * this.renderer.tileSize + this.renderer.tileSize / 2;
       playerHp.y = screenPos.y * this.renderer.tileSize + this.renderer.tileSize / 2 - 10;
       // Update HP text content and color
-      const hpRatio = this.player.stats.hp / this.player.stats.maxHp;
+      const currentHp = ResourceManager.getCurrentValue(this.player, 'hp');
+      const maxHp = ResourceManager.getMaximumValue(this.player, 'hp') || currentHp;
+      const hpRatio = currentHp / maxHp;
       const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
-      playerHp.text = `${this.player.stats.hp}/${this.player.stats.maxHp}`;
+      playerHp.text = `${currentHp}/${maxHp}`;
       playerHp.style.fill = hpColor;
     }
     

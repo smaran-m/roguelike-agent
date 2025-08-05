@@ -1,0 +1,261 @@
+{
+  "fantasy": {
+    "name": "Fantasy Realm",
+    "description": "A magical world of swords and sorcery",
+    "theme": "fantasy",
+    "damageTypes": {
+      "physical": ["slashing", "piercing", "bludgeoning"],
+      "elemental": ["fire", "cold", "lightning", "acid", "poison"],
+      "magical": ["force", "necrotic", "radiant", "psychic"]
+    },
+    "weaponTypes": ["melee", "ranged", "magic"],
+    "resistanceSystem": {
+      "immunityMultiplier": 0,
+      "heavyResistanceMultiplier": 0.25,
+      "resistanceMultiplier": 0.5,
+      "normalMultiplier": 1.0,
+      "vulnerabilityMultiplier": 1.5,
+      "heavyVulnerabilityMultiplier": 2.0
+    },
+    "mechanics": {
+      "criticalHitRule": "double_damage",
+      "minimumDamage": 1,
+      "roundingRule": "floor",
+      "resources": {
+        "hp": {
+          "id": "hp",
+          "displayName": "Health",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 20,
+          "color": "#FF0000",
+          "description": "Physical health and vitality"
+        },
+        "mana": {
+          "id": "mana",
+          "displayName": "Mana",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 10,
+          "color": "#0080FF",
+          "description": "Magical energy for casting spells"
+        },
+        "money": {
+          "id": "money",
+          "displayName": "Gold",
+          "hasCap": false,
+          "defaultMinimum": 0,
+          "color": "#FFD700",
+          "description": "Coins and currency"
+        }
+      }
+    },
+    "tiles": {
+      "wall": "🧱",
+      "floor": "⬜",
+      "door": "🚪"
+    }
+  },
+  "cyberpunk": {
+    "name": "Neon City 2088",
+    "description": "High-tech dystopian future with cybernetic enhancements",
+    "theme": "cyberpunk",
+    "damageTypes": {
+      "physical": ["kinetic", "explosive", "thermal"],
+      "energy": ["electric", "plasma", "laser", "sonic"],
+      "cyber": ["viral", "emp", "neural", "quantum"]
+    },
+    "weaponTypes": ["ballistic", "energy", "cyber"],
+    "resistanceSystem": {
+      "immunityMultiplier": 0,
+      "heavyResistanceMultiplier": 0.1,
+      "resistanceMultiplier": 0.4,
+      "normalMultiplier": 1.0,
+      "vulnerabilityMultiplier": 1.75,
+      "heavyVulnerabilityMultiplier": 2.5
+    },
+    "mechanics": {
+      "criticalHitRule": "max_damage_plus_roll",
+      "minimumDamage": 0,
+      "roundingRule": "round",
+      "resources": {
+        "hp": {
+          "id": "hp",
+          "displayName": "Bio-Status",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 15,
+          "color": "#00FF80",
+          "description": "Biological and cybernetic health"
+        },
+        "heat": {
+          "id": "heat",
+          "displayName": "Heat",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 100,
+          "defaultChangeRate": -2,
+          "color": "#FF8000",
+          "description": "Cybernetic heat buildup from overuse"
+        },
+        "credits": {
+          "id": "credits",
+          "displayName": "Credits",
+          "hasCap": false,
+          "defaultMinimum": 0,
+          "color": "#00FFFF",
+          "description": "Digital currency and corporate scrip"
+        },
+        "neural": {
+          "id": "neural",
+          "displayName": "Neural Integrity",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 50,
+          "color": "#FF00FF",
+          "description": "Mental stability and brain function"
+        }
+      }
+    },
+    "tiles": {
+      "wall": "🏢",
+      "floor": "⬛",
+      "door": "🚪"
+    }
+  },
+  "steampunk": {
+    "name": "Victorian Steam Age",
+    "description": "Industrial revolution meets fantastical steam-powered technology",
+    "theme": "steampunk",
+    "damageTypes": {
+      "mechanical": ["crushing", "piercing", "cutting"],
+      "industrial": ["steam", "chemical", "electrical"],
+      "alchemical": ["acid", "explosive", "toxic"]
+    },
+    "weaponTypes": ["mechanical", "steam", "alchemical"],
+    "resistanceSystem": {
+      "immunityMultiplier": 0,
+      "heavyResistanceMultiplier": 0.3,
+      "resistanceMultiplier": 0.6,
+      "normalMultiplier": 1.0,
+      "vulnerabilityMultiplier": 1.4,
+      "heavyVulnerabilityMultiplier": 1.8
+    },
+    "mechanics": {
+      "criticalHitRule": "double_dice",
+      "minimumDamage": 1,
+      "roundingRule": "ceiling",
+      "resources": {
+        "hp": {
+          "id": "hp",
+          "displayName": "Vitality",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 22,
+          "color": "#CD853F",
+          "description": "Physical health and mechanical efficiency"
+        },
+        "steam": {
+          "id": "steam",
+          "displayName": "Steam Pressure",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 50,
+          "defaultChangeRate": -1,
+          "color": "#F0F8FF",
+          "description": "Steam power for mechanical abilities"
+        },
+        "money": {
+          "id": "money",
+          "displayName": "Gears",
+          "hasCap": false,
+          "defaultMinimum": 0,
+          "color": "#B8860B",
+          "description": "Mechanical currency and components"
+        },
+        "oil": {
+          "id": "oil",
+          "displayName": "Oil Reserves",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 25,
+          "color": "#2F4F4F",
+          "description": "Lubrication for mechanical systems"
+        }
+      }
+    },
+    "tiles": {
+      "wall": "🏭",
+      "floor": "🟫",
+      "door": "🚪"
+    }
+  },
+  "horror": {
+    "name": "Eldritch Nightmare",
+    "description": "Cosmic horror where sanity is as important as health",
+    "theme": "horror",
+    "damageTypes": {
+      "physical": ["slashing", "piercing", "bludgeoning"],
+      "eldritch": ["madness", "corruption", "void", "fear"],
+      "spiritual": ["holy", "cursed", "spectral"]
+    },
+    "weaponTypes": ["mundane", "blessed", "cursed"],
+    "resistanceSystem": {
+      "immunityMultiplier": 0,
+      "heavyResistanceMultiplier": 0.2,
+      "resistanceMultiplier": 0.5,
+      "normalMultiplier": 1.0,
+      "vulnerabilityMultiplier": 2.0,
+      "heavyVulnerabilityMultiplier": 3.0
+    },
+    "mechanics": {
+      "criticalHitRule": "double_damage",
+      "minimumDamage": 1,
+      "roundingRule": "floor",
+      "specialMechanics": ["sanity_loss", "corruption_buildup"],
+      "resources": {
+        "hp": {
+          "id": "hp",
+          "displayName": "Vitality",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 18,
+          "color": "#8B0000",
+          "description": "Physical health in a twisted reality"
+        },
+        "sanity": {
+          "id": "sanity",
+          "displayName": "Sanity",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 100,
+          "color": "#4B0082",
+          "description": "Mental stability when facing cosmic horrors"
+        },
+        "corruption": {
+          "id": "corruption",
+          "displayName": "Corruption",
+          "hasCap": true,
+          "defaultMinimum": 0,
+          "defaultMaximum": 100,
+          "defaultChangeRate": 1,
+          "color": "#228B22",
+          "description": "Eldritch corruption affecting body and soul"
+        },
+        "money": {
+          "id": "money",
+          "displayName": "Currency",
+          "hasCap": false,
+          "defaultMinimum": 0,
+          "color": "#B8860B",
+          "description": "Whatever passes for currency in this reality"
+        }
+      }
+    },
+    "tiles": {
+      "wall": "🕳️",
+      "floor": "🌫️",
+      "door": "🚪"
+    }
+  }
+}

@@ -1,4 +1,6 @@
 import { Entity, AttackResult, DamageType } from '../types';
+import { WorldConfigLoader } from '../utils/WorldConfigLoader';
+import { ResourceManager } from '../utils/ResourceManager';
 
 export class CombatSystem {
   
@@ -58,29 +60,42 @@ export class CombatSystem {
   }
   
   // Calculate final damage after applying resistances/vulnerabilities/immunities
-  static calculateFinalDamage(baseDamage: number, damageType: DamageType, target: Entity): number {
-    // Check for immunity first
-    if (target.stats.damageImmunities?.includes(damageType)) {
-      return 0;
+  static calculateFinalDamage(baseDamage: number, damageType: DamageType | string, target: Entity): number {
+    // Convert damage type to string for validation
+    const damageTypeStr = typeof damageType === 'string' ? damageType : damageType;
+    
+    // Check if damage type is valid in current world
+    if (!WorldConfigLoader.isDamageTypeValid(damageTypeStr)) {
+      console.warn(`Invalid damage type '${damageTypeStr}' for current world`);
+      // Fall back to normal damage
+      return WorldConfigLoader.calculateDamage(baseDamage, 1.0);
     }
     
-    let finalDamage = baseDamage;
-    
-    // Apply resistances (reduce damage)
-    if (target.stats.damageResistances && target.stats.damageResistances[damageType]) {
-      finalDamage *= target.stats.damageResistances[damageType];
+    // Check for immunity first - convert both to strings for comparison
+    const damageTypeForComparison = typeof damageType === 'string' ? damageType : damageType;
+    if (target.stats.damageImmunities?.some(immunity => 
+      (typeof immunity === 'string' ? immunity : immunity) === damageTypeForComparison
+    )) {
+      return WorldConfigLoader.calculateDamage(baseDamage, WorldConfigLoader.getResistanceMultiplier('immunity'));
     }
     
-    // Apply vulnerabilities (increase damage)
-    if (target.stats.damageVulnerabilities && target.stats.damageVulnerabilities[damageType]) {
-      finalDamage *= target.stats.damageVulnerabilities[damageType];
+    let resistanceMultiplier = 1.0;
+    
+    // Apply resistances (reduce damage) - use string key for lookup
+    if (target.stats.damageResistances && target.stats.damageResistances[damageTypeForComparison]) {
+      resistanceMultiplier = target.stats.damageResistances[damageTypeForComparison];
     }
     
-    return Math.floor(Math.max(1, finalDamage)); // Minimum 1 damage, rounded down
+    // Apply vulnerabilities (increase damage) - use string key for lookup
+    if (target.stats.damageVulnerabilities && target.stats.damageVulnerabilities[damageTypeForComparison]) {
+      resistanceMultiplier = target.stats.damageVulnerabilities[damageTypeForComparison];
+    }
+    
+    return WorldConfigLoader.calculateDamage(baseDamage, resistanceMultiplier);
   }
 
   // Perform a melee attack with optional weapon damage
-  static meleeAttack(attacker: Entity, target: Entity, weaponDamage?: string, damageType: DamageType = DamageType.BLUDGEONING): AttackResult {
+  static meleeAttack(attacker: Entity, target: Entity, weaponDamage?: string, damageType: DamageType | string = DamageType.BLUDGEONING): AttackResult {
     // Roll d20 + attack bonus
     const d20Roll = this.rollD20();
     const attackBonus = this.getAttackBonus(attacker);
@@ -132,14 +147,13 @@ export class CombatSystem {
   
   // Apply damage to an entity
   static applyDamage(entity: Entity, damage: number): boolean {
-    entity.stats.hp -= damage;
-    entity.stats.hp = Math.max(0, entity.stats.hp);
-    return entity.stats.hp <= 0; // Returns true if entity died
+    ResourceManager.modify(entity, 'hp', -damage);
+    return ResourceManager.isAtMinimum(entity, 'hp'); // Returns true if entity died
   }
   
-  // Create default player stats
+  // Create default player stats with resources initialized
   static createPlayerStats(): import('../types').EntityStats {
-    return {
+    const stats: import('../types').EntityStats = {
       hp: 20,
       maxHp: 20,
       ac: 14, // Leather armor + dex
@@ -152,11 +166,12 @@ export class CombatSystem {
       proficiencyBonus: 2,
       level: 1
     };
+    return stats;
   }
   
-  // Create default enemy stats
+  // Create default enemy stats with resources initialized
   static createEnemyStats(): import('../types').EntityStats {
-    return {
+    const stats: import('../types').EntityStats = {
       hp: 8,
       maxHp: 8,
       ac: 12, // Natural armor
@@ -169,5 +184,6 @@ export class CombatSystem {
       proficiencyBonus: 2,
       level: 1
     };
+    return stats;
   }
 }

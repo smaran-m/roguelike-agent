@@ -86,7 +86,7 @@ describe('CharacterManager', () => {
       // Warriors should generally have higher AC and HP
       expect(warrior.stats.ac).toBeGreaterThan(mage.stats.ac);
       // These are probabilistic, but warriors have higher HP dice
-      expect(warrior.stats.maxHp).toBeGreaterThanOrEqual(mage.stats.maxHp);
+      expect(warrior.stats.maxHp || 0).toBeGreaterThanOrEqual(mage.stats.maxHp || 0);
     }
   });
 

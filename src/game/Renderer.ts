@@ -2,6 +2,7 @@ import { Application, Container, Graphics, Text } from 'pixi.js';
 import { Tile, Entity } from '../types';
 import { CharacterSheet } from '../ui/CharacterSheet';
 import { AnimationSystem } from './AnimationSystem';
+import { ResourceManager } from '../utils/ResourceManager';
 
 export class Renderer {
   app: Application;
@@ -369,10 +370,12 @@ export class Renderer {
       }
       
       // Update HP display properties
-      const hpRatio = entity.stats.hp / entity.stats.maxHp;
+      const currentHp = ResourceManager.getCurrentValue(entity, 'hp');
+      const maxHp = ResourceManager.getMaximumValue(entity, 'hp') || currentHp;
+      const hpRatio = currentHp / maxHp;
       const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
       
-      hpText.text = `${entity.stats.hp}/${entity.stats.maxHp}`;
+      hpText.text = `${currentHp}/${maxHp}`;
       hpText.style.fill = hpColor;
       hpText.x = screenX * this.tileSize + this.tileSize / 2;
       hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10;
@@ -421,9 +424,11 @@ export class Renderer {
     this.entityContainer.addChild(text);
     
     // Render HP above entity with bar-like appearance
-    const hpRatio = entity.stats.hp / entity.stats.maxHp;
+    const currentHp = ResourceManager.getCurrentValue(entity, 'hp');
+    const maxHp = ResourceManager.getMaximumValue(entity, 'hp') || currentHp;
+    const hpRatio = currentHp / maxHp;
     const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
-    const hpDisplay = `${entity.stats.hp}/${entity.stats.maxHp}`;
+    const hpDisplay = `${currentHp}/${maxHp}`;
     
     const hpText = new Text(hpDisplay, {
       fontFamily: 'Noto Sans Mono, monospace',

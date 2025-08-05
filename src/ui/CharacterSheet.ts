@@ -2,6 +2,7 @@ import { Application, Container, Text, Graphics } from 'pixi.js';
 import { Entity } from '../types';
 import { CharacterPortrait } from './CharacterPortrait';
 import { CharacterManager } from '../managers/CharacterManager';
+import { ResourceManager } from '../utils/ResourceManager';
 
 export class CharacterSheet {
   private app: Application;
@@ -231,7 +232,9 @@ export class CharacterSheet {
   }
   
   private updateHealthBar(player: Entity) {
-    const healthPercentage = player.stats.hp / player.stats.maxHp;
+    const currentHp = ResourceManager.getCurrentValue(player, 'hp');
+    const maxHp = ResourceManager.getMaximumValue(player, 'hp') || currentHp;
+    const healthPercentage = currentHp / maxHp;
     const barLength = 10; // Number of characters in health bar
     const filledChars = Math.floor(healthPercentage * barLength);
     const emptyChars = barLength - filledChars;

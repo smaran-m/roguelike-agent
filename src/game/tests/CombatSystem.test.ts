@@ -1,12 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CombatSystem } from '../CombatSystem';
 import { Entity, DamageType } from '../../types';
+import { WorldConfigLoader } from '../../utils/WorldConfigLoader';
+import { ResourceManager } from '../../utils/ResourceManager';
 
 describe('CombatSystem', () => {
   let player: Entity;
   let enemy: Entity;
 
   beforeEach(() => {
+    // Initialize world configuration for fantasy theme (contains the damage types used in tests)
+    WorldConfigLoader.initialize('fantasy');
+    
     // Seed the random number generator for deterministic tests
     vi.spyOn(Math, 'random').mockImplementation(() => 0.5);
 
@@ -32,6 +37,10 @@ describe('CombatSystem', () => {
       isEmoji: true,
       stats: CombatSystem.createEnemyStats()
     };
+    
+    // Initialize resources for entities
+    ResourceManager.initializeResources(player);
+    ResourceManager.initializeResources(enemy);
   });
 
   afterEach(() => {
@@ -130,30 +139,30 @@ describe('CombatSystem', () => {
   });
 
   it('should apply damage correctly', () => {
-    const initialHp = enemy.stats.hp;
+    const initialHp = ResourceManager.getCurrentValue(enemy, 'hp');
     const damage = 5;
     
     const died = CombatSystem.applyDamage(enemy, damage);
     
-    expect(enemy.stats.hp).toBe(initialHp - damage);
+    expect(ResourceManager.getCurrentValue(enemy, 'hp')).toBe(initialHp - damage);
     expect(died).toBe(false);
   });
 
   it('should handle death when HP reaches 0', () => {
-    const damage = enemy.stats.hp; // Exact lethal damage
+    const damage = ResourceManager.getCurrentValue(enemy, 'hp'); // Exact lethal damage
     
     const died = CombatSystem.applyDamage(enemy, damage);
     
-    expect(enemy.stats.hp).toBe(0);
+    expect(ResourceManager.getCurrentValue(enemy, 'hp')).toBe(0);
     expect(died).toBe(true);
   });
 
   it('should handle overkill damage', () => {
-    const damage = enemy.stats.hp + 10; // Overkill damage
+    const damage = ResourceManager.getCurrentValue(enemy, 'hp') + 10; // Overkill damage
     
     const died = CombatSystem.applyDamage(enemy, damage);
     
-    expect(enemy.stats.hp).toBe(0); // HP should not go below 0
+    expect(ResourceManager.getCurrentValue(enemy, 'hp')).toBe(0); // HP should not go below 0
     expect(died).toBe(true);
   });
 

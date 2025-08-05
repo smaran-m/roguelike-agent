@@ -1,5 +1,6 @@
 import { Entity } from '../types';
 import { CreateEntity } from './CreateEntity';
+import { ResourceManager } from '../utils/ResourceManager';
 
 export class GameStateManager {
   private entities: Entity[] = [];
@@ -114,11 +115,11 @@ export class GameStateManager {
   }
 
   getAliveEntities(): Entity[] {
-    return this.entities.filter(entity => entity.stats.hp > 0);
+    return this.entities.filter(entity => !ResourceManager.isAtMinimum(entity, 'hp'));
   }
 
   getDeadEntities(): Entity[] {
-    return this.entities.filter(entity => entity.stats.hp <= 0);
+    return this.entities.filter(entity => ResourceManager.isAtMinimum(entity, 'hp'));
   }
 
   cleanup(): void {

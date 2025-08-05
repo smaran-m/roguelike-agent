@@ -3,6 +3,8 @@ import { MovementSystem, MovementState } from '../MovementSystem';
 import { TileMap } from '../TileMap';
 import { Entity } from '../../types';
 import { CombatSystem } from '../CombatSystem';
+import { WorldConfigLoader } from '../../utils/WorldConfigLoader';
+import { ResourceManager } from '../../utils/ResourceManager';
 
 describe('MovementSystem', () => {
   let movementSystem: MovementSystem;
@@ -12,6 +14,9 @@ describe('MovementSystem', () => {
   let entities: Entity[];
 
   beforeEach(() => {
+    // Initialize world configuration
+    WorldConfigLoader.initialize('fantasy');
+    
     movementSystem = new MovementSystem(0.1);
     tileMap = new TileMap(20, 20); // Larger map to reduce random wall conflicts
     
@@ -31,6 +36,9 @@ describe('MovementSystem', () => {
       stats: CombatSystem.createPlayerStats(),
       isPlayer: true
     };
+    
+    // Initialize resources for the player
+    ResourceManager.initializeResources(player);
 
     movementState = {
       displayX: safeX,

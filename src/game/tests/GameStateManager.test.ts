@@ -2,11 +2,16 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GameStateManager } from '../GameStateManager';
 import { Entity } from '../../types';
 import { CombatSystem } from '../CombatSystem';
+import { ResourceManager } from '../../utils/ResourceManager';
+import { WorldConfigLoader } from '../../utils/WorldConfigLoader';
 
 describe('GameStateManager', () => {
   let gameStateManager: GameStateManager;
 
   beforeEach(() => {
+    // Initialize world configuration
+    WorldConfigLoader.initialize('fantasy');
+    
     gameStateManager = new GameStateManager();
   });
 
@@ -113,7 +118,7 @@ describe('GameStateManager', () => {
     // Damage an entity to death
     const enemy = gameStateManager.getEnemies()[0];
     if (enemy) {
-      enemy.stats.hp = 0;
+      ResourceManager.set(enemy, 'hp', 0);
       
       const newAliveEntities = gameStateManager.getAliveEntities();
       const newDeadEntities = gameStateManager.getDeadEntities();

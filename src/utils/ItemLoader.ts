@@ -1,21 +1,48 @@
 import { ItemDefinition, Item, DamageType, WeaponType } from '../types';
+import { WorldConfigLoader } from './WorldConfigLoader';
 import itemsData from '../data/items.json';
+import cyberpunkItemsData from '../data/cyberpunk-items.json';
 
 export class ItemLoader {
   private static allItems: { [category: string]: { [key: string]: any } } = itemsData;
+  private static worldItems: { [worldTheme: string]: { [category: string]: { [key: string]: any } } } = {
+    fantasy: itemsData,
+    cyberpunk: cyberpunkItemsData
+  };
+
+  /**
+   * Get current world's items or fall back to default
+   */
+  private static getCurrentWorldItems(): { [category: string]: { [key: string]: any } } {
+    const currentWorld = WorldConfigLoader.getCurrentWorld();
+    if (currentWorld && this.worldItems[currentWorld.theme]) {
+      return this.worldItems[currentWorld.theme];
+    }
+    return this.allItems; // fallback to default (fantasy)
+  }
+
+  /**
+   * Set items for current world
+   */
+  static setWorldItems(worldTheme: string): void {
+    const worldItems = this.worldItems[worldTheme];
+    if (worldItems) {
+      this.allItems = worldItems;
+    }
+  }
 
   /**
    * Get all available item categories (weapons, armor, consumables, tools)
    */
   static getAvailableCategories(): string[] {
-    return Object.keys(this.allItems);
+    return Object.keys(this.getCurrentWorldItems());
   }
 
   /**
    * Get all items in a specific category
    */
   static getItemsInCategory(category: string): { [key: string]: any } {
-    return this.allItems[category] || {};
+    return this.getCurrentWorldItems()[category] || {};
   }
 
   /**
@@ -23,7 +50,7 @@ export class ItemLoader {
    */
   static getAvailableItemKeys(): string[] {
     const keys: string[] = [];
-    Object.values(this.allItems).forEach(category => {
+    Object.values(this.getCurrentWorldItems()).forEach(category => {
       keys.push(...Object.keys(category));
     });
     return keys;
@@ -33,7 +60,8 @@ export class ItemLoader {
    * Get a specific item definition by key (searches all categories)
    */
   static getItemDefinition(itemKey: string): any | null {
-    for (const category of Object.values(this.allItems)) {
+    const worldItems = this.getCurrentWorldItems();
+    for (const category of Object.values(worldItems)) {
       if (category[itemKey]) {
         return category[itemKey] as ItemDefinition;
       }

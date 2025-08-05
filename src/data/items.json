@@ -184,7 +184,7 @@
       "type": "consumable",
       "rarity": "common",
       "weight": 0.5,
-      "abilities": ["Heal 2d4+2"],
+      "abilities": [{"operation": "modify", "resource": "hp", "amount": "2d4+2"}],
       "statusEffects": ["healing"],
       "value": 50,
       "quantity": 1
@@ -197,7 +197,7 @@
       "type": "consumable",
       "rarity": "common",
       "weight": 0.5,
-      "abilities": ["Restore Mana"],
+      "abilities": [{"operation": "modify", "resource": "mana", "amount": "1d4+1"}],
       "statusEffects": ["mana_restore"],
       "value": 40,
       "quantity": 1

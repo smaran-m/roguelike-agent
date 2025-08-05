@@ -13,8 +13,7 @@ export interface TileVisibility {
 }
 
 export interface EntityStats {
-  hp: number;
-  maxHp: number;
+  // Core D&D stats
   ac: number; // Armor Class
   strength: number;
   dexterity: number;
@@ -24,9 +23,18 @@ export interface EntityStats {
   charisma: number;
   proficiencyBonus: number;
   level: number;
+  
+  // Damage system
   damageResistances?: DamageResistance;
   damageVulnerabilities?: DamageResistance;
-  damageImmunities?: DamageType[];
+  damageImmunities?: (DamageType | string)[];
+  
+  // Generic resource system
+  resources?: { [resourceId: string]: Resource };
+  
+  // Legacy HP fields (for backwards compatibility)
+  hp?: number;
+  maxHp?: number;
 }
 
 export interface EnemyStatRanges {
@@ -50,7 +58,7 @@ export interface EnemyDefinition {
   description: string;
   damageResistances?: DamageResistance;
   damageVulnerabilities?: DamageResistance;
-  damageImmunities?: DamageType[];
+  damageImmunities?: (DamageType | string)[];
 }
 
 export interface CharacterAppearance {
@@ -142,18 +150,7 @@ export enum WeaponType {
 }
 
 export interface DamageResistance {
-  [DamageType.SLASHING]?: number;
-  [DamageType.PIERCING]?: number;
-  [DamageType.BLUDGEONING]?: number;
-  [DamageType.FIRE]?: number;
-  [DamageType.COLD]?: number;
-  [DamageType.LIGHTNING]?: number;
-  [DamageType.ACID]?: number;
-  [DamageType.POISON]?: number;
-  [DamageType.FORCE]?: number;
-  [DamageType.NECROTIC]?: number;
-  [DamageType.RADIANT]?: number;
-  [DamageType.PSYCHIC]?: number;
+  [key: string]: number;
 }
 
 export interface AttackResult {
@@ -162,7 +159,7 @@ export interface AttackResult {
   critical: boolean;
   attackRoll: number;
   damageRoll: string;
-  damageType?: DamageType;
+  damageType?: DamageType | string;
   finalDamage?: number; // After resistance/vulnerability calculation
 }
 
@@ -177,10 +174,10 @@ export interface Item {
   rarity: 'common' | 'uncommon' | 'rare' | 'very_rare' | 'legendary';
   weight: number; // Weight in pounds (D&D standard)
   damage?: string; // D&D dice notation like "1d6+1"
-  damageType?: DamageType; // Type of damage dealt (for weapons)
-  weaponType?: WeaponType; // Melee, ranged, or magic (for weapons)
+  damageType?: DamageType | string; // Type of damage dealt (for weapons)
+  weaponType?: WeaponType | string; // Melee, ranged, or magic (for weapons)
   armorClass?: number; // AC bonus for armor
-  abilities?: string[]; // Special abilities granted by the item
+  abilities?: (string | ResourceOperation)[]; // Special abilities granted by the item
   statusEffects?: string[]; // Status effects applied when used
   quantity?: number; // For stackable items
   value?: number; // Gold piece value
@@ -195,15 +192,80 @@ export interface ItemDefinition {
   rarity: 'common' | 'uncommon' | 'rare' | 'very_rare' | 'legendary';
   weight: number;
   damage?: string;
-  damageType?: DamageType;
-  weaponType?: WeaponType;
+  damageType?: DamageType | string;
+  weaponType?: WeaponType | string;
   armorClass?: number;
-  abilities?: string[];
+  abilities?: (string | ResourceOperation)[];
   statusEffects?: string[];
   quantity?: number;
   value?: number;
 }
 
+export interface ResistanceSystem {
+  immunityMultiplier: number;
+  heavyResistanceMultiplier: number;
+  resistanceMultiplier: number;
+  normalMultiplier: number;
+  vulnerabilityMultiplier: number;
+  heavyVulnerabilityMultiplier: number;
+}
+
+export interface Resource {
+  id: string;
+  current: number;
+  maximum?: number;     // undefined = uncapped resource
+  minimum?: number;     // default 0
+  changeRate?: number;  // passive change per turn/time
+  displayName: string;
+  color?: string;       // UI color hex code
+}
+
+export interface ResourceDefinition {
+  id: string;
+  displayName: string;
+  hasCap: boolean;      // whether this resource has a maximum
+  defaultMinimum: number;
+  defaultMaximum?: number;
+  defaultChangeRate?: number;
+  color?: string;
+  description?: string;
+}
+
+export interface ResourceOperation {
+  operation: 'modify' | 'set' | 'setCap' | 'setRate';
+  resource: string;     // resource id
+  amount: string | number; // can be dice notation or flat number
+  condition?: string;   // optional condition
+}
+
+export interface GameMechanics {
+  criticalHitRule: 'double_damage' | 'double_dice' | 'max_damage_plus_roll';
+  minimumDamage: number;
+  roundingRule: 'floor' | 'ceiling' | 'round';
+  specialMechanics?: string[];
+  resources?: { [resourceId: string]: ResourceDefinition };
+}
+
+export interface WorldConfig {
+  name: string;
+  description: string;
+  theme: string;
+  damageTypes: { [category: string]: string[] };
+  weaponTypes: string[];
+  resistanceSystem: ResistanceSystem;
+  mechanics: GameMechanics;
+  tiles: {
+    wall: string;
+    floor: string;
+    door: string;
+  };
+}
+
+export interface WorldsCollection {
+  [worldKey: string]: WorldConfig;
+}
+
+// Legacy interface for backwards compatibility
 export interface WorldSchema {
   theme: string;
   playerClass: string;

@@ -1,0 +1,152 @@
+{
+  "weapons": {
+    "smartgun": {
+      "name": "SmartGun V2.1",
+      "description": "Auto-targeting ballistic weapon with neural interface.",
+      "glyph": "🔫",
+      "color": "0x00FFFF",
+      "type": "weapon",
+      "rarity": "common",
+      "weight": 2,
+      "damage": "2d6",
+      "damageType": "kinetic",
+      "weaponType": "ballistic",
+      "abilities": ["Auto-Target", "Neural Interface"],
+      "value": 1200
+    },
+    "plasma_rifle": {
+      "name": "Plasma Rifle MkIII",
+      "description": "High-energy plasma weapon for crowd control.",
+      "glyph": "⚡",
+      "color": "0xFF00FF",
+      "type": "weapon",
+      "rarity": "uncommon",
+      "weight": 5,
+      "damage": "2d8",
+      "damageType": "plasma",
+      "weaponType": "energy",
+      "abilities": ["Overcharge", "Energy Burst"],
+      "value": 3500
+    },
+    "virus_injector": {
+      "name": "Viral Payload Injector",
+      "description": "Cybernetic weapon that deploys hostile code directly to the target's implants.",
+      "glyph": "💉",
+      "color": "0x00FF00",
+      "type": "weapon",
+      "rarity": "rare",
+      "weight": 1,
+      "damage": "1d12",
+      "damageType": "viral",
+      "weaponType": "cyber",
+      "abilities": ["System Corruption", "Implant Override"],
+      "value": 5000
+    },
+    "sonic_blade": {
+      "name": "Vibronic Katana",
+      "description": "Monomolecular blade enhanced with sonic vibrations.",
+      "glyph": "⚔️",
+      "color": "0xFFD700",
+      "type": "weapon",
+      "rarity": "uncommon",
+      "weight": 2,
+      "damage": "1d10",
+      "damageType": "sonic",
+      "weaponType": "ballistic",
+      "abilities": ["Molecular Edge", "Sonic Resonance"],
+      "value": 2800
+    },
+    "emp_grenade": {
+      "name": "EMP Grenade",
+      "description": "Electromagnetic pulse device that disables electronics.",
+      "glyph": "💣",
+      "color": "0x0080FF",
+      "type": "weapon",
+      "rarity": "common",
+      "weight": 0.5,
+      "damage": "1d6",
+      "damageType": "emp",
+      "weaponType": "cyber",
+      "abilities": ["Electronics Disable", "Area Effect"],
+      "value": 800
+    }
+  },
+  "armor": {
+    "kevlar_vest": {
+      "name": "Kevlar Body Armor",
+      "description": "Basic ballistic protection for urban combat.",
+      "glyph": "🦺",
+      "color": "0x404040",
+      "type": "armor",
+      "rarity": "common",
+      "weight": 8,
+      "armorClass": 12,
+      "abilities": ["Ballistic Protection"],
+      "value": 600
+    },
+    "cyber_armor": {
+      "name": "Cybernetic Defense Suite",
+      "description": "Integrated armor with built-in countermeasures.",
+      "glyph": "🛡️",
+      "color": "0x00FFFF",
+      "type": "armor",
+      "rarity": "rare",
+      "weight": 12,
+      "armorClass": 16,
+      "abilities": ["EMP Shielding", "Threat Detection"],
+      "value": 4500
+    }
+  },
+  "consumables": {
+    "stim_pack": {
+      "name": "Combat Stimulant",
+      "description": "Military-grade medical nanobots for rapid healing.",
+      "glyph": "💊",
+      "color": "0xFF0080",
+      "type": "consumable",
+      "rarity": "common",
+      "weight": 0.2,
+      "abilities": ["Heal 3d4+3"],
+      "statusEffects": ["healing"],
+      "value": 150,
+      "quantity": 1
+    },
+    "neural_booster": {
+      "name": "Neural Enhancement Stim",
+      "description": "Cognitive enhancement drug that boosts reaction time.",
+      "glyph": "🧠",
+      "color": "0x00FF80",
+      "type": "consumable",
+      "rarity": "uncommon",
+      "weight": 0.1,
+      "abilities": ["+2 DEX for 10 minutes"],
+      "statusEffects": ["enhanced_reflexes"],
+      "value": 300,
+      "quantity": 1
+    }
+  },
+  "tools": {
+    "hacking_deck": {
+      "name": "Corporate Hacking Deck",
+      "description": "Portable cyberdeck for network infiltration.",
+      "glyph": "💻",
+      "color": "0x00FFFF",
+      "type": "tool",
+      "rarity": "uncommon",
+      "weight": 2,
+      "abilities": ["Network Access", "ICE Breaking", "+3 Hacking"],
+      "value": 2000
+    },
+    "scanner": {
+      "name": "Multi-Spectrum Scanner",
+      "description": "Advanced scanning device for threat assessment.",
+      "glyph": "📡",
+      "color": "0xFF8000",
+      "type": "tool",
+      "rarity": "common",
+      "weight": 1,
+      "abilities": ["Thermal Vision", "EM Detection", "Biomonitor"],
+      "value": 800
+    }
+  }
+}

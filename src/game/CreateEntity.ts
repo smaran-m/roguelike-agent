@@ -3,6 +3,7 @@ import { CombatSystem } from './CombatSystem';
 import { TileMap } from './TileMap';
 import { EnemyLoader } from '../utils/EnemyLoader';
 import { CharacterManager } from '../managers/CharacterManager';
+import { ResourceManager } from '../utils/ResourceManager';
 
 export class CreateEntity {
   /**
@@ -37,7 +38,7 @@ export class CreateEntity {
       const playerX = spawnPos?.x ?? 25;
       const playerY = spawnPos?.y ?? 15;
       
-      return {
+      const entity: Entity = {
         id: 'player',
         x: playerX,
         y: playerY,
@@ -48,6 +49,10 @@ export class CreateEntity {
         stats: CombatSystem.createPlayerStats(),
         isPlayer: true
       };
+      
+      // Initialize resources for the player
+      ResourceManager.initializeResources(entity);
+      return entity;
     }
 
     // Find spawn position
@@ -55,7 +60,7 @@ export class CreateEntity {
     const playerX = spawnPos?.x ?? 25;
     const playerY = spawnPos?.y ?? 15;
     
-    return {
+    const entity: Entity = {
       id: character.id,
       x: playerX,
       y: playerY,
@@ -66,6 +71,10 @@ export class CreateEntity {
       stats: character.stats,
       isPlayer: true
     };
+    
+    // Initialize resources for the player
+    ResourceManager.initializeResources(entity);
+    return entity;
   }
 
   /**
@@ -137,7 +146,7 @@ export class CreateEntity {
 
     if (!tileMap) {
       // Fallback to default positions if no tileMap provided
-      return {
+      const entity: Entity = {
         id: enemyId,
         x: 20,
         y: 10,
@@ -147,6 +156,10 @@ export class CreateEntity {
         isEmoji: true,
         stats
       };
+      
+      // Initialize resources for the enemy
+      ResourceManager.initializeResources(entity);
+      return entity;
     }
     
     const maxAttempts = 50;
@@ -195,7 +208,7 @@ export class CreateEntity {
       }
       
       // Valid position found
-      return {
+      const entity: Entity = {
         id: enemyId,
         x: spawnPos.x,
         y: spawnPos.y,
@@ -205,6 +218,10 @@ export class CreateEntity {
         isEmoji: true,
         stats
       };
+      
+      // Initialize resources for the enemy
+      ResourceManager.initializeResources(entity);
+      return entity;
     }
     
     return null; // Failed to find valid position

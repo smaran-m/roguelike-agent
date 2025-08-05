@@ -182,7 +182,7 @@ export class CharacterManager {
       const hpGain = CombatSystem.rollDice(`1d${hitDie}`).total + 
                      CombatSystem.getModifier(this.currentCharacter.stats.constitution);
       
-      this.currentCharacter.stats.hp += Math.max(1, hpGain);
+      this.currentCharacter.stats.hp = (this.currentCharacter.stats.hp || 0) + Math.max(1, hpGain);
       this.currentCharacter.stats.maxHp = this.currentCharacter.stats.hp;
     }
 

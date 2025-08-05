@@ -1,15 +1,42 @@
 import { EnemyDefinition, EntityStats, DamageType } from '../types';
 import { CombatSystem } from '../game/CombatSystem';
+import { WorldConfigLoader } from './WorldConfigLoader';
 import enemiesData from '../data/enemies.json';
+import cyberpunkEnemiesData from '../data/cyberpunk-enemies.json';
 
 export class EnemyLoader {
   private static enemies: { [key: string]: any } = enemiesData;
+  private static worldEnemies: { [worldTheme: string]: { [key: string]: any } } = {
+    fantasy: enemiesData,
+    cyberpunk: cyberpunkEnemiesData
+  };
+
+  /**
+   * Get current world's enemies or fall back to default
+   */
+  private static getCurrentWorldEnemies(): { [key: string]: any } {
+    const currentWorld = WorldConfigLoader.getCurrentWorld();
+    if (currentWorld && this.worldEnemies[currentWorld.theme]) {
+      return this.worldEnemies[currentWorld.theme];
+    }
+    return this.enemies; // fallback to default (fantasy)
+  }
+
+  /**
+   * Set enemies for current world
+   */
+  static setWorldEnemies(worldTheme: string): void {
+    const worldEnemies = this.worldEnemies[worldTheme];
+    if (worldEnemies) {
+      this.enemies = worldEnemies;
+    }
+  }
 
   /**
    * Get all available enemy types
    */
   static getAvailableEnemyTypes(): string[] {
-    return Object.keys(this.enemies);
+    return Object.keys(this.getCurrentWorldEnemies());
   }
 
   /**
@@ -32,7 +59,8 @@ export class EnemyLoader {
    * Get a specific enemy definition by type
    */
   static getEnemyDefinition(enemyType: string): EnemyDefinition | null {
-    const rawData = this.enemies[enemyType];
+    const currentEnemies = this.getCurrentWorldEnemies();
+    const rawData = currentEnemies[enemyType];
     if (!rawData) return null;
     return this.convertToEnemyDefinition(rawData);
   }

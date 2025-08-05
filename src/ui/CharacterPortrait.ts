@@ -1,14 +1,17 @@
 import { Entity } from '../types';
+import { ResourceManager } from '../utils/ResourceManager';
 
 export class CharacterPortrait {
   /**
    * Get character portrait emoji based on current health percentage and status
    */
   static getPortraitEmoji(entity: Entity): string {
-    const healthPercentage = entity.stats.hp / entity.stats.maxHp;
+    const currentHp = ResourceManager.getCurrentValue(entity, 'hp');
+    const maxHp = ResourceManager.getMaximumValue(entity, 'hp') || currentHp;
+    const healthPercentage = currentHp / maxHp;
     
     // Dead
-    if (entity.stats.hp <= 0) {
+    if (ResourceManager.isAtMinimum(entity, 'hp')) {
       return '😵'; // Dead face
     }
     
