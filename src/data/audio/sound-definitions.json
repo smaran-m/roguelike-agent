@@ -1,0 +1,182 @@
+{
+  "version": "1.0.0",
+  "sounds": [
+    {
+      "id": "combat_hit",
+      "type": "simple",
+      "waveform": "square",
+      "frequency": 220,
+      "duration": 0.15,
+      "envelope": {
+        "attack": 0.01,
+        "decay": 0.05,
+        "sustain": 0.6,
+        "release": 0.09
+      },
+      "effects": [
+        {
+          "type": "distortion",
+          "intensity": 0.3
+        }
+      ],
+      "category": "combat",
+      "spatialEnabled": true
+    },
+    {
+      "id": "combat_miss", 
+      "type": "sweep",
+      "waveform": "sine",
+      "frequency": 880,
+      "duration": 0.2,
+      "envelope": {
+        "attack": 0.02,
+        "decay": 0.1,
+        "sustain": 0.3,
+        "release": 0.08
+      },
+      "category": "combat",
+      "spatialEnabled": true
+    },
+    {
+      "id": "footstep",
+      "type": "noise",
+      "waveform": "square",
+      "frequency": 100,
+      "duration": 0.1,
+      "envelope": {
+        "attack": 0.001,
+        "decay": 0.02,
+        "sustain": 0.1,
+        "release": 0.077
+      },
+      "effects": [
+        {
+          "type": "lowpass",
+          "frequency": 800,
+          "intensity": 0.7
+        }
+      ],
+      "category": "movement",
+      "spatialEnabled": true
+    },
+    {
+      "id": "ui_menu_open",
+      "type": "chord",
+      "waveform": "triangle",
+      "frequency": 523.25,
+      "duration": 0.3,
+      "envelope": {
+        "attack": 0.05,
+        "decay": 0.1,
+        "sustain": 0.7,
+        "release": 0.15
+      },
+      "category": "ui",
+      "spatialEnabled": false
+    },
+    {
+      "id": "ui_click",
+      "type": "simple",
+      "waveform": "triangle",
+      "frequency": 800,
+      "duration": 0.08,
+      "envelope": {
+        "attack": 0.005,
+        "decay": 0.02,
+        "sustain": 0.5,
+        "release": 0.055
+      },
+      "category": "ui",
+      "spatialEnabled": false
+    },
+    {
+      "id": "enemy_death",
+      "type": "sweep",
+      "waveform": "sawtooth",
+      "frequency": 440,
+      "duration": 0.8,
+      "envelope": {
+        "attack": 0.1,
+        "decay": 0.2,
+        "sustain": 0.4,
+        "release": 0.5
+      },
+      "effects": [
+        {
+          "type": "tremolo",
+          "intensity": 0.5,
+          "frequency": 6
+        }
+      ],
+      "category": "combat",
+      "spatialEnabled": true
+    },
+    {
+      "id": "item_pickup",
+      "type": "simple",
+      "waveform": "sine",
+      "frequency": 660,
+      "duration": 0.25,
+      "envelope": {
+        "attack": 0.02,
+        "decay": 0.08,
+        "sustain": 0.6,
+        "release": 0.15
+      },
+      "category": "ui",
+      "spatialEnabled": false
+    },
+    {
+      "id": "level_up",
+      "type": "chord",
+      "waveform": "triangle",
+      "frequency": 440,
+      "duration": 1.2,
+      "envelope": {
+        "attack": 0.1,
+        "decay": 0.3,
+        "sustain": 0.8,
+        "release": 0.8
+      },
+      "category": "ui",
+      "spatialEnabled": false
+    },
+    {
+      "id": "door_open",
+      "type": "sweep",
+      "waveform": "square",
+      "frequency": 200,
+      "duration": 0.4,
+      "envelope": {
+        "attack": 0.05,
+        "decay": 0.1,
+        "sustain": 0.7,
+        "release": 0.25
+      },
+      "category": "environment",
+      "spatialEnabled": true
+    },
+    {
+      "id": "spell_cast",
+      "type": "simple",
+      "waveform": "sine",
+      "frequency": 1100,
+      "duration": 0.6,
+      "envelope": {
+        "attack": 0.08,
+        "decay": 0.15,
+        "sustain": 0.5,
+        "release": 0.37
+      },
+      "effects": [
+        {
+          "type": "vibrato",
+          "intensity": 0.4,
+          "frequency": 8
+        }
+      ],
+      "category": "combat",
+      "spatialEnabled": true
+    }
+  ]
+}

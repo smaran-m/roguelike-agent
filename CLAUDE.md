@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **IMPORTANT**: When making changes to the codebase, please update the following sections in this file:
 
-- **Test count** (currently 228): Update when adding/removing test files
+- **Test count** (currently 291): Update when adding/removing test files
 - **Component list**: Add new systems, managers, or utilities as they're created
 - **Architecture section**: Update when system responsibilities change
 - **Available scripts**: Sync with package.json when scripts are modified
 - **Dependencies**: Update version numbers when upgrading packages
 
 **Auto-sync locations**: 
-- Test count: Search for "228" and update across all documentation
+- Test count: Search for "291" and update across all documentation
 - Scripts: Match package.json scripts section exactly
 - File structure: Reflect actual src/ directory organization
 
@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build` - Build production version (TypeScript compilation + Vite build)
 - `npm run preview` - Preview production build
 - `npm run typecheck` - Run TypeScript type checking without emitting files
-- `npm run test` - Run comprehensive test suite (228 tests) with Vitest
+- `npm run test` - Run comprehensive test suite (291 tests) with Vitest
 - `npm run test:ui` - Run tests with UI interface for development
 
 ### Development Workflow
@@ -66,6 +66,7 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - **Font System** (`src/systems/font/FontSystem.ts`) - Centralized font management for emoji and ASCII rendering
 - **Dice System** (`src/systems/dice/DiceSystem.ts`) - D&D-style dice rolling mechanics ("2d6+3" notation)
 - **Pathfinding System** (`src/systems/pathfinding/PathfindingSystem.ts`) - A* pathfinding with LRU caching and EventBus integration
+- **Audio System** (`src/systems/audio/AudioSystem.ts`) - Procedural Web Audio API sound generation with spatial audio and music composition
 
 **Management Layer** (`src/managers/`):
 - **GameStateManager** (`src/managers/GameStateManager.ts`) - Entity lifecycle and game loop management (140 lines)
@@ -90,13 +91,15 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 
 **Type Definitions** (`src/types/index.ts`) - Shared interfaces for Tile, Entity, Combat, and WorldSchema
 
-**Data Files** (`src/data/`) - JSON configuration for character classes, enemy definitions, items, and world themes
+**Data Files** (`src/data/`) - JSON configuration for character classes, enemy definitions, items, world themes, and audio
   - `characterClasses.json` - Character class definitions
   - `enemies.json` - Standard enemy definitions
   - `items.json` - Item definitions with damage types
   - `worlds.json` - World theme configurations (Fantasy, Cyberpunk, Steampunk, Horror)
   - `cyberpunk-enemies.json` - Cyberpunk-themed enemies
   - `cyberpunk-items.json` - Cyberpunk-themed items
+  - `audio/sound-definitions.json` - Procedural sound parameters for combat, UI, movement
+  - `audio/music-patterns.json` - Algorithmic music composition patterns and progressions
 
 ### Key Components
 
@@ -163,6 +166,15 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - Dice roll result tracking with individual roll details
 - Support for modifiers and complex dice expressions
 
+**AudioSystem Class**: Procedural Web Audio API sound generation featuring:
+- EventBus-driven reactive audio for game events (combat, movement, UI)
+- Procedural sound synthesis using oscillators, envelopes, and effects
+- ADSR envelope shaping with attack, decay, sustain, and release phases
+- Spatial audio with HRTF positioning for 3D sound placement
+- Performance-optimized with oscillator pooling and binary heap algorithms
+- Algorithmic music composition with chord progressions and pattern generation
+- localStorage settings persistence with volume controls and accessibility options
+
 **TileMap Class**: World representation with:
 - 2D tile array with walkability and light blocking data
 - Simple procedural generation (borders + random walls)
@@ -203,6 +215,16 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - Light-blocking walls and obstacles
 - Configurable sight radius (default 8 tiles)
 
+**Procedural Audio System**:
+- Asset-free audio generation using Web Audio API procedural synthesis
+- EventBus integration for reactive game-event-driven sound effects
+- ADSR envelope synthesis for dynamic attack, decay, sustain, and release phases
+- Oscillator-based sound generation: simple tones, chord synthesis, noise generation, frequency sweeps
+- Spatial audio with HRTF positioning for immersive 3D sound placement
+- Performance optimization through oscillator pooling and LRU caching
+- Algorithmic music composition with chord progressions and musical pattern generation
+- Accessibility features: visual indicators, volume controls, and chiptune mode toggle
+
 **Entity System**:
 - Full D&D-style character stats (6 abilities, HP, AC, level)
 - Multi-resource entities with configurable resource types per world theme
@@ -232,7 +254,7 @@ Smooth movement animations are implemented using requestAnimationFrame with line
 - Targets modern browsers with `esnext` build target
 - Dependencies: PixiJS 7.4+, MobX 6.12+, MobX State Tree 5.4+, GSAP 3.12+
 - TypeScript configuration includes both main and Node.js configs
-- Comprehensive test framework with Vitest and jsdom environment (228 tests)
+- Comprehensive test framework with Vitest and jsdom environment (291 tests)
 - Modular architecture with dependency injection and single responsibility principle
 - Professional error handling with typed error codes and context
 - Configurable logging system with multiple levels (DEBUG, INFO, WARN, ERROR)
@@ -277,7 +299,8 @@ Latest features added (as of recent commits):
 - **UI Resource Display**: Character sheet integration with new resource system
 - **Entity Creation System**: Centralized entity creation utilities for consistency
 - **Pathfinding System**: A* algorithm with binary heap optimization, LRU caching, and EventBus integration for intelligent path invalidation
-- **Comprehensive Testing**: 228 tests covering all core systems including EventBus and pathfinding with deterministic seeded randomness
+- **Procedural Audio System**: Complete Web Audio API-based sound generation with ADSR synthesis, spatial audio, and algorithmic music composition
+- **Comprehensive Testing**: 291 tests covering all core systems including EventBus, pathfinding, and procedural audio with deterministic seeded randomness
 - **Error Handling Framework**: Professional error management with GameError class and typed error codes
 - **Logging Infrastructure**: Configurable logging system with multiple levels and context
 - **Input System**: Centralized keyboard management with callback-based architecture
@@ -295,7 +318,7 @@ Latest features added (as of recent commits):
 ## Testing Infrastructure
 
 - **Test Framework**: Vitest with jsdom environment for browser simulation
-- **Test Coverage**: 228 comprehensive tests across 19 test files covering EventBus and pathfinding systems
+- **Test Coverage**: 291 comprehensive tests across 22 test files covering EventBus, pathfinding, and procedural audio systems
 - **Deterministic Testing**: Seeded randomness for combat system validation
 - **Mock Integration**: PixiJS mocking for renderer testing without graphics dependencies
 - **Edge Case Coverage**: Boundary conditions, error scenarios, and invalid input handling
@@ -320,6 +343,10 @@ Test files organized by system:
   - `PathfindingSystem.test.ts` - A* algorithm and system integration (20 tests)
   - `BinaryHeap.test.ts` - Min-heap priority queue with performance tests (11 tests)
   - `PathCache.test.ts` - LRU cache with EventBus invalidation (11 tests)
+- **Audio Tests** (`tests/systems/audio/`):
+  - `AudioSettings.test.ts` - Audio configuration and localStorage persistence (23 tests)
+  - `WaveformGenerator.test.ts` - Musical note calculations and sound synthesis (20 tests)
+  - `OscillatorPool.test.ts` - Performance optimization and resource pooling (20 tests)
 - **Manager Tests** (`tests/managers/`):
   - `CharacterManager.test.ts` - Character management and progression (14 tests)
   - `GameStateManager.test.ts` - Entity lifecycle management (9 tests)

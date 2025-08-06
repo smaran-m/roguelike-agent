@@ -12,6 +12,7 @@ import { EventBus, EventBusConfig } from './events/EventBus';
 import { Logger } from '../utils/Logger';
 import { ErrorHandler } from '../utils/ErrorHandler';
 import { generateEventId } from './events/GameEvent';
+import { AudioSystem } from '../systems/audio/AudioSystem';
 
 export class Game {
   renderer: Renderer;
@@ -22,6 +23,7 @@ export class Game {
   private eventBus: EventBus;
   private logger: Logger;
   private errorHandler: ErrorHandler;
+  private audioSystem: AudioSystem;
   
   // Game systems
   private inputHandler: InputHandler;
@@ -45,6 +47,9 @@ export class Game {
       maxPoolSize: 100
     };
     this.eventBus = new EventBus(eventBusConfig, this.logger, this.errorHandler);
+    
+    // Initialize audio system with EventBus
+    this.audioSystem = new AudioSystem(this.eventBus, this.logger, this.errorHandler);
     
     // Initialize world configuration system
     WorldConfigLoader.initialize('fantasy');
@@ -201,6 +206,13 @@ export class Game {
   }
   
   async waitForFontsAndRender() {
+    // Initialize audio system
+    try {
+      await this.audioSystem.initialize();
+    } catch (e) {
+      console.warn('Audio initialization failed, continuing without audio');
+    }
+    
     // Load all fonts comprehensively
     try {
       await document.fonts.load('14px "Noto Emoji"');

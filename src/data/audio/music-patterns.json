@@ -1,0 +1,179 @@
+{
+  "version": "1.0.0",
+  "patterns": [
+    {
+      "id": "dark_exploration",
+      "tempo": 80,
+      "timeSignature": [4, 4],
+      "key": "Dm",
+      "progression": ["Dm", "Bb", "F", "C"],
+      "rhythm": {
+        "pattern": [1, 0, 0.5, 0, 1, 0, 0.5, 0],
+        "subdivision": 8
+      },
+      "instruments": [
+        {
+          "instrument": {
+            "id": "bass",
+            "name": "Deep Bass",
+            "waveform": "sine",
+            "envelope": {
+              "attack": 0.1,
+              "decay": 0.2,
+              "sustain": 0.8,
+              "release": 0.3
+            },
+            "effects": []
+          },
+          "pattern": [
+            {"frequency": 146.83, "duration": 2, "velocity": 0.8},
+            {"frequency": 116.54, "duration": 2, "velocity": 0.6},
+            {"frequency": 174.61, "duration": 2, "velocity": 0.7},
+            {"frequency": 130.81, "duration": 2, "velocity": 0.8}
+          ],
+          "volume": 0.6
+        },
+        {
+          "instrument": {
+            "id": "ambient_pad",
+            "name": "Atmospheric Pad",
+            "waveform": "triangle",
+            "envelope": {
+              "attack": 1.0,
+              "decay": 0.5,
+              "sustain": 0.9,
+              "release": 2.0
+            },
+            "effects": [
+              {
+                "type": "tremolo",
+                "intensity": 0.2,
+                "frequency": 0.5
+              }
+            ]
+          },
+          "pattern": [
+            {"frequency": 293.66, "duration": 8, "velocity": 0.3},
+            {"frequency": 233.08, "duration": 8, "velocity": 0.2},
+            {"frequency": 349.23, "duration": 8, "velocity": 0.25},
+            {"frequency": 261.63, "duration": 8, "velocity": 0.3}
+          ],
+          "volume": 0.4
+        }
+      ]
+    },
+    {
+      "id": "battle_intense",
+      "tempo": 140,
+      "timeSignature": [4, 4],
+      "key": "Em",
+      "progression": ["Em", "C", "G", "D"],
+      "rhythm": {
+        "pattern": [1, 0.5, 1, 0.5, 1, 0.5, 1, 0.5],
+        "subdivision": 8
+      },
+      "instruments": [
+        {
+          "instrument": {
+            "id": "lead_square",
+            "name": "Square Lead",
+            "waveform": "square",
+            "envelope": {
+              "attack": 0.01,
+              "decay": 0.1,
+              "sustain": 0.7,
+              "release": 0.2
+            },
+            "effects": [
+              {
+                "type": "distortion",
+                "intensity": 0.4
+              }
+            ]
+          },
+          "pattern": [
+            {"frequency": 659.25, "duration": 0.5, "velocity": 0.9},
+            {"frequency": 783.99, "duration": 0.5, "velocity": 0.8},
+            {"frequency": 880.00, "duration": 1, "velocity": 1.0},
+            {"frequency": 739.99, "duration": 1, "velocity": 0.9}
+          ],
+          "volume": 0.7
+        }
+      ]
+    },
+    {
+      "id": "peaceful_ambient",
+      "tempo": 60,
+      "timeSignature": [4, 4],
+      "key": "C",
+      "progression": ["C", "Am", "F", "G"],
+      "rhythm": {
+        "pattern": [1, 0, 0, 0, 1, 0, 0, 0],
+        "subdivision": 8
+      },
+      "instruments": [
+        {
+          "instrument": {
+            "id": "soft_sine",
+            "name": "Soft Sine Wave",
+            "waveform": "sine",
+            "envelope": {
+              "attack": 0.5,
+              "decay": 0.8,
+              "sustain": 0.6,
+              "release": 1.5
+            },
+            "effects": []
+          },
+          "pattern": [
+            {"frequency": 261.63, "duration": 4, "velocity": 0.4},
+            {"frequency": 220.00, "duration": 4, "velocity": 0.3},
+            {"frequency": 174.61, "duration": 4, "velocity": 0.35},
+            {"frequency": 196.00, "duration": 4, "velocity": 0.4}
+          ],
+          "volume": 0.5
+        }
+      ]
+    },
+    {
+      "id": "default_ambient",
+      "tempo": 70,
+      "timeSignature": [4, 4],
+      "key": "Am",
+      "progression": ["Am", "F", "C", "G"],
+      "rhythm": {
+        "pattern": [1, 0, 0.3, 0, 1, 0, 0.3, 0],
+        "subdivision": 8
+      },
+      "instruments": [
+        {
+          "instrument": {
+            "id": "ambient_triangle",
+            "name": "Ambient Triangle",
+            "waveform": "triangle",
+            "envelope": {
+              "attack": 0.8,
+              "decay": 0.4,
+              "sustain": 0.7,
+              "release": 1.0
+            },
+            "effects": [
+              {
+                "type": "tremolo",
+                "intensity": 0.15,
+                "frequency": 0.3
+              }
+            ]
+          },
+          "pattern": [
+            {"frequency": 220.00, "duration": 6, "velocity": 0.35},
+            {"frequency": 174.61, "duration": 6, "velocity": 0.3},
+            {"frequency": 261.63, "duration": 6, "velocity": 0.32},
+            {"frequency": 196.00, "duration": 6, "velocity": 0.35}
+          ],
+          "volume": 0.45
+        }
+      ]
+    }
+  ]
+}
