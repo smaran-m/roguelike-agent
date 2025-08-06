@@ -5,7 +5,10 @@
       "Bash(npm run typecheck:*)",
       "Bash(npm run build:*)",
       "Bash(mkdir:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(npm run dev:*)",
+      "Bash(git add:*)",
+      "Bash(del nul)"
     ],
     "deny": []
   }

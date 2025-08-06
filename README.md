@@ -256,7 +256,7 @@ tests/
 ### Testing
 
 The project includes comprehensive testing with Vitest:
-- **114+ tests** covering all core systems
+- **154 tests** covering all core systems
 - **Seeded randomness** for deterministic testing
 - **Mock PixiJS** integration for renderer testing
 - **D&D mechanics validation** with dice rolling simulation

@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **IMPORTANT**: When making changes to the codebase, please update the following sections in this file:
 
-- **Test count** (currently 186): Update when adding/removing test files
+- **Test count** (currently 228): Update when adding/removing test files
 - **Component list**: Add new systems, managers, or utilities as they're created
 - **Architecture section**: Update when system responsibilities change
 - **Available scripts**: Sync with package.json when scripts are modified
 - **Dependencies**: Update version numbers when upgrading packages
 
 **Auto-sync locations**: 
-- Test count: Search for "186" and update across all documentation
+- Test count: Search for "228" and update across all documentation
 - Scripts: Match package.json scripts section exactly
 - File structure: Reflect actual src/ directory organization
 
@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build` - Build production version (TypeScript compilation + Vite build)
 - `npm run preview` - Preview production build
 - `npm run typecheck` - Run TypeScript type checking without emitting files
-- `npm run test` - Run comprehensive test suite (186 tests) with Vitest
+- `npm run test` - Run comprehensive test suite (228 tests) with Vitest
 - `npm run test:ui` - Run tests with UI interface for development
 
 ### Development Workflow
@@ -65,6 +65,7 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - **Camera System** (`src/systems/camera/CameraSystem.ts`) - Viewport management, entity following, coordinate conversion
 - **Font System** (`src/systems/font/FontSystem.ts`) - Centralized font management for emoji and ASCII rendering
 - **Dice System** (`src/systems/dice/DiceSystem.ts`) - D&D-style dice rolling mechanics ("2d6+3" notation)
+- **Pathfinding System** (`src/systems/pathfinding/PathfindingSystem.ts`) - A* pathfinding with LRU caching and EventBus integration
 
 **Management Layer** (`src/managers/`):
 - **GameStateManager** (`src/managers/GameStateManager.ts`) - Entity lifecycle and game loop management (140 lines)
@@ -210,6 +211,15 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - Unique entity IDs and visual representation
 - Support for both emoji and ASCII character rendering
 
+**Pathfinding System**:
+- A* algorithm implementation with binary heap optimization for O(log n) performance
+- LRU cache with EventBus integration for automatic invalidation when world changes
+- Diagonal movement support with corner-cutting prevention
+- Configurable heuristics (Manhattan, Euclidean, Octile distance)
+- Performance metrics tracking and sub-5ms target completion times
+- Line-of-sight utilities and distance calculation methods
+- Handles 1000+ path requests efficiently with intelligent caching
+
 ### Emoji System
 The game uses Unicode emojis as glyphs for both tiles and entities. The rendering system automatically switches between `Noto Emoji` font for emojis and `Noto Sans Mono` for ASCII characters based on the `isEmoji` flag.
 
@@ -222,7 +232,7 @@ Smooth movement animations are implemented using requestAnimationFrame with line
 - Targets modern browsers with `esnext` build target
 - Dependencies: PixiJS 7.4+, MobX 6.12+, MobX State Tree 5.4+, GSAP 3.12+
 - TypeScript configuration includes both main and Node.js configs
-- Comprehensive test framework with Vitest and jsdom environment (186 tests)
+- Comprehensive test framework with Vitest and jsdom environment (228 tests)
 - Modular architecture with dependency injection and single responsibility principle
 - Professional error handling with typed error codes and context
 - Configurable logging system with multiple levels (DEBUG, INFO, WARN, ERROR)
@@ -266,7 +276,8 @@ Latest features added (as of recent commits):
 - **World Configuration**: Dynamic world loading with theme-specific rules and resources
 - **UI Resource Display**: Character sheet integration with new resource system
 - **Entity Creation System**: Centralized entity creation utilities for consistency
-- **Comprehensive Testing**: 186 tests covering all core systems including EventBus with deterministic seeded randomness
+- **Pathfinding System**: A* algorithm with binary heap optimization, LRU caching, and EventBus integration for intelligent path invalidation
+- **Comprehensive Testing**: 228 tests covering all core systems including EventBus and pathfinding with deterministic seeded randomness
 - **Error Handling Framework**: Professional error management with GameError class and typed error codes
 - **Logging Infrastructure**: Configurable logging system with multiple levels and context
 - **Input System**: Centralized keyboard management with callback-based architecture
@@ -284,7 +295,7 @@ Latest features added (as of recent commits):
 ## Testing Infrastructure
 
 - **Test Framework**: Vitest with jsdom environment for browser simulation
-- **Test Coverage**: 186 comprehensive tests across 16 test files covering EventBus system
+- **Test Coverage**: 228 comprehensive tests across 19 test files covering EventBus and pathfinding systems
 - **Deterministic Testing**: Seeded randomness for combat system validation
 - **Mock Integration**: PixiJS mocking for renderer testing without graphics dependencies
 - **Edge Case Coverage**: Boundary conditions, error scenarios, and invalid input handling
@@ -305,6 +316,10 @@ Test files organized by system:
   - `CombatManager.test.ts` - Combat orchestration (11 tests)
   - `MovementSystem.test.ts` - Movement logic and collision detection (8 tests)
   - `InputHandler.test.ts` - Input handling and callbacks (5 tests)
+- **Pathfinding Tests** (`tests/systems/pathfinding/`):
+  - `PathfindingSystem.test.ts` - A* algorithm and system integration (20 tests)
+  - `BinaryHeap.test.ts` - Min-heap priority queue with performance tests (11 tests)
+  - `PathCache.test.ts` - LRU cache with EventBus invalidation (11 tests)
 - **Manager Tests** (`tests/managers/`):
   - `CharacterManager.test.ts` - Character management and progression (14 tests)
   - `GameStateManager.test.ts` - Entity lifecycle management (9 tests)
