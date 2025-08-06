@@ -1,4 +1,4 @@
-import { Game } from './game/Game';
+import { Game } from './core/Game';
 
 // Wait for fonts to load completely
 document.fonts.ready.then(async () => {

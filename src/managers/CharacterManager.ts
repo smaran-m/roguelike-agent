@@ -1,7 +1,8 @@
 import { PlayerCharacter, CharacterClass, EntityStats } from '../types';
-import { CombatSystem } from '../game/CombatSystem';
-import { EnemyLoader } from '../utils/EnemyLoader';
-import { ItemSystem } from '../game/Item';
+import { CombatSystem } from '../systems/combat/CombatSystem';
+import { DiceSystem } from '../systems/dice/DiceSystem';
+import { EnemyLoader } from '../loaders/EnemyLoader';
+import { ItemSystem } from '../entities/ItemSystem';
 import characterClassesData from '../data/characterClasses.json';
 
 export class CharacterManager {
@@ -104,18 +105,18 @@ export class CharacterManager {
     const baseStats = characterClass.baseStats;
     
     // Roll for HP and set maxHp to the same value
-    const hp = CombatSystem.rollDice(baseStats.hp).total;
+    const hp = DiceSystem.rollDice(baseStats.hp).total;
     
     return {
       hp,
       maxHp: hp,
       ac: baseStats.ac,
-      strength: CombatSystem.rollDice(baseStats.strength).total,
-      dexterity: CombatSystem.rollDice(baseStats.dexterity).total,
-      constitution: CombatSystem.rollDice(baseStats.constitution).total,
-      intelligence: CombatSystem.rollDice(baseStats.intelligence).total,
-      wisdom: CombatSystem.rollDice(baseStats.wisdom).total,
-      charisma: CombatSystem.rollDice(baseStats.charisma).total,
+      strength: DiceSystem.rollDice(baseStats.strength).total,
+      dexterity: DiceSystem.rollDice(baseStats.dexterity).total,
+      constitution: DiceSystem.rollDice(baseStats.constitution).total,
+      intelligence: DiceSystem.rollDice(baseStats.intelligence).total,
+      wisdom: DiceSystem.rollDice(baseStats.wisdom).total,
+      charisma: DiceSystem.rollDice(baseStats.charisma).total,
       proficiencyBonus: baseStats.proficiencyBonus,
       level: baseStats.level
     };
@@ -179,7 +180,7 @@ export class CharacterManager {
     const characterClass = this.getCharacterClass(this.currentCharacter.className);
     if (characterClass) {
       const hitDie = characterClass.baseStats.hp.split('d')[1]?.split('+')[0] || '8';
-      const hpGain = CombatSystem.rollDice(`1d${hitDie}`).total + 
+      const hpGain = DiceSystem.rollDice(`1d${hitDie}`).total + 
                      CombatSystem.getModifier(this.currentCharacter.stats.constitution);
       
       this.currentCharacter.stats.hp = (this.currentCharacter.stats.hp || 0) + Math.max(1, hpGain);
