@@ -8,13 +8,22 @@ import { CombatManager } from '../systems/combat/CombatManager';
 import { GameStateManager } from '../managers/GameStateManager';
 import { ResourceManager } from '../managers/ResourceManager';
 import { WorldConfigLoader } from '../loaders/WorldConfigLoader';
+import { EventBus, EventBusConfig } from './events/EventBus';
+import { Logger } from '../utils/Logger';
+import { ErrorHandler } from '../utils/ErrorHandler';
+import { generateEventId } from './events/GameEvent';
 
 export class Game {
   renderer: Renderer;
   tileMap: TileMap;
   player: Entity;
   
-  // Extracted systems
+  // Core systems
+  private eventBus: EventBus;
+  private logger: Logger;
+  private errorHandler: ErrorHandler;
+  
+  // Game systems
   private inputHandler: InputHandler;
   private movementSystem: MovementSystem;
   private combatManager: CombatManager;
@@ -24,16 +33,29 @@ export class Game {
   private movementState: MovementState;
   
   constructor() {
-    // Initialize world configuration system first
+    // Initialize core systems first
+    this.logger = Logger.getInstance();
+    this.errorHandler = ErrorHandler.getInstance();
+    
+    // Initialize EventBus
+    const eventBusConfig: EventBusConfig = {
+      bufferSize: 1024,
+      enableAggregation: true,
+      enablePooling: true,
+      maxPoolSize: 100
+    };
+    this.eventBus = new EventBus(eventBusConfig, this.logger, this.errorHandler);
+    
+    // Initialize world configuration system
     WorldConfigLoader.initialize('fantasy');
     
     this.renderer = new Renderer(50, 30);
     this.tileMap = new TileMap(50, 30);
     
-    // Initialize systems
+    // Initialize systems with EventBus
     this.gameStateManager = new GameStateManager();
     this.movementSystem = new MovementSystem(0.1);
-    this.combatManager = new CombatManager(this.renderer);
+    this.combatManager = new CombatManager(this.renderer, this.eventBus);
     
     // Initialize entities through game state manager with safe spawn positions
     this.gameStateManager.initializeEntities(this.tileMap);
@@ -89,7 +111,13 @@ export class Game {
     this.gameStateManager.startGameLoop(() => {
       this.updateMovement();
       this.updateVisuals();
+      this.updateEvents();
     });
+  }
+  
+  updateEvents() {
+    // Process all pending events each frame
+    this.eventBus.processEvents();
   }
   
   updateMovement() {
@@ -121,6 +149,18 @@ export class Game {
     
     // If camera moved or player moved to new grid position, need to re-render everything
     if (cameraMoved || playerMoved) {
+      // Publish movement event if player moved to new grid position
+      if (playerMoved) {
+        this.eventBus.publish({
+          type: 'EntityMoved',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          entityId: this.player.id,
+          oldPosition: { x: this.player.x, y: this.player.y },
+          newPosition: { x: currentGridX, y: currentGridY }
+        });
+      }
+      
       // Update player's logical position
       this.player.x = currentGridX;
       this.player.y = currentGridY;

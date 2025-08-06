@@ -3,6 +3,8 @@ import { CombatSystem } from './CombatSystem';
 import { Renderer } from '../../core/Renderer';
 import { AnimationSystem } from '../animation/AnimationSystem';
 import { CharacterManager } from '../../managers/CharacterManager';
+import { EventBus } from '../../core/events/EventBus';
+import { generateEventId } from '../../core/events/GameEvent';
 
 export interface CombatResult {
   success: boolean;
@@ -14,10 +16,12 @@ export interface CombatResult {
 export class CombatManager {
   private renderer: Renderer;
   private animationSystem: AnimationSystem;
+  private eventBus: EventBus;
 
-  constructor(renderer: Renderer) {
+  constructor(renderer: Renderer, eventBus: EventBus) {
     this.renderer = renderer;
     this.animationSystem = renderer.animationSystem;
+    this.eventBus = eventBus;
   }
 
   attemptMeleeAttack(attacker: Entity, entities: Entity[]): CombatResult {
@@ -69,6 +73,18 @@ export class CombatManager {
     if (attackResult.hit) {
       targetKilled = CombatSystem.applyDamage(target, attackResult.damage);
       
+      // Publish damage dealt event
+      this.eventBus.publish({
+        type: 'DamageDealt',
+        id: generateEventId(),
+        timestamp: Date.now(),
+        attackerId: attacker.id,
+        targetId: target.id,
+        damage: attackResult.damage,
+        damageType: 'physical', // Default damage type, could be enhanced
+        targetPosition: { x: target.x, y: target.y }
+      });
+      
       if (attackResult.critical) {
         this.renderer.addMessage(`CRITICAL HIT! ${attackResult.damageRoll} = ${attackResult.damage} damage`);
       } else {
@@ -82,6 +98,16 @@ export class CombatManager {
       if (targetKilled) {
         this.renderer.addMessage(`${target.name} died!`);
         this.renderer.removeEntity(target.id);
+        
+        // Publish enemy died event
+        this.eventBus.publish({
+          type: 'EnemyDied',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          enemyId: target.id,
+          position: { x: target.x, y: target.y },
+          killer: attacker.id
+        });
       } else {
         this.renderer.addMessage(`${target.name}: ${target.stats.hp}/${target.stats.maxHp} HP`);
       }

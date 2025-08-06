@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **IMPORTANT**: When making changes to the codebase, please update the following sections in this file:
 
-- **Test count** (currently 154): Update when adding/removing test files
+- **Test count** (currently 186): Update when adding/removing test files
 - **Component list**: Add new systems, managers, or utilities as they're created
 - **Architecture section**: Update when system responsibilities change
 - **Available scripts**: Sync with package.json when scripts are modified
 - **Dependencies**: Update version numbers when upgrading packages
 
 **Auto-sync locations**: 
-- Test count: Search for "154" and update across all documentation
+- Test count: Search for "186" and update across all documentation
 - Scripts: Match package.json scripts section exactly
 - File structure: Reflect actual src/ directory organization
 
@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build` - Build production version (TypeScript compilation + Vite build)
 - `npm run preview` - Preview production build
 - `npm run typecheck` - Run TypeScript type checking without emitting files
-- `npm run test` - Run comprehensive test suite (65+ tests) with Vitest
+- `npm run test` - Run comprehensive test suite (186 tests) with Vitest
 - `npm run test:ui` - Run tests with UI interface for development
 
 ### Development Workflow
@@ -54,6 +54,7 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - **Renderer** (`src/core/Renderer.ts`) - PixiJS-based rendering with emoji support, animations, and camera integration
 - **TileMap** (`src/core/TileMap.ts`) - Tile-based world generation, collision detection, and visibility tracking
 - **LineOfSight** (`src/core/LineOfSight.ts`) - FOV calculation and visibility management
+- **EventBus System** (`src/core/events/`) - High-performance event system with ring buffer, aggregation, and object pooling
 
 **Specialized Systems** (`src/systems/`):
 - **Input System** (`src/systems/input/InputHandler.ts`) - Centralized keyboard event management with callback architecture (49 lines)
@@ -221,7 +222,7 @@ Smooth movement animations are implemented using requestAnimationFrame with line
 - Targets modern browsers with `esnext` build target
 - Dependencies: PixiJS 7.4+, MobX 6.12+, MobX State Tree 5.4+, GSAP 3.12+
 - TypeScript configuration includes both main and Node.js configs
-- Comprehensive test framework with Vitest and jsdom environment (114+ tests)
+- Comprehensive test framework with Vitest and jsdom environment (186 tests)
 - Modular architecture with dependency injection and single responsibility principle
 - Professional error handling with typed error codes and context
 - Configurable logging system with multiple levels (DEBUG, INFO, WARN, ERROR)
@@ -265,7 +266,7 @@ Latest features added (as of recent commits):
 - **World Configuration**: Dynamic world loading with theme-specific rules and resources
 - **UI Resource Display**: Character sheet integration with new resource system
 - **Entity Creation System**: Centralized entity creation utilities for consistency
-- **Comprehensive Testing**: 154 tests covering all core systems with 100% pass rate and deterministic seeded randomness
+- **Comprehensive Testing**: 186 tests covering all core systems including EventBus with deterministic seeded randomness
 - **Error Handling Framework**: Professional error management with GameError class and typed error codes
 - **Logging Infrastructure**: Configurable logging system with multiple levels and context
 - **Input System**: Centralized keyboard management with callback-based architecture
@@ -283,7 +284,7 @@ Latest features added (as of recent commits):
 ## Testing Infrastructure
 
 - **Test Framework**: Vitest with jsdom environment for browser simulation
-- **Test Coverage**: 154 comprehensive tests across 13 test files (100% passing)
+- **Test Coverage**: 186 comprehensive tests across 16 test files covering EventBus system
 - **Deterministic Testing**: Seeded randomness for combat system validation
 - **Mock Integration**: PixiJS mocking for renderer testing without graphics dependencies
 - **Edge Case Coverage**: Boundary conditions, error scenarios, and invalid input handling
@@ -295,6 +296,10 @@ Test files organized by system:
   - `Renderer.test.ts` - Rendering system with PixiJS mocks (19 tests)
   - `TileMap.test.ts` - Map generation and collision detection (14 tests)
   - `LineOfSight.test.ts` - FOV algorithms and visibility (12 tests)
+- **EventBus Tests** (`tests/core/events/`):
+  - `EventBus.test.ts` - Ring buffer event system with performance tests (13 tests)
+  - `EventAggregator.test.ts` - Event batching and aggregation logic (7 tests)  
+  - `EventPool.test.ts` - Object pooling and memory optimization (12 tests)
 - **System Tests** (`tests/systems/`):
   - `CombatSystem.test.ts` - D&D mechanics with seeded randomness (22 tests)
   - `CombatManager.test.ts` - Combat orchestration (11 tests)
@@ -319,7 +324,7 @@ Test files organized by system:
 - **Single Responsibility**: Each system has a focused, well-defined purpose
 - **Error Handling**: Centralized error management with context and error codes
 - **Logging**: Structured logging with configurable levels and filtering
-- **Comprehensive Testing**: 154 tests organized by system with 100% pass rate and deterministic behavior
+- **Comprehensive Testing**: 186 tests organized by system including new EventBus architecture with deterministic behavior
 
 ## Development Commands for Claude
 

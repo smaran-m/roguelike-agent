@@ -35,7 +35,16 @@ describe('CombatManager', () => {
     };
     vi.mocked(CharacterManager.getInstance).mockReturnValue(defaultCharacterManager as any);
     
-    combatManager = new CombatManager(mockRenderer);
+    // Mock EventBus
+    const mockEventBus = {
+      publish: vi.fn(),
+      subscribe: vi.fn(),
+      processEvents: vi.fn(),
+      flush: vi.fn(),
+      getMetrics: vi.fn()
+    };
+    
+    combatManager = new CombatManager(mockRenderer, mockEventBus as any);
     
     player = {
       id: 'player',

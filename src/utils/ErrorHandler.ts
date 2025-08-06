@@ -6,7 +6,10 @@ export enum GameErrorCode {
   INPUT_ERROR = 'INPUT_ERROR',
   GAME_STATE_ERROR = 'GAME_STATE_ERROR',
   LINE_OF_SIGHT_ERROR = 'LINE_OF_SIGHT_ERROR',
-  TILEMAP_ERROR = 'TILEMAP_ERROR'
+  TILEMAP_ERROR = 'TILEMAP_ERROR',
+  EVENT_PUBLISHING_FAILED = 'EVENT_PUBLISHING_FAILED',
+  EVENT_PROCESSING_FAILED = 'EVENT_PROCESSING_FAILED',
+  EVENT_HANDLER_FAILED = 'EVENT_HANDLER_FAILED'
 }
 
 export class GameError extends Error {
@@ -14,7 +17,7 @@ export class GameError extends Error {
   public readonly context?: any;
   public readonly timestamp: Date;
 
-  constructor(message: string, code: GameErrorCode, context?: any) {
+  constructor(code: GameErrorCode, message: string, context?: any) {
     super(message);
     this.name = 'GameError';
     this.code = code;
@@ -54,17 +57,14 @@ export class ErrorHandler {
     return ErrorHandler.instance;
   }
 
-  handleError(error: Error | GameError, code?: GameErrorCode, context?: any): void {
+  handle(code: GameErrorCode, error: Error | string, context?: any): void {
     let gameError: GameError;
 
     if (error instanceof GameError) {
       gameError = error;
     } else {
-      gameError = new GameError(
-        error.message,
-        code || GameErrorCode.GAME_STATE_ERROR,
-        context
-      );
+      const message = error instanceof Error ? error.message : error;
+      gameError = new GameError(code, message, context);
     }
 
     // Log error
@@ -93,31 +93,31 @@ export class ErrorHandler {
 
   // Utility methods for common error scenarios
   static createRenderingError(message: string, context?: any): GameError {
-    return new GameError(message, GameErrorCode.RENDERING_ERROR, context);
+    return new GameError(GameErrorCode.RENDERING_ERROR, message, context);
   }
 
   static createResourceError(message: string, context?: any): GameError {
-    return new GameError(message, GameErrorCode.RESOURCE_LOADING_ERROR, context);
+    return new GameError(GameErrorCode.RESOURCE_LOADING_ERROR, message, context);
   }
 
   static createMovementError(message: string, context?: any): GameError {
-    return new GameError(message, GameErrorCode.MOVEMENT_ERROR, context);
+    return new GameError(GameErrorCode.MOVEMENT_ERROR, message, context);
   }
 
   static createCombatError(message: string, context?: any): GameError {
-    return new GameError(message, GameErrorCode.COMBAT_ERROR, context);
+    return new GameError(GameErrorCode.COMBAT_ERROR, message, context);
   }
 
   static createInputError(message: string, context?: any): GameError {
-    return new GameError(message, GameErrorCode.INPUT_ERROR, context);
+    return new GameError(GameErrorCode.INPUT_ERROR, message, context);
   }
 
   static createLineOfSightError(message: string, context?: any): GameError {
-    return new GameError(message, GameErrorCode.LINE_OF_SIGHT_ERROR, context);
+    return new GameError(GameErrorCode.LINE_OF_SIGHT_ERROR, message, context);
   }
 
   static createTilemapError(message: string, context?: any): GameError {
-    return new GameError(message, GameErrorCode.TILEMAP_ERROR, context);
+    return new GameError(GameErrorCode.TILEMAP_ERROR, message, context);
   }
 }
 
@@ -127,18 +127,18 @@ export function setupGlobalErrorHandling(): void {
 
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
-    errorHandler.handleError(
-      new Error(event.reason),
+    errorHandler.handle(
       GameErrorCode.GAME_STATE_ERROR,
+      new Error(event.reason),
       { type: 'unhandledrejection', reason: event.reason }
     );
   });
 
   // Handle global errors
   window.addEventListener('error', (event) => {
-    errorHandler.handleError(
-      event.error || new Error(event.message),
+    errorHandler.handle(
       GameErrorCode.GAME_STATE_ERROR,
+      event.error || new Error(event.message),
       { 
         type: 'global_error',
         filename: event.filename,
