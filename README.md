@@ -6,13 +6,13 @@ An emoji-based roguelike game built with TypeScript and PixiJS, featuring D&D 5e
 
 **For Contributors**: When modifying the codebase, please keep this README synchronized:
 
-- **Test count** (currently 114+): Update when adding/removing tests
+- **Test count** (currently 154): Update when adding/removing tests
 - **Component architecture**: Add new systems to the appropriate sections
 - **Project structure**: Reflect actual directory organization under src/
 - **Available scripts**: Keep in sync with package.json
 - **Dependencies**: Update tech stack versions when upgrading
 
-**Quick sync check**: Search for "114+" across documentation files to update test counts.
+**Quick sync check**: Search for "154" across documentation files to update test counts.
 
 ## Features
 
@@ -90,32 +90,43 @@ The game will automatically open in your browser at `http://localhost:3000`.
 
 ### Core Components
 
-- **Game** (`src/game/Game.ts`) - Main game coordinator and orchestration
-- **InputHandler** (`src/game/InputHandler.ts`) - Keyboard event management and input processing
-- **MovementSystem** (`src/game/MovementSystem.ts`) - Movement logic and collision detection
-- **CombatManager** (`src/game/CombatManager.ts`) - Combat orchestration and visual effects
-- **GameStateManager** (`src/game/GameStateManager.ts`) - Entity lifecycle and game loop management
-- **Renderer** (`src/game/Renderer.ts`) - PixiJS-based rendering with camera system
-- **TileMap** (`src/game/TileMap.ts`) - World generation and collision detection
-- **CombatSystem** (`src/game/CombatSystem.ts`) - D&D-style combat mechanics with damage types
-- **LineOfSight** (`src/game/LineOfSight.ts`) - FOV and visibility calculations
-- **AnimationSystem** (`src/game/AnimationSystem.ts`) - Dedicated visual effects and animation management
-- **CreateEntity** (`src/game/CreateEntity.ts`) - Centralized entity creation utilities
+**Core Systems** (`src/core/`):
+- **Game** (`src/core/Game.ts`) - Main game coordinator and orchestration (221 lines, 40% reduction from refactoring)
+- **Renderer** (`src/core/Renderer.ts`) - PixiJS-based rendering with emoji support, animations, and camera integration
+- **TileMap** (`src/core/TileMap.ts`) - Tile-based world generation, collision detection, and visibility tracking
+- **LineOfSight** (`src/core/LineOfSight.ts`) - FOV calculation and visibility management
 
-### Support Systems
+**Specialized Systems** (`src/systems/`):
+- **Input System** (`src/systems/input/InputHandler.ts`) - Centralized keyboard event management with callback architecture (49 lines)
+- **Movement System** (`src/systems/movement/MovementSystem.ts`) - Movement logic, collision detection, and grid snapping (125 lines)
+- **Combat System** (`src/systems/combat/CombatSystem.ts`) - D&D 5e-inspired combat mechanics with damage types
+- **Combat Manager** (`src/systems/combat/CombatManager.ts`) - Combat orchestration and visual effects coordination (90 lines)
+- **Animation System** (`src/systems/animation/AnimationSystem.ts`) - Dedicated visual effects and animation management
+- **Camera System** (`src/systems/camera/CameraSystem.ts`) - Viewport management, entity following, coordinate conversion
+- **Font System** (`src/systems/font/FontSystem.ts`) - Centralized font management for emoji and ASCII rendering
+- **Dice System** (`src/systems/dice/DiceSystem.ts`) - D&D-style dice rolling mechanics ("2d6+3" notation)
 
+**Management Layer** (`src/managers/`):
+- **GameStateManager** (`src/managers/GameStateManager.ts`) - Entity lifecycle and game loop management (140 lines)
 - **CharacterManager** (`src/managers/CharacterManager.ts`) - Singleton character progression and class system
-- **EnemyLoader** (`src/utils/EnemyLoader.ts`) - Enemy data loading and validation from JSON
-- **ItemLoader** (`src/utils/ItemLoader.ts`) - Item data loading and validation from JSON
-- **ResourceManager** (`src/utils/ResourceManager.ts`) - Multi-resource system management (HP, mana, etc.)
-- **WorldConfigLoader** (`src/utils/WorldConfigLoader.ts`) - World theme and configuration management
-- **ErrorHandler** (`src/utils/ErrorHandler.ts`) - Comprehensive error handling framework
-- **Logger** (`src/utils/Logger.ts`) - Configurable logging system with multiple levels
+- **ResourceManager** (`src/managers/ResourceManager.ts`) - Multi-resource system supporting HP, mana, and theme-specific resources
+
+**Data Loaders** (`src/loaders/`):
+- **EnemyLoader** (`src/loaders/EnemyLoader.ts`) - Enemy data loading and validation from JSON
+- **ItemLoader** (`src/loaders/ItemLoader.ts`) - Item data loading and validation from JSON with damage types
+- **WorldConfigLoader** (`src/loaders/WorldConfigLoader.ts`) - World theme and configuration management system
+
+**Entity Utilities** (`src/entities/`):
+- **CreateEntity** (`src/entities/CreateEntity.ts`) - Centralized entity creation utilities for consistency
+
+**Core Utilities** (`src/utils/`):
+- **ErrorHandler** (`src/utils/ErrorHandler.ts`) - Comprehensive error handling framework with typed error codes (126 lines)
+- **Logger** (`src/utils/Logger.ts`) - Professional logging system with configurable levels (117 lines)
 
 ### UI Components
 
-- **CharacterSheet** (`src/ui/CharacterSheet.ts`) - Player character display panel
-- **CharacterPortrait** (`src/ui/CharacterPortrait.ts`) - Dynamic health-based portraits
+- **Character Sheets** (`src/ui/CharacterSheet.ts`) - Character status display and progression UI
+- **Components** (`src/ui/components/`) - Reusable UI elements and resource displays
 
 ### Detailed Architecture
 
@@ -128,7 +139,7 @@ For comprehensive technical documentation including system interconnections, pos
 - **Vite** - Fast development and build tooling
 - **MobX** - Reactive state management
 - **GSAP** - High-performance animations
-- **Vitest** - Modern testing framework with 114+ comprehensive tests
+- **Vitest** - Modern testing framework with 154 comprehensive tests
 
 ## Game Systems
 
@@ -159,65 +170,88 @@ Each entity has full D&D 5e-style attributes:
 ### Project Structure
 ```
 src/
-├── game/                    # Core game systems
+├── core/                    # Core game systems
 │   ├── Game.ts                 # Main game coordinator (221 lines)
-│   ├── InputHandler.ts         # Keyboard event management (49 lines)
-│   ├── MovementSystem.ts       # Movement and collision logic (125 lines)
-│   ├── CombatManager.ts        # Combat orchestration (90 lines)
-│   ├── GameStateManager.ts     # Entity lifecycle management (140 lines)
-│   ├── AnimationSystem.ts      # Visual effects and animation management
-│   ├── Renderer.ts             # PixiJS rendering with camera
-│   ├── TileMap.ts              # World generation and collision
-│   ├── CombatSystem.ts         # D&D-style combat mechanics
-│   ├── LineOfSight.ts          # FOV and visibility calculations
-│   ├── CreateEntity.ts         # Entity creation utilities
-│   └── tests/                  # Comprehensive test suite (114+ tests)
-│       ├── CombatSystem.test.ts    # D&D mechanics with seeded randomness
-│       ├── LineOfSight.test.ts     # FOV algorithms
-│       ├── TileMap.test.ts         # Map generation
-│       ├── Renderer.test.ts        # Rendering system
-│       ├── CharacterManager.test.ts # Character management
-│       ├── GameStateManager.test.ts # Entity management
-│       ├── CombatManager.test.ts   # Combat orchestration
-│       ├── MovementSystem.test.ts  # Movement logic
-│       ├── EnemyLoader.test.ts     # Enemy data loading
-│       └── InputHandler.test.ts    # Input handling
-├── managers/                # Game management systems
-│   └── CharacterManager.ts     # Character progression and classes
-├── ui/                      # User interface components
-│   ├── CharacterSheet.ts       # Character display panel
-│   └── CharacterPortrait.ts    # Dynamic health-based portraits
-├── utils/                   # Support utilities
+│   ├── Renderer.ts             # PixiJS rendering with emoji support
+│   ├── TileMap.ts              # World generation and collision detection
+│   └── LineOfSight.ts          # FOV calculation and visibility
+├── systems/                 # Specialized systems
+│   ├── input/
+│   │   └── InputHandler.ts     # Keyboard event management (49 lines)
+│   ├── movement/
+│   │   └── MovementSystem.ts   # Movement logic and collision (125 lines)
+│   ├── combat/
+│   │   ├── CombatSystem.ts     # D&D 5e combat mechanics
+│   │   └── CombatManager.ts    # Combat orchestration (90 lines)
+│   ├── animation/
+│   │   └── AnimationSystem.ts  # Visual effects and animations
+│   ├── camera/
+│   │   └── CameraSystem.ts     # Viewport and camera management
+│   ├── font/
+│   │   └── FontSystem.ts       # Centralized font management
+│   └── dice/
+│       └── DiceSystem.ts       # D&D-style dice rolling mechanics
+├── managers/                # Management layer
+│   ├── GameStateManager.ts     # Entity lifecycle (140 lines)
+│   ├── CharacterManager.ts     # Character progression system
+│   └── ResourceManager.ts      # Multi-resource management
+├── loaders/                 # Data loading systems
 │   ├── EnemyLoader.ts          # Enemy data loading and validation
-│   ├── ItemLoader.ts           # Item data loading and validation
-│   ├── ResourceManager.ts      # Multi-resource system management
-│   ├── WorldConfigLoader.ts    # World theme configuration loading
-│   ├── ErrorHandler.ts         # Comprehensive error handling (126 lines)
-│   └── Logger.ts               # Professional logging system (117 lines)
-├── data/                    # JSON configuration files
+│   ├── ItemLoader.ts           # Item data with damage types
+│   └── WorldConfigLoader.ts    # World theme configuration
+├── entities/                # Entity utilities
+│   └── CreateEntity.ts         # Centralized entity creation
+├── ui/                      # User interface
+│   ├── CharacterSheet.ts       # Character status display
+│   └── components/             # Reusable UI components
+│       └── ResourceDisplay.ts  # Multi-resource display
+├── utils/                   # Core utilities
+│   ├── ErrorHandler.ts         # Error handling framework (126 lines)
+│   └── Logger.ts               # Logging system (117 lines)
+├── data/                    # JSON configuration
 │   ├── characterClasses.json   # Character class definitions
-│   ├── enemies.json            # Enemy type definitions
+│   ├── enemies.json            # Standard enemy definitions
 │   ├── items.json              # Item definitions with damage types
+│   ├── worlds.json             # World theme configurations
 │   ├── cyberpunk-enemies.json  # Cyberpunk-themed enemies
-│   ├── cyberpunk-items.json    # Cyberpunk-themed items
-│   └── worlds.json             # World configurations and themes
-├── demo/                    # Demo and example code
-│   ├── characterDemo.ts        # Character system demo
-│   └── enemyDemo.ts            # Enemy system demo
+│   └── cyberpunk-items.json    # Cyberpunk-themed items
 ├── types/                   # TypeScript interfaces
 │   └── index.ts                # Shared type definitions
 └── main.ts                  # Application entry point
 ```
 
+**Test Structure** (`tests/`):
+```
+tests/
+├── core/                    # Core system tests
+│   ├── Renderer.test.ts        # Rendering with PixiJS mocks (19 tests)
+│   ├── TileMap.test.ts         # Map generation (14 tests)
+│   └── LineOfSight.test.ts     # FOV algorithms (12 tests)
+├── systems/                 # System tests
+│   ├── CombatSystem.test.ts    # D&D mechanics (22 tests)
+│   ├── CombatManager.test.ts   # Combat orchestration (11 tests)
+│   ├── MovementSystem.test.ts  # Movement logic (8 tests)
+│   └── InputHandler.test.ts    # Input handling (5 tests)
+├── managers/                # Manager tests
+│   ├── CharacterManager.test.ts # Character management (14 tests)
+│   └── GameStateManager.test.ts # Entity lifecycle (9 tests)
+├── loaders/                 # Data loader tests
+│   ├── ItemLoader.test.ts      # Item system (16 tests)
+│   ├── EnemyLoader.test.ts     # Enemy data (8 tests)
+│   └── WorldConfigLoader.test.ts # World config (11 tests)
+└── ui/components/           # UI component tests
+    └── ResourceDisplay.test.ts # Resource UI (5 tests)
+```
+
 ### Adding New Features
 
 1. **New Entity Types**: Extend the `Entity` interface in `src/types/index.ts`
-2. **Combat Abilities**: Add methods to `CombatSystem` class and update `CombatManager`
-3. **Visual Effects**: Implement in `Renderer` with GSAP animations
-4. **World Features**: Modify `TileMap` generation algorithms
-5. **Input Handling**: Add new key bindings in `InputHandler` with callback system
-6. **Movement Mechanics**: Extend `MovementSystem` for new movement types
-7. **Game State**: Manage entity lifecycle through `GameStateManager`
+2. **Combat Abilities**: Add methods to `CombatSystem` class in `src/systems/combat/` and update `CombatManager`
+3. **Visual Effects**: Implement in `Renderer` (`src/core/`) or `AnimationSystem` (`src/systems/animation/`) with GSAP animations
+4. **World Features**: Modify `TileMap` generation algorithms in `src/core/`
+5. **Input Handling**: Add new key bindings in `InputHandler` (`src/systems/input/`) with callback system
+6. **Movement Mechanics**: Extend `MovementSystem` (`src/systems/movement/`) for new movement types
+7. **Game State**: Manage entity lifecycle through `GameStateManager` (`src/managers/`)
 
 ### Testing
 
@@ -254,10 +288,20 @@ Latest features added (as of recent commits):
 - **World Configuration**: Dynamic world loading with theme-specific rules and resources
 - **UI Resource Display**: Character sheet integration with new resource system
 - **Entity Creation System**: Centralized entity creation utilities for consistency
-- **Comprehensive Testing**: 114+ tests covering all core systems with deterministic seeded randomness
+- **Comprehensive Testing**: 154 tests covering all core systems with 100% pass rate and deterministic seeded randomness
 - **Error Handling Framework**: Professional error management with GameError class and typed error codes
 - **Logging Infrastructure**: Configurable logging system with multiple levels and context
-- **Architectural Refactoring**: Extracted 4 major systems from monolithic Game class (40% code reduction)
+- **Major Architectural Refactor**: Complete codebase restructuring with modular directory organization
+- **System Extraction**: Extracted CameraSystem, FontSystem, and DiceSystem for better separation of concerns
+- **Directory Restructuring**: Organized code into logical modules (core, systems, managers, loaders, entities, ui)
+- **Test Organization**: Moved all tests to root `tests/` directory with structured organization
+- **Input System**: Centralized keyboard management with callback-based architecture
+- **Movement System**: Dedicated movement logic with collision detection and grid snapping
+- **Combat Management**: Combat orchestration with visual effects coordination
+- **State Management**: Entity lifecycle management with safe spawning
+- **Camera System**: Extracted viewport and camera management with coordinate conversion
+- **Font Management**: Centralized font system for consistent emoji and ASCII rendering
+- **Dice Mechanics**: Extracted D&D-style dice rolling system with notation support
 - Line of sight system with ray casting FOV
 - Scrolling camera that follows player movement
 

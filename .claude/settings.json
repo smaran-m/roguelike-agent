@@ -1,0 +1,78 @@
+{
+"hooks": {
+    "PreToolUse": [
+    {
+        "matcher": "Bash.*npm run test",
+        "hooks": [
+        {
+            "type": "command",
+            "command": "echo 'auto-approved: tests'"
+        }
+        ]
+    },
+    {
+        "matcher": "Bash.*npm run typecheck",
+        "hooks": [
+        {
+            "type": "command",
+            "command": "echo 'auto-approved: typecheck'"
+        }
+        ]
+    },
+    {
+        "matcher": "Bash.*npm run dev",
+        "hooks": [
+        {
+            "type": "command",
+            "command": "echo 'auto-approved: dev'"
+        }
+        ]
+    },
+    {
+        "matcher": "Bash.*git (status|diff|add|commit)",
+        "hooks": [
+        {
+            "type": "command",
+            "command": "echo 'auto-approved: git operations'"
+        }
+        ]
+    },
+    {
+          "matcher": "Bash.*taskkill.*PID",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo 'auto-approved: taskkill by PID'"
+            }
+          ]
+        },
+        {
+          "matcher": "Bash.*Stop-Process.*Id",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo 'auto-approved: PowerShell Stop-Process'"
+            }
+          ]
+        },
+        {
+          "matcher": "Bash.*npm run (test|typecheck|build|dev)",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo 'auto-approved: npm commands'"
+            }
+          ]
+        },
+        {
+          "matcher": "Bash.*git (status|diff|add|commit)",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "echo 'auto-approved: git operations'"
+            }
+          ]
+        }
+      ]
+    }
+  }

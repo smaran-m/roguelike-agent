@@ -52,3 +52,4 @@ Thumbs.db
 api-keys.json
 .api-cache/
 generated-content/
+docs/tasks/*.md

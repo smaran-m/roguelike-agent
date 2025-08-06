@@ -79,7 +79,7 @@ interface MovementState {
 ## System Architecture Details
 
 ### 1. Game Class (Central Orchestrator)
-**File**: `src/game/Game.ts` (225 lines)
+**File**: `src/core/Game.ts` (221 lines)
 
 **Role**: Main coordinator that manages system lifecycle and integration
 
@@ -109,7 +109,7 @@ class Game {
 4. Combat system processes attacks through CombatManager
 
 ### 2. Renderer Class (Visual Engine)
-**File**: `src/game/Renderer.ts` (661 lines)
+**File**: `src/core/Renderer.ts`
 
 **Role**: PixiJS-based rendering engine with sophisticated position and visibility management
 
@@ -147,7 +147,7 @@ screenToWorld(screenX, screenY) → {x: worldX, y: worldY}
 - **Size differentiation**: Different font sizes for different UI elements
 
 ### 3. Movement System
-**File**: `src/game/MovementSystem.ts` (151 lines)
+**File**: `src/systems/movement/MovementSystem.ts` (125 lines)
 
 **Role**: Handles smooth movement with collision detection and grid validation
 
@@ -175,7 +175,7 @@ isValidGridPosition(x, y, tileMap, entities, excludeEntityId)  // Grid positions
 ```
 
 ### 4. Input Handler System
-**File**: `src/game/InputHandler.ts` (64 lines)
+**File**: `src/systems/input/InputHandler.ts` (49 lines)
 
 **Role**: Callback-based input management with decoupled architecture
 
@@ -195,7 +195,7 @@ interface InputCallbacks {
 - **Event cleanup**: Proper listener management for memory safety
 
 ### 5. Combat Manager System
-**File**: `src/game/CombatManager.ts` (97 lines)
+**File**: `src/systems/combat/CombatManager.ts` (90 lines)
 
 **Role**: Orchestrates combat between game logic and visual effects
 
@@ -215,7 +215,7 @@ interface InputCallbacks {
 - **Miss feedback**: Attacker shake on missed attacks
 
 ### 6. Game State Manager
-**File**: `src/game/GameStateManager.ts` (128 lines)
+**File**: `src/managers/GameStateManager.ts` (140 lines)
 
 **Role**: Entity lifecycle management and game loop coordination
 
@@ -231,40 +231,62 @@ interface InputCallbacks {
 - **Performance management**: Proper cleanup and memory management
 
 ### 7. Animation System
-**File**: `src/game/AnimationSystem.ts` (196 lines)
+**File**: `src/systems/animation/AnimationSystem.ts`
 
 **Role**: Handles all visual animations with camera-aware positioning
 
+### 8. Camera System
+**File**: `src/systems/camera/CameraSystem.ts`
+
+**Role**: Manages viewport and camera positioning with entity following
+
 **Key Features**:
+- **Entity following**: Smooth camera tracking of player movement
+- **Viewport management**: Handles camera bounds and constraints  
+- **Coordinate conversion**: World-to-screen and screen-to-world transformations
+- **Camera movement**: Threshold-based camera updates and smooth transitions
 
-#### Camera Integration:
-```typescript
-updateCamera(cameraX, cameraY)  // Sync with renderer camera
-worldToScreen(worldX, worldY)   // Convert world to screen coordinates
-screenToPixel(screenX, screenY) // Convert screen to pixel coordinates
-```
+### 9. Font System
+**File**: `src/systems/font/FontSystem.ts`
 
-#### Animation Types:
-1. **Shake Animation**: Random displacement for hit reactions
-2. **Nudge Animation**: Directional movement toward target
-3. **Floating Damage**: Upward-moving damage numbers with fade
+**Role**: Centralized font management for emoji and ASCII rendering
 
-#### Position Management:
-- **Camera-aware calculations**: All animations respect current camera position
-- **Multi-object coordination**: Synchronizes entity and HP text movement
-- **Performance optimization**: RequestAnimationFrame-based timing
+**Key Features**:
+- **Automatic font detection**: Switches between emoji and ASCII fonts based on content
+- **Font loading**: Manages Noto Emoji and Noto Sans Mono font resources
+- **Consistent styling**: Standardized font configurations across UI elements
+- **Size management**: Handles different font sizes for various game elements
 
-### 8. User Interface Architecture
+### 10. Dice System  
+**File**: `src/systems/dice/DiceSystem.ts`
+
+**Role**: D&D-style dice rolling mechanics with notation support
+
+**Key Features**:
+- **Dice notation parsing**: Supports expressions like "2d6+3", "1d20", etc.
+- **Deterministic testing**: Seeded randomness for consistent test results
+- **Roll tracking**: Detailed results with individual dice outcomes
+- **Modifier support**: Handles complex dice expressions with bonuses/penalties
+
+### 11. User Interface Architecture
 
 #### Character Sheet System
-**File**: `src/ui/CharacterSheet.ts` (344 lines)
+**File**: `src/ui/CharacterSheet.ts`
 
-**Layout Architecture**:
 - **Fixed positioning**: Left panel (200px width)
 - **Hierarchical containers**: Organized UI sections
 - **Real-time updates**: Reflects current player state
 - **Multi-resource display**: ASCII bars for HP, mana, and theme-specific resources
 - **Dynamic theming**: Resource colors and types adapt to active world theme
+
+#### Resource Display System
+**File**: `src/ui/components/ResourceDisplay.ts`
+
+**Features**:
+- **Multi-resource support**: Handles HP, mana, and theme-specific resources dynamically
+- **ASCII bar rendering**: Text-based progress bars with configurable colors
+- **World theme integration**: Adapts to active world's resource configuration
+- **Real-time updates**: Reflects current entity resource states
 
 **UI Elements**:
 ```
@@ -355,22 +377,49 @@ Key presses → Movement/Combat → Entity state → Visual output
 ## Testing Architecture
 
 ### Test Organization:
-- **Unit tests**: Individual system functionality
-- **Integration tests**: System interaction validation
+- **154 comprehensive tests** across 13 test files organized by system
+- **Unit tests**: Individual system functionality validation
+- **Integration tests**: System interaction validation  
 - **Deterministic testing**: Seeded randomness for consistent results
-- **Mock systems**: PixiJS mocking for renderer testing
+- **Mock systems**: PixiJS mocking for renderer testing without graphics dependencies
+
+### Test Structure:
+```
+tests/
+├── core/                    # Core system tests (45 tests)
+│   ├── Renderer.test.ts        # Rendering with PixiJS mocks (19 tests)
+│   ├── TileMap.test.ts         # Map generation (14 tests)
+│   └── LineOfSight.test.ts     # FOV algorithms (12 tests)
+├── systems/                 # System tests (46 tests)
+│   ├── CombatSystem.test.ts    # D&D mechanics (22 tests)
+│   ├── CombatManager.test.ts   # Combat orchestration (11 tests)
+│   ├── MovementSystem.test.ts  # Movement logic (8 tests)
+│   └── InputHandler.test.ts    # Input handling (5 tests)
+├── managers/                # Manager tests (23 tests)
+│   ├── CharacterManager.test.ts # Character management (14 tests)
+│   └── GameStateManager.test.ts # Entity lifecycle (9 tests)
+├── loaders/                 # Data loader tests (35 tests)
+│   ├── ItemLoader.test.ts      # Item system (16 tests)
+│   ├── EnemyLoader.test.ts     # Enemy data (8 tests)
+│   └── WorldConfigLoader.test.ts # World config (11 tests)
+└── ui/components/           # UI component tests (5 tests)
+    └── ResourceDisplay.test.ts # Resource UI (5 tests)
+```
 
 ### Test Coverage Areas:
-- D&D combat mechanics with dice validation
-- Line-of-sight algorithms and visibility
-- Movement system with collision detection
-- Entity lifecycle management
-- Input handling and callback systems
+- **D&D combat mechanics** with seeded dice validation and damage type testing
+- **Line-of-sight algorithms** with FOV calculation and visibility testing
+- **Movement system** with collision detection and grid snapping validation
+- **Entity lifecycle management** with safe spawning and state tracking
+- **Input handling** with callback system and key mapping validation
+- **Multi-resource system** with theme-specific resource management
+- **Data loading** with JSON validation and error handling
+- **UI components** with resource display and real-time updates
 
 ## Multi-World System Architecture
 
 ### World Configuration System
-**File**: `src/utils/WorldConfigLoader.ts`
+**File**: `src/loaders/WorldConfigLoader.ts`
 
 The game implements a sophisticated multi-world system supporting different themes with unique mechanics:
 
