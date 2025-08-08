@@ -20,16 +20,16 @@
             "envelope": {
               "attack": 0.1,
               "decay": 0.2,
-              "sustain": 0.8,
+              "sustain": 0.05,
               "release": 0.3
             },
             "effects": []
           },
           "pattern": [
-            {"frequency": 146.83, "duration": 2, "velocity": 0.8},
-            {"frequency": 116.54, "duration": 2, "velocity": 0.6},
-            {"frequency": 174.61, "duration": 2, "velocity": 0.7},
-            {"frequency": 130.81, "duration": 2, "velocity": 0.8}
+            {"frequency": 146.83, "duration": 2, "velocity": 0.4},
+            {"frequency": 116.54, "duration": 2, "velocity": 0.4},
+            {"frequency": 174.61, "duration": 2, "velocity": 0.4},
+            {"frequency": 130.81, "duration": 2, "velocity": 0.4}
           ],
           "volume": 0.6
         },
@@ -41,7 +41,7 @@
             "envelope": {
               "attack": 1.0,
               "decay": 0.5,
-              "sustain": 0.9,
+              "sustain": 0.06,
               "release": 2.0
             },
             "effects": [
@@ -53,10 +53,10 @@
             ]
           },
           "pattern": [
-            {"frequency": 293.66, "duration": 8, "velocity": 0.3},
-            {"frequency": 233.08, "duration": 8, "velocity": 0.2},
-            {"frequency": 349.23, "duration": 8, "velocity": 0.25},
-            {"frequency": 261.63, "duration": 8, "velocity": 0.3}
+            {"frequency": 293.66, "duration": 8, "velocity": 0.4},
+            {"frequency": 233.08, "duration": 8, "velocity": 0.3},
+            {"frequency": 349.23, "duration": 8, "velocity": 0.35},
+            {"frequency": 261.63, "duration": 8, "velocity": 0.4}
           ],
           "volume": 0.4
         }
@@ -81,7 +81,7 @@
             "envelope": {
               "attack": 0.01,
               "decay": 0.1,
-              "sustain": 0.7,
+              "sustain": 0.05,
               "release": 0.2
             },
             "effects": [
@@ -92,12 +92,12 @@
             ]
           },
           "pattern": [
-            {"frequency": 659.25, "duration": 0.5, "velocity": 0.9},
-            {"frequency": 783.99, "duration": 0.5, "velocity": 0.8},
-            {"frequency": 880.00, "duration": 1, "velocity": 1.0},
-            {"frequency": 739.99, "duration": 1, "velocity": 0.9}
+            {"frequency": 659.25, "duration": 0.5, "velocity": 0.06},
+            {"frequency": 783.99, "duration": 0.5, "velocity": 0.05},
+            {"frequency": 880.00, "duration": 1, "velocity": 0.07},
+            {"frequency": 739.99, "duration": 1, "velocity": 0.06}
           ],
-          "volume": 0.7
+          "volume": 0.045
         }
       ]
     },
@@ -120,18 +120,18 @@
             "envelope": {
               "attack": 0.5,
               "decay": 0.8,
-              "sustain": 0.6,
+              "sustain": 0.04,
               "release": 1.5
             },
             "effects": []
           },
           "pattern": [
             {"frequency": 261.63, "duration": 4, "velocity": 0.4},
-            {"frequency": 220.00, "duration": 4, "velocity": 0.3},
-            {"frequency": 174.61, "duration": 4, "velocity": 0.35},
+            {"frequency": 220.00, "duration": 4, "velocity": 0.02},
+            {"frequency": 174.61, "duration": 4, "velocity": 0.025},
             {"frequency": 196.00, "duration": 4, "velocity": 0.4}
           ],
-          "volume": 0.5
+          "volume": 0.035
         }
       ]
     },
@@ -154,7 +154,7 @@
             "envelope": {
               "attack": 0.8,
               "decay": 0.4,
-              "sustain": 0.7,
+              "sustain": 0.05,
               "release": 1.0
             },
             "effects": [
@@ -166,12 +166,12 @@
             ]
           },
           "pattern": [
-            {"frequency": 220.00, "duration": 6, "velocity": 0.35},
-            {"frequency": 174.61, "duration": 6, "velocity": 0.3},
-            {"frequency": 261.63, "duration": 6, "velocity": 0.32},
-            {"frequency": 196.00, "duration": 6, "velocity": 0.35}
+            {"frequency": 220.00, "duration": 6, "velocity": 0.025},
+            {"frequency": 174.61, "duration": 6, "velocity": 0.02},
+            {"frequency": 261.63, "duration": 6, "velocity": 0.022},
+            {"frequency": 196.00, "duration": 6, "velocity": 0.025}
           ],
-          "volume": 0.45
+          "volume": 0.035
         }
       ]
     }

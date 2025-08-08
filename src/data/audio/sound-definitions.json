@@ -10,7 +10,7 @@
       "envelope": {
         "attack": 0.01,
         "decay": 0.05,
-        "sustain": 0.6,
+        "sustain": 0.1,
         "release": 0.09
       },
       "effects": [
@@ -31,7 +31,7 @@
       "envelope": {
         "attack": 0.02,
         "decay": 0.1,
-        "sustain": 0.3,
+        "sustain": 0.05,
         "release": 0.08
       },
       "category": "combat",
@@ -46,7 +46,7 @@
       "envelope": {
         "attack": 0.001,
         "decay": 0.02,
-        "sustain": 0.1,
+        "sustain": 0.02,
         "release": 0.077
       },
       "effects": [
@@ -68,7 +68,7 @@
       "envelope": {
         "attack": 0.05,
         "decay": 0.1,
-        "sustain": 0.7,
+        "sustain": 0.05,
         "release": 0.15
       },
       "category": "ui",
@@ -83,7 +83,7 @@
       "envelope": {
         "attack": 0.005,
         "decay": 0.02,
-        "sustain": 0.5,
+        "sustain": 0.03,
         "release": 0.055
       },
       "category": "ui",
@@ -98,7 +98,7 @@
       "envelope": {
         "attack": 0.1,
         "decay": 0.2,
-        "sustain": 0.4,
+        "sustain": 0.03,
         "release": 0.5
       },
       "effects": [
@@ -120,7 +120,7 @@
       "envelope": {
         "attack": 0.02,
         "decay": 0.08,
-        "sustain": 0.6,
+        "sustain": 0.04,
         "release": 0.15
       },
       "category": "ui",
@@ -135,7 +135,7 @@
       "envelope": {
         "attack": 0.1,
         "decay": 0.3,
-        "sustain": 0.8,
+        "sustain": 0.05,
         "release": 0.8
       },
       "category": "ui",
@@ -150,7 +150,7 @@
       "envelope": {
         "attack": 0.05,
         "decay": 0.1,
-        "sustain": 0.7,
+        "sustain": 0.05,
         "release": 0.25
       },
       "category": "environment",
@@ -165,7 +165,7 @@
       "envelope": {
         "attack": 0.08,
         "decay": 0.15,
-        "sustain": 0.5,
+        "sustain": 0.03,
         "release": 0.37
       },
       "effects": [

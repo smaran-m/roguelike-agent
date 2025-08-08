@@ -105,10 +105,11 @@ export class Game {
     this.inputHandler = new InputHandler(inputCallbacks);
     
     // Start game loop
-    this.startGameLoop();
+    this.waitForFontsAndRender();
+
+    //this.startGameLoop();
     
     // Wait for Noto Emoji to be fully available before rendering
-    this.waitForFontsAndRender();
   }
   
   
@@ -128,6 +129,11 @@ export class Game {
   updateMovement() {
     const keysPressed = this.inputHandler.getKeysPressed();
     const entities = this.gameStateManager.getAllEntities();
+    
+    // Store position before movement update
+    const oldX = this.player.x;
+    const oldY = this.player.y;
+    
     this.movementSystem.updateMovement(
       keysPressed, 
       this.movementState, 
@@ -135,6 +141,26 @@ export class Game {
       this.player,
       entities
     );
+    
+    // Check if player moved to new grid position and publish event
+    if (this.player.x !== oldX || this.player.y !== oldY) {
+      const moveEvent = {
+        type: 'EntityMoved' as const,
+        id: generateEventId(),
+        timestamp: Date.now(),
+        entityId: this.player.id,
+        oldPosition: { x: oldX, y: oldY },
+        newPosition: { x: this.player.x, y: this.player.y }
+      };
+      this.logger.info('📍 Publishing EntityMoved event', { 
+        oldPosition: { x: oldX, y: oldY },
+        newPosition: { x: this.player.x, y: this.player.y },
+        xChanged: this.player.x !== oldX,
+        yChanged: this.player.y !== oldY,
+        eventId: moveEvent.id
+      });
+      this.eventBus.publish(moveEvent);
+    }
   }
   
   
@@ -147,29 +173,8 @@ export class Game {
       y: Math.round(this.movementState.displayY) 
     } as Entity);
     
-    // Check if player moved to a new grid position (for FOV updates)
-    const currentGridX = Math.round(this.movementState.displayX);
-    const currentGridY = Math.round(this.movementState.displayY);
-    const playerMoved = currentGridX !== this.player.x || currentGridY !== this.player.y;
-    
-    // If camera moved or player moved to new grid position, need to re-render everything
-    if (cameraMoved || playerMoved) {
-      // Publish movement event if player moved to new grid position
-      if (playerMoved) {
-        this.eventBus.publish({
-          type: 'EntityMoved',
-          id: generateEventId(),
-          timestamp: Date.now(),
-          entityId: this.player.id,
-          oldPosition: { x: this.player.x, y: this.player.y },
-          newPosition: { x: currentGridX, y: currentGridY }
-        });
-      }
-      
-      // Update player's logical position
-      this.player.x = currentGridX;
-      this.player.y = currentGridY;
-      
+    // Re-render if camera moved 
+    if (cameraMoved) {
       this.render();
       return; // render() will handle entity positioning
     }
@@ -240,6 +245,7 @@ export class Game {
     }
     
     this.render();
+    this.startGameLoop();
   }
 
   render() {
@@ -274,6 +280,59 @@ export class Game {
       const hasLOS = LineOfSight.hasLineOfSight(this.tileMap, this.player.x, this.player.y, entity.x, entity.y);
       this.renderer.renderEntityWithVisibility(entity, distance, hasLOS);
     }
+  }
+
+  // Audio testing utilities for debugging
+  testAudio() {
+    console.log('🔊 Audio system debug info:', this.audioSystem.getDebugInfo());
+    this.audioSystem.testSound(); // Test basic tone
+  }
+  
+  testFootstep() {
+    this.audioSystem.testSound('footstep');
+  }
+  
+  testMusic() {
+    this.audioSystem.testMusic();
+  }
+
+  // Reset and test music
+  resetMusic() {
+    this.audioSystem.resetBackgroundMusic();
+    setTimeout(() => {
+      this.audioSystem.testMusic();
+    }, 100);
+  }
+
+  // Test movement event publishing
+  testMovementEvent() {
+    const moveEvent = {
+      type: 'EntityMoved' as const,
+      id: generateEventId(),
+      timestamp: Date.now(),
+      entityId: this.player.id, // Should be 'player' based on isPlayer === true
+      oldPosition: { x: this.player.x, y: this.player.y },
+      newPosition: { x: this.player.x + 1, y: this.player.y }
+    };
+    
+    this.logger.info('🧪 Manual test - publishing EntityMoved event', { 
+      moveEvent,
+      playerId: this.player.id,
+      playerIsPlayer: this.player.isPlayer 
+    });
+    
+    this.eventBus.publish(moveEvent);
+  }
+
+  // Debug player info
+  debugPlayer() {
+    console.log('🧪 Player debug info:', {
+      id: this.player.id,
+      isPlayer: this.player.isPlayer,
+      position: { x: this.player.x, y: this.player.y },
+      displayPosition: { x: this.movementState.displayX, y: this.movementState.displayY },
+      fullPlayerObject: this.player
+    });
   }
 
   // Cleanup method for proper resource management

@@ -23,8 +23,10 @@ export class MusicGenerator {
   }
 
   loadPatterns(patterns: MusicPattern[]): void {
+    this.logger.info('Loading music patterns', { count: patterns.length });
     for (const pattern of patterns) {
       this.patterns.set(pattern.id, pattern);
+      this.logger.info('Loaded music pattern', { id: pattern.id, tempo: pattern.tempo });
     }
   }
 
@@ -35,20 +37,30 @@ export class MusicGenerator {
       return;
     }
 
-    // Stop current music if playing
+    // Check if same pattern is already playing to avoid retriggering
+    if (this.isPlaying && this.currentPattern?.id === patternId) {
+      this.logger.info('Music pattern already playing, skipping retrigger', { 
+        patternId, 
+        currentlyPlaying: this.currentPattern?.id 
+      });
+      return;
+    }
+
+    // Stop current music if playing different pattern
     this.stop();
 
     this.currentPattern = pattern;
     this.isPlaying = true;
 
     const tempo = options.tempo || pattern.tempo;
-    const volume = options.volume || this.settings.config.musicVolume;
+    const volume = (options.volume || this.settings.config.musicVolume) * this.settings.config.masterVolume;
     
-    this.logger.debug('Starting music pattern', {
+    this.logger.info('Starting music pattern', {
       patternId,
       tempo,
       volume,
-      instrumentCount: pattern.instruments.length
+      instrumentCount: pattern.instruments.length,
+      wasAlreadyPlaying: false
     });
 
     this.startPattern(pattern, tempo, volume, options.fadeInTime);
@@ -149,7 +161,7 @@ export class MusicGenerator {
     oscillator.start(startTime);
     oscillator.stop(startTime + noteDuration);
     
-    envelope.trigger(startTime, noteDuration);
+    envelope.trigger(startTime, noteDuration, finalVolume);
 
     // Clean up when note ends
     oscillator.onended = () => {

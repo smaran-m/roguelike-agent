@@ -2,9 +2,9 @@ import { AudioConfig } from './AudioTypes.js';
 
 export class AudioSettings {
   config: AudioConfig = {
-    masterVolume: 0.7,
-    sfxVolume: 0.8,
-    musicVolume: 0.6,
+    masterVolume: 0.8,   // Increased from 0.3 for debugging
+    sfxVolume: 0.8,      // Increased from 0.4 for debugging  
+    musicVolume: 0.6,    // Increased from 0.3 for debugging
     spatialAudioEnabled: true,
     audioQuality: 'medium',
     visualIndicatorsEnabled: false,
@@ -19,9 +19,12 @@ export class AudioSettings {
       if (stored) {
         const parsed = JSON.parse(stored);
         this.config = { ...this.config, ...parsed };
+        console.info('🔊 Loaded audio settings from localStorage', this.config);
+      } else {
+        console.info('🔊 No stored audio settings found, using defaults', this.config);
       }
     } catch (error) {
-      console.warn('Failed to load audio settings, using defaults');
+      console.warn('🔊 Failed to load audio settings, using defaults', error);
     }
   }
 
