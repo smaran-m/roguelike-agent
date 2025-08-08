@@ -5,6 +5,7 @@ import { AnimationSystem } from '../systems/animation/AnimationSystem';
 import { CameraSystem } from '../systems/camera/CameraSystem';
 import { FontSystem } from '../systems/font/FontSystem';
 import { ResourceManager } from '../managers/ResourceManager';
+import { Logger } from '../utils/Logger';
 
 export class Renderer {
   app: Application;
@@ -409,7 +410,7 @@ export class Renderer {
     text.anchor.set(0.5);
     
     // Store reference for animations and world position
-    console.log('Renderer: storing entity in entityTextMap with ID:', entity.id);
+    Logger.debug('Renderer: storing entity in entityTextMap with ID:', entity.id);
     this.entityTextMap.set(entity.id, text);
     this.entityPositions.set(entity.id, {x: entity.x, y: entity.y});
     this.entityContainer.addChild(text);

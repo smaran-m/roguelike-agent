@@ -1,6 +1,7 @@
 import { Entity, Resource, ResourceDefinition, ResourceOperation } from '../types';
 import { DiceSystem } from '../systems/dice/DiceSystem';
 import { WorldConfigLoader } from '../loaders/WorldConfigLoader';
+import { Logger } from '../utils/Logger';
 
 export class ResourceManager {
   /**
@@ -96,7 +97,7 @@ export class ResourceManager {
   static modify(entity: Entity, resourceId: string, amount: string | number): number {
     const resource = this.getResource(entity, resourceId);
     if (!resource) {
-      console.warn(`Resource '${resourceId}' not found on entity`);
+      Logger.warn(`Resource '${resourceId}' not found on entity`);
       return 0;
     }
 
@@ -132,7 +133,7 @@ export class ResourceManager {
   static set(entity: Entity, resourceId: string, value: number): void {
     const resource = this.getResource(entity, resourceId);
     if (!resource) {
-      console.warn(`Resource '${resourceId}' not found on entity`);
+      Logger.warn(`Resource '${resourceId}' not found on entity`);
       return;
     }
 
@@ -155,7 +156,7 @@ export class ResourceManager {
   static setCap(entity: Entity, resourceId: string, newMaximum: number): void {
     const resource = this.getResource(entity, resourceId);
     if (!resource) {
-      console.warn(`Resource '${resourceId}' not found on entity`);
+      Logger.warn(`Resource '${resourceId}' not found on entity`);
       return;
     }
 
@@ -175,7 +176,7 @@ export class ResourceManager {
   static setChangeRate(entity: Entity, resourceId: string, rate: number): void {
     const resource = this.getResource(entity, resourceId);
     if (!resource) {
-      console.warn(`Resource '${resourceId}' not found on entity`);
+      Logger.warn(`Resource '${resourceId}' not found on entity`);
       return;
     }
 
@@ -278,7 +279,7 @@ export class ResourceManager {
         return newRate;
       
       default:
-        console.warn(`Unknown resource operation: ${operation.operation}`);
+        Logger.warn(`Unknown resource operation: ${operation.operation}`);
         return 0;
     }
   }

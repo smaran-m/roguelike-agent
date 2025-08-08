@@ -474,7 +474,7 @@ export class AudioSystem {
     // Movement events - vary pitch based on terrain
     this.eventBus.subscribe('EntityMoved', (event) => {
       const moveEvent = event as EntityMovedEvent;
-      this.logger.info('🔊 EntityMoved event received', { 
+      this.logger.debug('🔊 EntityMoved event received', { 
         entityId: moveEvent.entityId, 
         oldPosition: moveEvent.oldPosition,
         newPosition: moveEvent.newPosition,
@@ -495,7 +495,7 @@ export class AudioSystem {
         if (timeSinceLastFootstep >= this.footstepDebounceMs) {
           const pitch = this.getTerrainPitch(moveEvent.newPosition);
           
-          this.logger.info('🔊 Playing footstep sound for player movement', { 
+          this.logger.debug('🔊 Playing footstep sound for player movement', { 
             entityId: moveEvent.entityId,
             pitch, 
             position: moveEvent.newPosition,
@@ -519,7 +519,7 @@ export class AudioSystem {
           });
         }
       } else {
-        this.logger.info('🔊 Skipping footstep for non-player entity', { 
+        this.logger.debug('🔊 Skipping footstep for non-player entity', { 
           entityId: moveEvent.entityId,
           expectedPlayerId: 'player'
         });

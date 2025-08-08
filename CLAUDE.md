@@ -36,6 +36,21 @@ The project uses Vite for development with hot module replacement. The game auto
 3. Development workflow: `npm run dev` → manual testing → `npm run test` → `npm run typecheck`
 4. This ensures that features work correctly in the actual game environment before automated testing
 
+### Debug Logging Control
+The project includes a comprehensive verbose logging system to control console output:
+
+**Verbose Flag Usage**:
+- **Default Mode**: WARN level logging (quiet) - only warnings and errors appear in console
+- **F12 Hotkey**: Press F12 during gameplay to toggle verbose mode on/off with visual indicator
+- **Environment Variable**: Set `VITE_DEBUG_VERBOSE=true` in `.env` file for default verbose mode
+- **Programmatic Control**: Use `Logger.setVerboseMode(true/false)` in code
+- **Persistent Setting**: Verbose preference is saved to localStorage across sessions
+
+**Console Output Levels**:
+- **Quiet Mode (default)**: Only WARN and ERROR messages shown
+- **Verbose Mode**: All DEBUG, INFO, WARN, and ERROR messages shown
+- **High-frequency logging** (movement, audio events, rendering) only appears in verbose mode
+
 ## Architecture Overview
 
 This is an emoji-based roguelike game built with TypeScript, PixiJS for rendering, featuring D&D-style combat mechanics, line of sight system, and smooth animations. The architecture follows a layered approach:
@@ -57,7 +72,7 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - **EventBus System** (`src/core/events/`) - High-performance event system with ring buffer, aggregation, and object pooling
 
 **Specialized Systems** (`src/systems/`):
-- **Input System** (`src/systems/input/InputHandler.ts`) - Centralized keyboard event management with callback architecture (49 lines)
+- **Input System** (`src/systems/input/InputHandler.ts`) - Centralized keyboard event management with callback architecture and F12 debug toggle (107 lines)
 - **Movement System** (`src/systems/movement/MovementSystem.ts`) - Movement logic, collision detection, and grid snapping (125 lines)
 - **Combat System** (`src/systems/combat/CombatSystem.ts`) - D&D 5e-inspired combat mechanics with damage types
 - **Combat Manager** (`src/systems/combat/CombatManager.ts`) - Combat orchestration and visual effects coordination (90 lines)
@@ -87,7 +102,7 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 
 **Core Utilities** (`src/utils/`):
 - **ErrorHandler** (`src/utils/ErrorHandler.ts`) - Comprehensive error handling framework with typed error codes (126 lines)
-- **Logger** (`src/utils/Logger.ts`) - Professional logging system with configurable levels (117 lines)
+- **Logger** (`src/utils/Logger.ts`) - Professional logging system with verbose flag control, environment variable support, and localStorage persistence (199 lines)
 
 **Type Definitions** (`src/types/index.ts`) - Shared interfaces for Tile, Entity, Combat, and WorldSchema
 
@@ -120,6 +135,7 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - Callback-based architecture for system decoupling
 - Movement key tracking (arrow keys/WASD)
 - Attack input handling (spacebar)
+- F12 debug verbose mode toggle with visual indicator
 - Clean event listener management with proper cleanup
 
 **MovementSystem Class**: Movement logic with:
@@ -302,7 +318,7 @@ Latest features added (as of recent commits):
 - **Procedural Audio System**: Complete Web Audio API-based sound generation with ADSR synthesis, spatial audio, and algorithmic music composition
 - **Comprehensive Testing**: 291 tests covering all core systems including EventBus, pathfinding, and procedural audio with deterministic seeded randomness
 - **Error Handling Framework**: Professional error management with GameError class and typed error codes
-- **Logging Infrastructure**: Configurable logging system with multiple levels and context
+- **Logging Infrastructure**: Configurable logging system with multiple levels, verbose flag control, environment variable support, and F12 toggle hotkey
 - **Input System**: Centralized keyboard management with callback-based architecture
 - **Movement System**: Dedicated movement logic with collision detection and grid snapping
 - **Combat Management**: Combat orchestration with visual effects coordination
@@ -380,7 +396,8 @@ Test files organized by system:
 - Run `npm run typecheck` to ensure TypeScript compliance
 - Follow established patterns: dependency injection, callback architecture, error handling
 - Use the ErrorHandler.ts framework for error management
-- Use the Logger.ts system for debugging and information logging
+- Use the Logger.ts system for debugging and information logging with appropriate log levels (DEBUG for verbose info, WARN/ERROR for important messages)
+- Enable verbose logging during development: Set `VITE_DEBUG_VERBOSE=true` in `.env` or press F12 in-game
 - Maintain test coverage when adding new features
 
 ## Quality Assurance Notes

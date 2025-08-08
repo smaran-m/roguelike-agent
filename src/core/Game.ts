@@ -152,7 +152,7 @@ export class Game {
         oldPosition: { x: oldX, y: oldY },
         newPosition: { x: this.player.x, y: this.player.y }
       };
-      this.logger.info('📍 Publishing EntityMoved event', { 
+      this.logger.debug('📍 Publishing EntityMoved event', { 
         oldPosition: { x: oldX, y: oldY },
         newPosition: { x: this.player.x, y: this.player.y },
         xChanged: this.player.x !== oldX,
@@ -215,7 +215,7 @@ export class Game {
     try {
       await this.audioSystem.initialize();
     } catch (e) {
-      console.warn('Audio initialization failed, continuing without audio');
+      this.logger.warn('Audio initialization failed, continuing without audio');
     }
     
     // Load all fonts comprehensively
@@ -224,7 +224,7 @@ export class Game {
       await document.fonts.load('12px "Noto Sans Mono"');
       await document.fonts.load('10px "Noto Sans Mono"'); // For HP text
     } catch (e) {
-      console.warn('Font failed to load, using fallback');
+      this.logger.warn('Font failed to load, using fallback');
     }
     
     // Test all emojis we use to ensure they render consistently
@@ -237,7 +237,7 @@ export class Game {
         // Test each emoji with our font stack
         ctx.font = '14px "Noto Emoji", Apple Color Emoji, Segoe UI Emoji, sans-serif';
         const metrics = ctx.measureText(emoji);
-        console.log(`Font test for ${emoji}: width=${metrics.width}`);
+        this.logger.debug(`Font test for ${emoji}: width=${metrics.width}`);
       }
       
       // Additional delay to ensure PixiJS can access fonts
@@ -284,7 +284,7 @@ export class Game {
 
   // Audio testing utilities for debugging
   testAudio() {
-    console.log('🔊 Audio system debug info:', this.audioSystem.getDebugInfo());
+    this.logger.debug('🔊 Audio system debug info:', this.audioSystem.getDebugInfo());
     this.audioSystem.testSound(); // Test basic tone
   }
   
@@ -326,7 +326,7 @@ export class Game {
 
   // Debug player info
   debugPlayer() {
-    console.log('🧪 Player debug info:', {
+    this.logger.debug('🧪 Player debug info:', {
       id: this.player.id,
       isPlayer: this.player.isPlayer,
       position: { x: this.player.x, y: this.player.y },

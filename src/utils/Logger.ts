@@ -18,8 +18,11 @@ export class Logger {
   private currentLevel: LogLevel = LogLevel.INFO;
   private logs: LogEntry[] = [];
   private maxLogs: number = 1000;
+  private verboseMode: boolean = false;
 
-  private constructor() {}
+  private constructor() {
+    this.initializeVerboseMode();
+  }
 
   static getInstance(): Logger {
     if (!Logger.instance) {
@@ -28,8 +31,41 @@ export class Logger {
     return Logger.instance;
   }
 
+  private initializeVerboseMode(): void {
+    // Check environment variable for verbose mode (with proper typing)
+    const envVerbose = (import.meta as any).env?.VITE_DEBUG_VERBOSE === 'true';
+    
+    // Check localStorage for persistent setting
+    const storedVerbose = localStorage.getItem('debug-verbose') === 'true';
+    
+    // Use stored setting if available, otherwise use environment variable
+    this.verboseMode = storedVerbose !== null ? storedVerbose : envVerbose;
+    
+    // Set appropriate log level based on verbose mode
+    this.currentLevel = this.verboseMode ? LogLevel.DEBUG : LogLevel.WARN;
+  }
+
   setLevel(level: LogLevel): void {
     this.currentLevel = level;
+  }
+
+  setVerboseMode(verbose: boolean): void {
+    this.verboseMode = verbose;
+    this.currentLevel = verbose ? LogLevel.DEBUG : LogLevel.WARN;
+    
+    // Persist setting to localStorage
+    localStorage.setItem('debug-verbose', verbose.toString());
+    
+    this.info(`Debug verbose mode ${verbose ? 'enabled' : 'disabled'}`, undefined, 'Logger');
+  }
+
+  getVerboseMode(): boolean {
+    return this.verboseMode;
+  }
+
+  toggleVerboseMode(): boolean {
+    this.setVerboseMode(!this.verboseMode);
+    return this.verboseMode;
   }
 
   setMaxLogs(max: number): void {
@@ -146,5 +182,18 @@ export class Logger {
 
   static timeEnd(label: string): void {
     Logger.getInstance().timeEnd(label);
+  }
+
+  // Verbose mode management
+  static setVerboseMode(verbose: boolean): void {
+    Logger.getInstance().setVerboseMode(verbose);
+  }
+
+  static getVerboseMode(): boolean {
+    return Logger.getInstance().getVerboseMode();
+  }
+
+  static toggleVerboseMode(): boolean {
+    return Logger.getInstance().toggleVerboseMode();
   }
 }

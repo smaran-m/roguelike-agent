@@ -3,6 +3,7 @@ import { CombatSystem } from '../systems/combat/CombatSystem';
 import { DiceSystem } from '../systems/dice/DiceSystem';
 import { EnemyLoader } from '../loaders/EnemyLoader';
 import { ItemSystem } from '../entities/ItemSystem';
+import { Logger } from '../utils/Logger';
 import characterClassesData from '../data/characterClasses.json';
 
 export class CharacterManager {
@@ -52,14 +53,14 @@ export class CharacterManager {
   ): PlayerCharacter | null {
     const characterClass = this.getCharacterClass(className);
     if (!characterClass) {
-      console.warn(`Unknown character class: ${className}`);
+      Logger.warn(`Unknown character class: ${className}`);
       return null;
     }
 
     // Generate stats using the same dice system as enemies
     const stats = this.generateCharacterStats(className);
     if (!stats) {
-      console.warn(`Failed to generate stats for class: ${className}`);
+      Logger.warn(`Failed to generate stats for class: ${className}`);
       return null;
     }
 
@@ -155,7 +156,7 @@ export class CharacterManager {
         this.currentCharacter.appearance.glyph = glyph;
         this.currentCharacter.customization.selectedGlyph = glyph;
       } else {
-        console.warn(`Glyph ${glyph} not available for class ${this.currentCharacter.className}`);
+        Logger.warn(`Glyph ${glyph} not available for class ${this.currentCharacter.className}`);
         return false;
       }
     }
@@ -254,7 +255,7 @@ export class CharacterManager {
       this.currentCharacter = character;
       return true;
     } catch (error) {
-      console.error('Failed to load character:', error);
+      Logger.error('Failed to load character:', error);
       return false;
     }
   }

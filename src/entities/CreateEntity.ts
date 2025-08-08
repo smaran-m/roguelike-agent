@@ -4,6 +4,7 @@ import { TileMap } from '../core/TileMap';
 import { EnemyLoader } from '../loaders/EnemyLoader';
 import { CharacterManager } from '../managers/CharacterManager';
 import { ResourceManager } from '../managers/ResourceManager';
+import { Logger } from '../utils/Logger';
 
 export class CreateEntity {
   /**
@@ -33,7 +34,7 @@ export class CreateEntity {
     
     if (!character) {
       // Fallback to old system if character creation fails
-      console.warn('Failed to create character, using fallback');
+      Logger.warn('Failed to create character, using fallback');
       const spawnPos = tileMap?.findValidSpawnPosition();
       const playerX = spawnPos?.x ?? 25;
       const playerY = spawnPos?.y ?? 15;
@@ -112,13 +113,13 @@ export class CreateEntity {
   } | null {
     const enemyDefinition = EnemyLoader.getEnemyDefinition(enemyType);
     if (!enemyDefinition) {
-      console.warn(`Unknown enemy type: ${enemyType}`);
+      Logger.warn(`Unknown enemy type: ${enemyType}`);
       return null;
     }
 
     const stats = EnemyLoader.generateEnemyStats(enemyType);
     if (!stats) {
-      console.warn(`Failed to generate stats for enemy type: ${enemyType}`);
+      Logger.warn(`Failed to generate stats for enemy type: ${enemyType}`);
       return null;
     }
 

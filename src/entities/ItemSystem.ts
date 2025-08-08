@@ -1,5 +1,6 @@
 import { Item } from '../types';
 import { ItemLoader } from '../loaders/ItemLoader';
+import { Logger } from '../utils/Logger';
 
 export class ItemSystem {
   
@@ -52,7 +53,7 @@ export class ItemSystem {
     }
     
     // Fallback to dagger if weapon not found
-    console.warn(`Starting weapon '${weaponName}' not found, falling back to dagger`);
+    Logger.warn(`Starting weapon '${weaponName}' not found, falling back to dagger`);
     return ItemLoader.getItem('dagger', 'starting_dagger');
   }
 
@@ -127,12 +128,12 @@ export class ItemSystem {
     const validation = ItemLoader.validateItemData();
     
     if (!validation.valid) {
-      console.error('Item data validation failed:');
-      validation.errors.forEach(error => console.error(`  - ${error}`));
+      Logger.error('Item data validation failed:');
+      validation.errors.forEach(error => Logger.error(`  - ${error}`));
       return false;
     }
     
-    console.log(`✓ Item data validation passed. Found ${ItemLoader.getAvailableItemKeys().length} items.`);
+    Logger.info(`✓ Item data validation passed. Found ${ItemLoader.getAvailableItemKeys().length} items.`);
     return true;
   }
 
@@ -140,11 +141,11 @@ export class ItemSystem {
    * Initialize and validate item system
    */
   static initialize(): boolean {
-    console.log('Initializing Item System...');
+    Logger.info('Initializing Item System...');
     
     const isValid = this.validateItemData();
     if (!isValid) {
-      console.error('Item system initialization failed due to data validation errors.');
+      Logger.error('Item system initialization failed due to data validation errors.');
       return false;
     }
     
@@ -153,12 +154,12 @@ export class ItemSystem {
     for (const itemKey of testItems) {
       const item = ItemLoader.getItem(itemKey);
       if (!item) {
-        console.error(`Failed to load test item: ${itemKey}`);
+        Logger.error(`Failed to load test item: ${itemKey}`);
         return false;
       }
     }
     
-    console.log('✓ Item System initialized successfully');
+    Logger.info('✓ Item System initialized successfully');
     return true;
   }
 }

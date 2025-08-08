@@ -2,6 +2,7 @@ import { Entity, AttackResult, DamageType } from '../../types';
 import { WorldConfigLoader } from '../../loaders/WorldConfigLoader';
 import { ResourceManager } from '../../managers/ResourceManager';
 import { DiceSystem } from '../dice/DiceSystem';
+import { Logger } from '../../utils/Logger';
 
 export class CombatSystem {
   
@@ -40,7 +41,7 @@ export class CombatSystem {
     
     // Check if damage type is valid in current world
     if (!WorldConfigLoader.isDamageTypeValid(damageTypeStr)) {
-      console.warn(`Invalid damage type '${damageTypeStr}' for current world`);
+      Logger.warn(`Invalid damage type '${damageTypeStr}' for current world`);
       // Fall back to normal damage
       return WorldConfigLoader.calculateDamage(baseDamage, 1.0);
     }

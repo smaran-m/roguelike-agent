@@ -1,4 +1,5 @@
 import { AudioConfig } from './AudioTypes.js';
+import { Logger } from '../../utils/Logger';
 
 export class AudioSettings {
   config: AudioConfig = {
@@ -19,12 +20,12 @@ export class AudioSettings {
       if (stored) {
         const parsed = JSON.parse(stored);
         this.config = { ...this.config, ...parsed };
-        console.info('🔊 Loaded audio settings from localStorage', this.config);
+        Logger.info('🔊 Loaded audio settings from localStorage', this.config);
       } else {
-        console.info('🔊 No stored audio settings found, using defaults', this.config);
+        Logger.info('🔊 No stored audio settings found, using defaults', this.config);
       }
     } catch (error) {
-      console.warn('🔊 Failed to load audio settings, using defaults', error);
+      Logger.warn('🔊 Failed to load audio settings, using defaults', error);
     }
   }
 
@@ -32,7 +33,7 @@ export class AudioSettings {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.config));
     } catch (error) {
-      console.warn('Failed to save audio settings');
+      Logger.warn('Failed to save audio settings');
     }
   }
 

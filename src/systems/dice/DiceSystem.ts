@@ -1,3 +1,5 @@
+import { Logger } from '../../utils/Logger';
+
 export interface DiceResult {
   total: number;
   rolls: number[];
@@ -70,7 +72,7 @@ export class DiceSystem {
   static rollDice(diceString: string): DiceResult {
     const match = diceString.match(/(\d+)d(\d+)(?:([+-])(\d+))?/);
     if (!match) {
-      console.warn(`Invalid dice string: ${diceString}`);
+      Logger.warn(`Invalid dice string: ${diceString}`);
       return { total: 1, rolls: [1], modifier: 0 };
     }
 
