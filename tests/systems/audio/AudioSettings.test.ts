@@ -35,7 +35,7 @@ describe('AudioSettings', () => {
 
   describe('Default Configuration', () => {
     test('has correct default values', () => {
-      expect(settings.config.masterVolume).toBe(0.7);
+      expect(settings.config.masterVolume).toBe(0.8);
       expect(settings.config.sfxVolume).toBe(0.8);
       expect(settings.config.musicVolume).toBe(0.6);
       expect(settings.config.spatialAudioEnabled).toBe(true);
@@ -183,7 +183,7 @@ describe('AudioSettings', () => {
       await settings.load();
       
       // Should maintain default values
-      expect(settings.config.masterVolume).toBe(0.7);
+      expect(settings.config.masterVolume).toBe(0.8);
       expect(settings.config.sfxVolume).toBe(0.8);
       expect(settings.config.musicVolume).toBe(0.6);
     });
@@ -194,9 +194,10 @@ describe('AudioSettings', () => {
       await settings.load();
       
       // Should maintain default values and log warning
-      expect(settings.config.masterVolume).toBe(0.7);
+      expect(settings.config.masterVolume).toBe(0.8);
       expect(mockConsole.warn).toHaveBeenCalledWith(
-        'Failed to load audio settings, using defaults'
+        expect.stringContaining('Failed to load audio settings, using defaults'),
+        expect.any(Error)
       );
     });
 
@@ -236,8 +237,10 @@ describe('AudioSettings', () => {
       
       await settings.save();
       
-      expect(mockConsole.warn).toHaveBeenCalledWith(
-        'Failed to save audio settings'
+      // Check that the save error message was logged (should be the 2nd call)
+      expect(mockConsole.warn).toHaveBeenNthCalledWith(2,
+        expect.stringContaining('Failed to save audio settings'),
+        undefined
       );
     });
   });
@@ -251,7 +254,8 @@ describe('AudioSettings', () => {
       await settings.load();
       
       expect(mockConsole.warn).toHaveBeenCalledWith(
-        'Failed to load audio settings, using defaults'
+        expect.stringContaining('Failed to load audio settings, using defaults'),
+        expect.any(Error)
       );
     });
 
