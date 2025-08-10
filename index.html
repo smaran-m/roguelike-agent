@@ -5,14 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LLM Roguelike</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono&display=block');
     @import url('https://fonts.googleapis.com/css2?family=Noto+Emoji&display=block');
+    
+    /* GNU Unifont for textmode aesthetic with massive Unicode support */
+    @font-face {
+      font-family: 'GNU Unifont';
+      src: url('/unifont.otf') format('opentype');
+      font-display: block;
+    }
     
     body {
       margin: 0;
       padding: 0;
       background: #000;
-      font-family: 'Noto Sans Mono', monospace;
+      font-family: 'GNU Unifont', monospace;
     }
     
     #app-container {

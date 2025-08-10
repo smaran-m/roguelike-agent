@@ -219,8 +219,8 @@ export class Game {
     // Load all fonts comprehensively
     try {
       await document.fonts.load('14px "Noto Emoji"');
-      await document.fonts.load('12px "Noto Sans Mono"');
-      await document.fonts.load('10px "Noto Sans Mono"'); // For HP text
+      await document.fonts.load('12px "GNU Unifont"');
+      await document.fonts.load('10px "GNU Unifont"'); // For HP text
     } catch (e) {
       this.logger.warn('Font failed to load, using fallback');
     }

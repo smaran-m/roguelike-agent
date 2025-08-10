@@ -1,4 +1,5 @@
 import { TextStyle } from 'pixi.js';
+import { UnicodeMapper } from '../../utils/UnicodeMapper';
 
 export interface FontConfig {
   fontFamily: string;
@@ -10,7 +11,7 @@ export interface FontConfig {
 export class FontSystem {
   // Font families
   private static readonly EMOJI_FONT = 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif';
-  private static readonly MONO_FONT = 'Noto Sans Mono, monospace';
+  private static readonly MONO_FONT = 'GNU Unifont, monospace';
 
   // Font sizes
   private static readonly EMOJI_SIZE_LARGE = 28;
@@ -129,6 +130,60 @@ export class FontSystem {
    */
   static getEntityColor(isEmoji: boolean, entityColor: number): number {
     return isEmoji ? 0xFFFFFF : entityColor;
+  }
+
+  /**
+   * Convert emoji to Unicode character for textmode rendering
+   */
+  static convertToTextmode(character: string): string {
+    return UnicodeMapper.convertEmoji(character);
+  }
+
+  /**
+   * Check if character needs conversion from emoji to Unicode
+   */
+  static shouldConvertEmoji(character: string): boolean {
+    return UnicodeMapper.hasMappingFor(character);
+  }
+
+  /**
+   * Get processed character for rendering (converts emojis to Unicode)
+   */
+  static getProcessedCharacter(character: string): { 
+    glyph: string, 
+    useMonospace: boolean,
+    wasConverted: boolean 
+  } {
+    const converted = this.convertToTextmode(character);
+    const wasConverted = converted !== character;
+    
+    return {
+      glyph: converted,
+      useMonospace: true, // Always use monospace font for textmode aesthetic
+      wasConverted
+    };
+  }
+
+  /**
+   * Get font configuration with automatic emoji-to-Unicode conversion
+   */
+  static getTextmodeFont(character: string, size: 'large' | 'medium' | 'normal' | 'small' | 'tiny' = 'large'): Partial<any> {
+    const processed = this.getProcessedCharacter(character);
+    
+    const sizeMap = {
+      large: this.MONO_SIZE_LARGE,
+      medium: this.MONO_SIZE_MEDIUM, 
+      normal: this.MONO_SIZE_NORMAL,
+      small: this.MONO_SIZE_SMALL,
+      tiny: this.MONO_SIZE_TINY
+    };
+
+    return {
+      fontFamily: this.MONO_FONT,
+      fontSize: sizeMap[size],
+      fill: 0xFFFFFF,
+      align: 'center'
+    };
   }
 
   /**

@@ -73,7 +73,7 @@ export class InputHandler {
       color: white;
       padding: 12px 20px;
       border-radius: 6px;
-      font-family: 'Noto Sans Mono', monospace;
+      font-family: 'GNU Unifont', monospace;
       font-size: 14px;
       font-weight: bold;
       z-index: 10000;

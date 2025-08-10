@@ -9,8 +9,8 @@ document.fonts.ready.then(async () => {
   // Force load all fonts we need
   try {
     await document.fonts.load('14px "Noto Emoji"');
-    await document.fonts.load('12px "Noto Sans Mono"');
-    await document.fonts.load('10px "Noto Sans Mono"');
+    await document.fonts.load('12px "GNU Unifont"');
+    await document.fonts.load('10px "GNU Unifont"');
     console.log('All fonts loaded successfully');
   } catch (e) {
     console.warn('Some fonts failed to load:', e);

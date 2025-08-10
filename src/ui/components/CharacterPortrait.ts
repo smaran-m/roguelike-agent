@@ -1,5 +1,6 @@
 import { Entity } from '../../types';
 import { ResourceManager } from '../../managers/ResourceManager';
+import { FontSystem } from '../../systems/font/FontSystem';
 
 export class CharacterPortrait {
   /**
@@ -12,31 +13,31 @@ export class CharacterPortrait {
     
     // Dead
     if (ResourceManager.isAtMinimum(entity, 'hp')) {
-      return '😵'; // Dead face
+      return FontSystem.convertToTextmode('😵');
     }
     
     // Critical health (below 25%)
     if (healthPercentage <= 0.25) {
-      return '😰'; // Anxious face with sweat
+      return FontSystem.convertToTextmode('😰');
     }
     
     // Low health (25-50%)
     if (healthPercentage <= 0.5) {
-      return '😟'; // Worried face
+      return FontSystem.convertToTextmode('😟');
     }
     
     // Moderate health (50-75%)
     if (healthPercentage <= 0.75) {
-      return '😐'; // Neutral face
+      return FontSystem.convertToTextmode('😐'); // Neutral face
     }
     
     // High health (75-90%)
     if (healthPercentage <= 0.9) {
-      return '🙂'; // Slightly smiling face
+      return FontSystem.convertToTextmode('🙂'); // Slightly smiling face
     }
     
     // Full health (90-100%)
-    return '😊'; // Smiling face with smiling eyes
+    return FontSystem.convertToTextmode('😊'); // Smiling face with smiling eyes
   }
   
   /**
@@ -48,15 +49,15 @@ export class CharacterPortrait {
     
     // Override with status effects if present
     if (statusEffects.includes('poisoned')) {
-      portrait = '🤢'; // Nauseated face
+      portrait = FontSystem.convertToTextmode('🤢'); // Nauseated face
     } else if (statusEffects.includes('stunned')) {
-      portrait = '😵‍💫'; // Dizzy face
+      portrait = FontSystem.convertToTextmode('😵‍💫'); // Dizzy face
     } else if (statusEffects.includes('angry')) {
-      portrait = '😠'; // Angry face
+      portrait = FontSystem.convertToTextmode('😠'); // Angry face
     } else if (statusEffects.includes('blessed')) {
-      portrait = '😇'; // Smiling face with halo
+      portrait = FontSystem.convertToTextmode('😇'); // Smiling face with halo
     } else if (statusEffects.includes('confused')) {
-      portrait = '😕'; // Confused face
+      portrait = FontSystem.convertToTextmode('😕'); // Confused face
     }
     
     return portrait;

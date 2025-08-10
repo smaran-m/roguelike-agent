@@ -35,7 +35,7 @@ export class TileMap {
         if (x === 0 || x === this.width - 1 ||
             y === 0 || y === this.height - 1) {
           this.tiles[y][x] = {
-            glyph: '#',
+            glyph: '⬛',
             fgColor: 0x808080,
             bgColor: 0x000000,
             isEmoji: false,
@@ -62,7 +62,7 @@ export class TileMap {
       const y = Math.floor(Math.random() * (this.height - 2)) + 1;
       
       this.tiles[y][x] = {
-        glyph: '#',
+        glyph: '■',
         fgColor: 0x808080,
         bgColor: 0x000000,
         isEmoji: false,

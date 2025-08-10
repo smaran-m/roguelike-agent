@@ -152,7 +152,7 @@ export class AnimationSystem {
 
   showFloatingDamage(entity: Entity, damage: number) {
     const damageText = new Text(`-${damage}`, {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: 'GNU Unifont, monospace',
       fontSize: 22,
       fill: 0xFF4444,
       align: 'center'

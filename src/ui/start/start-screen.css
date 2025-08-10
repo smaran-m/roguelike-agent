@@ -5,7 +5,7 @@
   height: 100vh;
   background: #000000;
   color: #ffffff;
-  font-family: 'Noto Sans Mono', monospace;
+  font-family: 'GNU Unifont', monospace;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -91,7 +91,7 @@
 .world-item__cursor {
   width: 1.5rem;
   text-align: left;
-  font-family: 'Noto Sans Mono', monospace;
+  font-family: 'GNU Unifont', monospace;
   color: #ffffff;
 }
 
@@ -156,7 +156,7 @@
 .loading-spinner {
   width: 4rem;
   height: 2rem;
-  font-family: 'Noto Sans Mono', monospace;
+  font-family: 'GNU Unifont', monospace;
   font-size: 2rem;
   color: #ffffff;
   margin-bottom: 1rem;

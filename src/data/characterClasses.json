@@ -15,8 +15,8 @@
       "level": 1
     },
     "appearance": {
-      "defaultGlyph": "⚔️",
-      "alternativeGlyphs": ["🛡️", "🗡️", "⚔️"],
+      "defaultGlyph": "†",
+      "alternativeGlyphs": ["○", "‡", "†"],
       "defaultColor": "0xC0C0C0"
     },
     "startingEquipment": {
@@ -45,8 +45,8 @@
       "level": 1
     },
     "appearance": {
-      "defaultGlyph": "🧙",
-      "alternativeGlyphs": ["🔮", "📚", "⭐"],
+      "defaultGlyph": "ψ",
+      "alternativeGlyphs": ["◉", "≡", "✦"],
       "defaultColor": "0x4169E1"
     },
     "startingEquipment": {
@@ -75,8 +75,8 @@
       "level": 1
     },
     "appearance": {
-      "defaultGlyph": "🗡️",
-      "alternativeGlyphs": ["🥷", "🏹", "💀"],
+      "defaultGlyph": "‡",
+      "alternativeGlyphs": ["⟐", "↤", "💀"],
       "defaultColor": "0x8B4513"
     },
     "startingEquipment": {
@@ -135,7 +135,7 @@
       "level": 1
     },
     "appearance": {
-      "defaultGlyph": "🏹",
+      "defaultGlyph": "↤",
       "alternativeGlyphs": ["🌲", "🐺", "🦅"],
       "defaultColor": "0x228B22"
     },

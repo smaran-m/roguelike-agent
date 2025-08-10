@@ -176,9 +176,10 @@ export class Renderer {
     bg.endFill();
     this.tileContainer.addChild(bg);
     
-    // Glyph
-    const fontConfig = FontSystem.getTileFont(tile.isEmoji);
-    const text = new Text(tile.glyph, {
+    // Glyph - convert emojis to Unicode for textmode aesthetic
+    const processed = FontSystem.getProcessedCharacter(tile.glyph);
+    const fontConfig = FontSystem.getTextmodeFont(tile.glyph);
+    const text = new Text(processed.glyph, {
       ...fontConfig,
       fill: fgColor
     });
@@ -292,9 +293,10 @@ export class Renderer {
     bg.endFill();
     this.tileContainer.addChild(bg);
     
-    // Glyph
-    const fontConfig = FontSystem.getTileFont(tile.isEmoji);
-    const text = new Text(tile.glyph, {
+    // Glyph - convert emojis to Unicode for textmode aesthetic
+    const processed = FontSystem.getProcessedCharacter(tile.glyph);
+    const fontConfig = FontSystem.getTextmodeFont(tile.glyph);
+    const text = new Text(processed.glyph, {
       ...fontConfig,
       fill: fgColor
     });
@@ -330,8 +332,9 @@ export class Renderer {
     // Get or create entity text object (persistent across frames)
     let text = this.entityTextMap.get(entity.id);
     if (!text) {
-      const entityFontConfig = FontSystem.getEntityFont(entity.isEmoji, entity.color);
-      text = new Text(entity.glyph, entityFontConfig);
+      const processed = FontSystem.getProcessedCharacter(entity.glyph);
+      const entityFontConfig = FontSystem.getTextmodeFont(entity.glyph);
+      text = new Text(processed.glyph, entityFontConfig);
       text.anchor.set(0.5);
       
       // Apply color tint for emojis  
@@ -399,8 +402,9 @@ export class Renderer {
       return;
     }
     
-    const entityFontConfig = FontSystem.getEntityFont(entity.isEmoji, entity.color);
-    const text = new Text(entity.glyph, entityFontConfig);
+    const processed = FontSystem.getProcessedCharacter(entity.glyph);
+    const entityFontConfig = FontSystem.getTextmodeFont(entity.glyph);
+    const text = new Text(processed.glyph, entityFontConfig);
     
     // Apply color tint for emojis
     if (FontSystem.shouldApplyColorTint(entity.isEmoji)) {

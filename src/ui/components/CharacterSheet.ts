@@ -47,7 +47,7 @@ export class CharacterSheet {
     
     // Title
     const titleText = new Text('CHARACTER', {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: 'GNU Unifont, monospace',
       fontSize: 14,
       fill: 0xFFFFFF,
       fontWeight: 'bold'
@@ -68,7 +68,7 @@ export class CharacterSheet {
     
     // Character Name
     this.nameText = new Text('Hero', {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: 'GNU Unifont, monospace',
       fontSize: 16,
       fill: 0xFFFFFF,
       fontWeight: 'bold'
@@ -79,7 +79,7 @@ export class CharacterSheet {
     
     // Character Class
     this.classText = new Text('Warrior', {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: 'GNU Unifont, monospace',
       fontSize: 12,
       fill: 0xCCCCCC
     });
@@ -89,7 +89,7 @@ export class CharacterSheet {
     
     // Level
     this.levelText = new Text('Level 1', {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: 'GNU Unifont, monospace',
       fontSize: 12,
       fill: 0xFFD700
     });
@@ -115,7 +115,7 @@ export class CharacterSheet {
     
     // Health label
     const healthLabel = new Text('Health', {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: 'GNU Unifont, monospace',
       fontSize: 12,
       fill: 0xFFFFFF
     });
@@ -125,7 +125,7 @@ export class CharacterSheet {
     
     // ASCII Health bar
     this.healthBarText = new Text('[##########] 20/20', {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: 'GNU Unifont, monospace',
       fontSize: 11,
       fill: 0xFFFFFF
     });
@@ -135,7 +135,7 @@ export class CharacterSheet {
     
     // Health text (numeric display)
     this.healthText = new Text('20/20', {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: 'GNU Unifont, monospace',
       fontSize: 11,
       fill: 0xFFFFFF
     });
@@ -149,7 +149,7 @@ export class CharacterSheet {
     
     // Stats label
     this.statsLabel = new Text('STATS', {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: 'GNU Unifont, monospace',
       fontSize: 12,
       fill: 0xFFFFFF,
       fontWeight: 'bold'
@@ -168,7 +168,7 @@ export class CharacterSheet {
   private setupInventorySection() {
     // Initial setup - positioning will be done dynamically in updateInventory
     this.inventoryLabel = new Text('EQUIPMENT', {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: 'GNU Unifont, monospace',
       fontSize: 12,
       fill: 0xFFFFFF,
       fontWeight: 'bold'
@@ -203,7 +203,7 @@ export class CharacterSheet {
       // Show experience
       const nextLevelXP = currentCharacter.level * 1000;
       const progressText = new Text(`XP: ${currentCharacter.experience}/${nextLevelXP}`, {
-        fontFamily: 'Noto Sans Mono, monospace',
+        fontFamily: 'GNU Unifont, monospace',
         fontSize: 10,
         fill: 0xCCCCCC
       });
@@ -271,7 +271,7 @@ export class CharacterSheet {
 
         // Create resource display text
         const resourceText = new Text(`${resourceDef?.displayName || resourceId}: ${display}`, {
-          fontFamily: 'Noto Sans Mono, monospace',
+          fontFamily: 'GNU Unifont, monospace',
           fontSize: 9,
           fill: color
         });
@@ -310,7 +310,7 @@ export class CharacterSheet {
       
       // Stat label
       const label = new Text(stat.label, {
-        fontFamily: 'Noto Sans Mono, monospace',
+        fontFamily: 'GNU Unifont, monospace',
         fontSize: 11,
         fill: stat.color || 0xFFFFFF,
         fontWeight: 'bold'
@@ -321,7 +321,7 @@ export class CharacterSheet {
       
       // Stat value
       const value = new Text(stat.value.toString(), {
-        fontFamily: 'Noto Sans Mono, monospace',
+        fontFamily: 'GNU Unifont, monospace',
         fontSize: 11,
         fill: 0xFFFFFF
       });
@@ -333,7 +333,7 @@ export class CharacterSheet {
       if (stat.modifier !== undefined) {
         const modifierText = stat.modifier >= 0 ? `+${stat.modifier}` : stat.modifier.toString();
         const modifier = new Text(`(${modifierText})`, {
-          fontFamily: 'Noto Sans Mono, monospace',
+          fontFamily: 'GNU Unifont, monospace',
           fontSize: 9,
           fill: 0xCCCCCC
         });
@@ -365,7 +365,7 @@ export class CharacterSheet {
     if (!currentCharacter || !currentCharacter.inventory || currentCharacter.inventory.length === 0) {
       // Show "empty" message
       const emptyText = new Text('(Empty)', {
-        fontFamily: 'Noto Sans Mono, monospace',
+        fontFamily: 'GNU Unifont, monospace',
         fontSize: 10,
         fill: 0x888888,
         fontStyle: 'italic'
@@ -382,7 +382,7 @@ export class CharacterSheet {
       
       // Item emoji
       const itemEmoji = new Text(item.glyph, {
-        fontFamily: item.isEmoji ? 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif' : 'Noto Sans Mono, monospace',
+        fontFamily: item.isEmoji ? 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif' : 'GNU Unifont, monospace',
         fontSize: 16,
         fill: item.color
       });
@@ -392,7 +392,7 @@ export class CharacterSheet {
       
       // Item name
       const itemName = new Text(item.name, {
-        fontFamily: 'Noto Sans Mono, monospace',
+        fontFamily: 'GNU Unifont, monospace',
         fontSize: 10,
         fill: 0xFFFFFF
       });
@@ -410,7 +410,7 @@ export class CharacterSheet {
       
       if (infoText) {
         const itemInfo = new Text(infoText, {
-          fontFamily: 'Noto Sans Mono, monospace',
+          fontFamily: 'GNU Unifont, monospace',
           fontSize: 9,
           fill: 0xCCCCCC
         });
