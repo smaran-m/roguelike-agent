@@ -320,9 +320,9 @@ export class Renderer {
     const inViewport = screenX >= 0 && screenX < this.viewportWidth && 
                       screenY >= 0 && screenY < this.viewportHeight;
     
-    // Calculate alpha based on distance and line of sight
+    // Calculate alpha based on distance and line of sight (independent of viewport)
     let alpha = 0;
-    if (hasLOS && inViewport) {
+    if (hasLOS) {
       const maxDistance = 8;
       alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
     }
@@ -347,7 +347,8 @@ export class Renderer {
     text.x = screenX * this.tileSize + this.tileSize / 2;
     text.y = screenY * this.tileSize + this.tileSize / 2;
     text.alpha = alpha;
-    text.visible = alpha > 0;
+    // Only show entity if it has line of sight AND is in viewport
+    text.visible = (alpha > 0) && inViewport;
     
     // Store world position for animations
     this.entityPositions.set(entity.id, {x: entity.x, y: entity.y});
@@ -376,7 +377,8 @@ export class Renderer {
       hpText.x = screenX * this.tileSize + this.tileSize / 2;
       hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10;
       hpText.alpha = alpha;
-      hpText.visible = alpha > 0;
+      // Only show HP if entity has line of sight AND is in viewport
+      hpText.visible = (alpha > 0) && inViewport;
     }
     
     // Update character sheet and position text if this is the player
@@ -585,7 +587,11 @@ export class Renderer {
       // Skip player - they should always be fully visible
       if (entityId === 'player') {
         entityText.alpha = 1.0;
-        if (hpText) hpText.alpha = 1.0;
+        entityText.visible = true;
+        if (hpText) {
+          hpText.alpha = 1.0;
+          hpText.visible = true;
+        }
         return;
       }
       
@@ -594,17 +600,27 @@ export class Renderer {
         return;
       }
       
+      // Check if entity is in viewport
+      const screenX = entityPos.x - this.cameraX;
+      const screenY = entityPos.y - this.cameraY;
+      const inViewport = screenX >= 0 && screenX < this.viewportWidth && 
+                        screenY >= 0 && screenY < this.viewportHeight;
+      
       const distance = Math.sqrt((entityPos.x - safePlayerX) ** 2 + (entityPos.y - safePlayerY) ** 2);
       const hasLOS = lineOfSight.hasLineOfSight(tileMap, safePlayerX, safePlayerY, entityPos.x, entityPos.y);
       
-      if (!hasLOS) {
-        entityText.alpha = 0;
-        if (hpText) hpText.alpha = 0;
-      } else {
+      let alpha = 0;
+      if (hasLOS) {
         const maxDistance = 8;
-        const alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
-        entityText.alpha = alpha;
-        if (hpText) hpText.alpha = alpha;
+        alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
+      }
+      
+      entityText.alpha = alpha;
+      entityText.visible = (alpha > 0) && inViewport;
+      
+      if (hpText) {
+        hpText.alpha = alpha;
+        hpText.visible = (alpha > 0) && inViewport;
       }
     });
   }
