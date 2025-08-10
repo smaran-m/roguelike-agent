@@ -8,7 +8,6 @@ import { Logger } from './Logger';
 export interface ConversionResult {
   originalEmoji: string;
   convertedUnicode: string;
-  mapping: any;
   wasConverted: boolean;
 }
 
@@ -55,23 +54,19 @@ export class ConvertEmojiData {
    */
   private static convertStringWithTracking(str: string, results: ConversionResult[], path: string): string {
     let converted = str;
-    let changed = false;
 
     // Check each emoji in our mapping
     for (const [emoji] of UnicodeMapper['emojiMap']) {
       if (str.includes(emoji)) {
-        const mappingInfo = UnicodeMapper.getMappingInfo(emoji);
         const unicodeChar = UnicodeMapper.convertEmoji(emoji);
         
         results.push({
           originalEmoji: emoji,
           convertedUnicode: unicodeChar,
-          mapping: mappingInfo,
           wasConverted: unicodeChar !== emoji
         });
         
         converted = converted.replace(new RegExp(emoji, 'g'), unicodeChar);
-        changed = true;
         
         this.logger.debug(`Converted ${emoji} → ${unicodeChar} at ${path}`);
       }
@@ -130,7 +125,7 @@ export class ConvertEmojiData {
     if (converted.length > 0) {
       report += `CONVERTED:\n`;
       for (const result of converted) {
-        report += `  ${result.originalEmoji} → ${result.convertedUnicode} (${result.mapping?.description || 'no description'})\n`;
+        report += `  ${result.originalEmoji} → ${result.convertedUnicode}\n`;
       }
     }
     

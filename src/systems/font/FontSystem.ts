@@ -167,9 +167,7 @@ export class FontSystem {
   /**
    * Get font configuration with automatic emoji-to-Unicode conversion
    */
-  static getTextmodeFont(character: string, size: 'large' | 'medium' | 'normal' | 'small' | 'tiny' = 'large'): Partial<any> {
-    const processed = this.getProcessedCharacter(character);
-    
+  static getTextmodeFont(_character: string, size: 'large' | 'medium' | 'normal' | 'small' | 'tiny' = 'large'): Partial<any> {
     const sizeMap = {
       large: this.MONO_SIZE_LARGE,
       medium: this.MONO_SIZE_MEDIUM, 

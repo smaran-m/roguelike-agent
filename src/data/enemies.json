@@ -1,7 +1,7 @@
 {
   "goblin": {
     "name": "Goblin",
-    "glyph": "𓀀",
+    "glyph": "㉭",
     "color": "0x00FF00",
     "stats": {
       "hp": "2d6+2",
@@ -25,7 +25,7 @@
   },
   "orc": {
     "name": "Orc",
-    "glyph": "ᚱ",
+    "glyph": "〠",
     "color": "0x8B4513",
     "stats": {
       "hp": "2d8+6",
@@ -49,7 +49,7 @@
   },
   "skeleton": {
     "name": "Skeleton",
-    "glyph": "💀",
+    "glyph": "☠",
     "color": "0xC0C0C0",
     "stats": {
       "hp": "2d8+4",
