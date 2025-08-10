@@ -1,0 +1,152 @@
+{
+  "netrunner": {
+    "name": "Netrunner",
+    "description": "A cyber-enhanced hacker who manipulates digital systems",
+    "baseStats": {
+      "hp": "1d6+2",
+      "ac": 12,
+      "strength": "3d6-2",
+      "dexterity": "3d6+1",
+      "constitution": "3d6-1",
+      "intelligence": "3d6+3",
+      "wisdom": "3d6+2",
+      "charisma": "3d6",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "appearance": {
+      "defaultGlyph": "🤖",
+      "alternativeGlyphs": ["💻", "🔌", "⚡"],
+      "defaultColor": "0x00FFFF"
+    },
+    "startingEquipment": {
+      "weapon": "neural_interface",
+      "armor": "kevlar_vest",
+      "shield": false
+    },
+    "classFeatures": [
+      "Hacking",
+      "Neural Link"
+    ]
+  },
+  "street_samurai": {
+    "name": "Street Samurai",
+    "description": "A cybernetically enhanced warrior with traditional combat skills",
+    "baseStats": {
+      "hp": "1d10+4",
+      "ac": 16,
+      "strength": "3d6+2",
+      "dexterity": "3d6+3",
+      "constitution": "3d6+2",
+      "intelligence": "3d6",
+      "wisdom": "3d6+1",
+      "charisma": "3d6-1",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "appearance": {
+      "defaultGlyph": "⚡",
+      "alternativeGlyphs": ["🗡️", "🔪", "💥"],
+      "defaultColor": "0xFF0080"
+    },
+    "startingEquipment": {
+      "weapon": "mono_katana",
+      "armor": "cyber_armor",
+      "shield": false
+    },
+    "classFeatures": [
+      "Cyber Reflexes",
+      "Combat Drugs"
+    ]
+  },
+  "corpo": {
+    "name": "Corporate Agent",
+    "description": "A well-connected corporate operative with social and financial power",
+    "baseStats": {
+      "hp": "1d8+3",
+      "ac": 14,
+      "strength": "3d6",
+      "dexterity": "3d6+1",
+      "constitution": "3d6+1",
+      "intelligence": "3d6+2",
+      "wisdom": "3d6+1",
+      "charisma": "3d6+3",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "appearance": {
+      "defaultGlyph": "💼",
+      "alternativeGlyphs": ["🏢", "💳", "👔"],
+      "defaultColor": "0x4169E1"
+    },
+    "startingEquipment": {
+      "weapon": "smart_pistol",
+      "armor": "business_suit",
+      "shield": false
+    },
+    "classFeatures": [
+      "Corporate Network",
+      "Executive Decision"
+    ]
+  },
+  "techie": {
+    "name": "Techie",
+    "description": "A technical specialist who builds and maintains cybernetic systems",
+    "baseStats": {
+      "hp": "1d8+2",
+      "ac": 13,
+      "strength": "3d6-1",
+      "dexterity": "3d6+2",
+      "constitution": "3d6",
+      "intelligence": "3d6+3",
+      "wisdom": "3d6+2",
+      "charisma": "3d6-1",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "appearance": {
+      "defaultGlyph": "🔧",
+      "alternativeGlyphs": ["⚙️", "🔬", "🛠️"],
+      "defaultColor": "0xFF8000"
+    },
+    "startingEquipment": {
+      "weapon": "plasma_cutter",
+      "armor": "work_coveralls",
+      "shield": false
+    },
+    "classFeatures": [
+      "Tech Specialist",
+      "Jury Rig"
+    ]
+  },
+  "nomad": {
+    "name": "Nomad",
+    "description": "A wandering survivor from the wastelands outside the city",
+    "baseStats": {
+      "hp": "1d10+3",
+      "ac": 15,
+      "strength": "3d6+1",
+      "dexterity": "3d6+2",
+      "constitution": "3d6+2",
+      "intelligence": "3d6",
+      "wisdom": "3d6+2",
+      "charisma": "3d6+1",
+      "proficiencyBonus": 2,
+      "level": 1
+    },
+    "appearance": {
+      "defaultGlyph": "🏍️",
+      "alternativeGlyphs": ["🌵", "🚗", "🛣️"],
+      "defaultColor": "0x8B4513"
+    },
+    "startingEquipment": {
+      "weapon": "assault_rifle",
+      "armor": "road_leathers",
+      "shield": false
+    },
+    "classFeatures": [
+      "Vehicle Affinity",
+      "Wasteland Survival"
+    ]
+  }
+}

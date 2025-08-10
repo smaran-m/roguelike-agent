@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **IMPORTANT**: When making changes to the codebase, please update the following sections in this file:
 
-- **Test count** (currently 291): Update when adding/removing test files
+- **Test count** (currently 342): Update when adding/removing test files
 - **Component list**: Add new systems, managers, or utilities as they're created
 - **Architecture section**: Update when system responsibilities change
 - **Available scripts**: Sync with package.json when scripts are modified
 - **Dependencies**: Update version numbers when upgrading packages
 
 **Auto-sync locations**: 
-- Test count: Search for "291" and update across all documentation
+- Test count: Search for "342" and update across all documentation
 - Scripts: Match package.json scripts section exactly
 - File structure: Reflect actual src/ directory organization
 
@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run build` - Build production version (TypeScript compilation + Vite build)
 - `npm run preview` - Preview production build
 - `npm run typecheck` - Run TypeScript type checking without emitting files
-- `npm run test` - Run comprehensive test suite (291 tests) with Vitest
+- `npm run test` - Run comprehensive test suite (342 tests) with Vitest
 - `npm run test:ui` - Run tests with UI interface for development
 
 ### Development Workflow
@@ -85,19 +85,20 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 
 **Management Layer** (`src/managers/`):
 - **GameStateManager** (`src/managers/GameStateManager.ts`) - Entity lifecycle and game loop management (140 lines)
-- **CharacterManager** (`src/managers/CharacterManager.ts`) - Singleton character progression and class system
+- **CharacterManager** (`src/managers/CharacterManager.ts`) - Singleton character progression with world-specific character class loading
 - **ResourceManager** (`src/managers/ResourceManager.ts`) - Multi-resource system supporting HP, mana, and theme-specific resources
 
 **Data Loaders** (`src/loaders/`):
 - **EnemyLoader** (`src/loaders/EnemyLoader.ts`) - Enemy data loading and validation from JSON
 - **ItemLoader** (`src/loaders/ItemLoader.ts`) - Item data loading and validation from JSON with damage types
-- **WorldConfigLoader** (`src/loaders/WorldConfigLoader.ts`) - World theme and configuration management system
+- **WorldConfigLoader** (`src/loaders/WorldConfigLoader.ts`) - World theme and configuration management system with UI display support
 
 **Entity Utilities** (`src/entities/`):
 - **CreateEntity** (`src/entities/CreateEntity.ts`) - Centralized entity creation utilities for consistency
 
 **UI Components** (`src/ui/`):
 - **Character Sheets** (`src/ui/CharacterSheet.ts`) - Character status display and progression UI
+- **Start Screen System** (`src/ui/start/`) - World selection and game initialization UI
 - **Components** (`src/ui/components/`) - Reusable UI elements and resource displays
 
 **Core Utilities** (`src/utils/`):
@@ -107,10 +108,11 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 **Type Definitions** (`src/types/index.ts`) - Shared interfaces for Tile, Entity, Combat, and WorldSchema
 
 **Data Files** (`src/data/`) - JSON configuration for character classes, enemy definitions, items, world themes, and audio
-  - `characterClasses.json` - Character class definitions
+  - `characterClasses.json` - Fantasy character class definitions
+  - `cyberpunk-characterClasses.json` - Cyberpunk-specific character classes
   - `enemies.json` - Standard enemy definitions
   - `items.json` - Item definitions with damage types
-  - `worlds.json` - World theme configurations (Fantasy, Cyberpunk, Steampunk, Horror)
+  - `worlds.json` - World theme configurations (Fantasy, Cyberpunk)
   - `cyberpunk-enemies.json` - Cyberpunk-themed enemies
   - `cyberpunk-items.json` - Cyberpunk-themed items
   - `audio/sound-definitions.json` - Procedural sound parameters for combat, UI, movement
@@ -152,6 +154,7 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 
 **GameStateManager Class**: Entity lifecycle management with:
 - Safe entity spawning with position validation
+- World-aware entity creation (players and enemies based on current world)
 - Entity array management and updates
 - Game initialization and setup
 - Entity removal and cleanup
@@ -303,6 +306,11 @@ The project uses consistent dark theme styling throughout:
 
 ## Recent Development
 Latest features added (as of recent commits):
+- **Start Screen System**: Complete world selection UI with keyboard navigation and smooth transitions
+- **World-Specific Character Classes**: Dynamic character class loading based on selected world (e.g., cyberpunk-characterClasses.json)
+- **Enhanced World Configuration**: UI display support and improved world management system
+- **Game Initialization Flow**: Restructured main.ts to handle world selection before game creation
+- **Multi-Container UI**: Separated start screen and game containers for better UX
 - **Major Architectural Refactor**: Complete codebase restructuring with modular directory organization
 - **System Extraction**: Extracted CameraSystem, FontSystem, and DiceSystem for better separation of concerns
 - **Directory Restructuring**: Organized code into logical modules (core, systems, managers, loaders, entities, ui)
@@ -334,7 +342,7 @@ Latest features added (as of recent commits):
 ## Testing Infrastructure
 
 - **Test Framework**: Vitest with jsdom environment for browser simulation
-- **Test Coverage**: 291 comprehensive tests across 22 test files covering EventBus, pathfinding, and procedural audio systems
+- **Test Coverage**: 342 comprehensive tests across 24 test files covering EventBus, pathfinding, procedural audio, and start screen systems
 - **Deterministic Testing**: Seeded randomness for combat system validation
 - **Mock Integration**: PixiJS mocking for renderer testing without graphics dependencies
 - **Edge Case Coverage**: Boundary conditions, error scenarios, and invalid input handling
@@ -372,6 +380,9 @@ Test files organized by system:
   - `WorldConfigLoader.test.ts` - World configuration loading and validation (11 tests)
 - **UI Tests** (`tests/ui/components/`):
   - `ResourceDisplay.test.ts` - Resource system UI display testing (5 tests)
+- **Start Screen Tests** (`tests/ui/start/`):
+  - `StartScreen.test.ts` - Start screen initialization and world selection flow (8 tests)
+  - `WorldPicker.test.ts` - World picker component with keyboard navigation (16 tests)
 
 ## Architecture Patterns
 
@@ -382,7 +393,7 @@ Test files organized by system:
 - **Single Responsibility**: Each system has a focused, well-defined purpose
 - **Error Handling**: Centralized error management with context and error codes
 - **Logging**: Structured logging with configurable levels and filtering
-- **Comprehensive Testing**: 186 tests organized by system including new EventBus architecture with deterministic behavior
+- **Comprehensive Testing**: 342 tests organized by system including EventBus, start screen UI, and world selection with deterministic behavior
 
 ## Development Commands for Claude
 

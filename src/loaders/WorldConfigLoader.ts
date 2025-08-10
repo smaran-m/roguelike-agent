@@ -159,6 +159,23 @@ export class WorldConfigLoader {
   }
 
   /**
+   * Get world display information for UI
+   */
+  static getWorldDisplayList(): Array<{
+    id: string;
+    name: string;
+    description: string;
+    theme: string;
+  }> {
+    return Object.entries(this.worlds).map(([id, config]) => ({
+      id,
+      name: config.name,
+      description: config.description,
+      theme: config.theme
+    }));
+  }
+
+  /**
    * Initialize with default world (fantasy)
    */
   static initialize(defaultWorld: string = 'fantasy'): boolean {

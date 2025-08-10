@@ -1,6 +1,9 @@
 import { Entity } from '../types';
 import { CreateEntity } from '../entities/CreateEntity';
 import { ResourceManager } from './ResourceManager';
+import { WorldConfigLoader } from '../loaders/WorldConfigLoader';
+import { EnemyLoader } from '../loaders/EnemyLoader';
+import { CharacterManager } from './CharacterManager';
 
 export class GameStateManager {
   private entities: Entity[] = [];
@@ -12,22 +15,75 @@ export class GameStateManager {
   }
 
   initializeEntities(tileMap?: any): Entity[] {
-    // Create player using the new character system
-    // Try different classes: 'warrior', 'mage', 'rogue', 'cleric', 'ranger'
-    const player = CreateEntity.createCustomPlayer(tileMap, 'Hattori', 'rogue', '🥷', '0xC0C0C0');
+    // Create player using world-appropriate character
+    const worldConfig = WorldConfigLoader.getCurrentWorld();
+    const playerConfig = this.getPlayerConfigForWorld(worldConfig?.theme || 'fantasy');
+    
+    const player = CreateEntity.createCustomPlayer(
+      tileMap, 
+      playerConfig.name, 
+      playerConfig.class, 
+      playerConfig.glyph, 
+      playerConfig.color
+    );
     this.entities = [player];
     
-    // Create enemies using the new JSON-based system
-    const enemyConfigs = [
-      { id: 'goblin1', type: 'goblin' },
-      { id: 'orc1', type: 'orc' },
-      { id: 'skeleton1', type: 'skeleton' }
-    ];
+    // Create enemies based on current world configuration
+    const enemyConfigs = this.getEnemyConfigsForWorld(worldConfig?.theme || 'fantasy');
     
     const createdEnemies = CreateEntity.createMultipleEnemies(enemyConfigs, tileMap, this.entities);
     createdEnemies.forEach(enemy => this.addEntity(enemy));
     
     return [...this.entities];
+  }
+
+  private getPlayerConfigForWorld(_worldTheme: string): {
+    name: string;
+    class: string;
+    glyph: string;
+    color: string;
+  } {
+    // Get first available character class dynamically
+    const characterManager = CharacterManager.getInstance();
+    const availableClasses = characterManager.getAvailableClasses();
+    const defaultClassName = availableClasses[0] || 'warrior'; // Fallback to warrior if no classes available
+    
+    // Get the actual character class definition to extract glyph and color
+    const characterClass = characterManager.getCharacterClass(defaultClassName);
+    
+    if (characterClass) {
+      return {
+        name: 'Hero',
+        class: defaultClassName,
+        glyph: characterClass.appearance.defaultGlyph,
+        color: characterClass.appearance.defaultColor
+      };
+    }
+    
+    // Ultimate fallback if character class definition is missing
+    return {
+      name: 'Hero',
+      class: defaultClassName,
+      glyph: '@', // Only as absolute last resort
+      color: '0xC0C0C0'
+    };
+  }
+
+  private getEnemyConfigsForWorld(_worldTheme: string): Array<{ id: string; type: string }> {
+    // Get available enemy types dynamically
+    const availableEnemyTypes = EnemyLoader.getAvailableEnemyTypes();
+    
+    // Create 3 enemies using first 3 available types (or repeat if fewer available)
+    const enemyConfigs: Array<{ id: string; type: string }> = [];
+    for (let i = 0; i < 3; i++) {
+      const enemyType = availableEnemyTypes[i % availableEnemyTypes.length];
+      enemyConfigs.push({
+        id: `enemy${i + 1}`,
+        type: enemyType
+      });
+    }
+    
+    return enemyConfigs;
   }
 
   addEntity(entity: Entity): void {

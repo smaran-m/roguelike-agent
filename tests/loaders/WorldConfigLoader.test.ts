@@ -23,6 +23,23 @@ describe('WorldConfigLoader', () => {
     expect(worlds).toContain('horror');
   });
 
+  it('should get world display list for UI', () => {
+    const worldList = WorldConfigLoader.getWorldDisplayList();
+    
+    expect(worldList).toHaveLength(4);
+    
+    const fantasyWorld = worldList.find(w => w.id === 'fantasy');
+    expect(fantasyWorld).toBeTruthy();
+    expect(fantasyWorld?.name).toBe('Fantasy Realm');
+    expect(fantasyWorld?.description).toBe('A magical world of swords and sorcery');
+    expect(fantasyWorld?.theme).toBe('fantasy');
+
+    const cyberpunkWorld = worldList.find(w => w.id === 'cyberpunk');
+    expect(cyberpunkWorld).toBeTruthy();
+    expect(cyberpunkWorld?.name).toBe('Neon City 2088');
+    expect(cyberpunkWorld?.theme).toBe('cyberpunk');
+  });
+
   it('should switch between world configurations', () => {
     // Start with fantasy
     WorldConfigLoader.setCurrentWorld('fantasy');

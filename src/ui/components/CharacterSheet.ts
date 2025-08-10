@@ -166,9 +166,7 @@ export class CharacterSheet {
   }
   
   private setupInventorySection() {
-    const startY = 400;
-    
-    // Inventory label
+    // Initial setup - positioning will be done dynamically in updateInventory
     this.inventoryLabel = new Text('EQUIPMENT', {
       fontFamily: 'Noto Sans Mono, monospace',
       fontSize: 12,
@@ -176,13 +174,11 @@ export class CharacterSheet {
       fontWeight: 'bold'
     });
     this.inventoryLabel.x = this.padding;
-    this.inventoryLabel.y = startY;
     this.container.addChild(this.inventoryLabel);
     
     // Inventory container
     this.inventoryContainer = new Container();
     this.inventoryContainer.x = this.padding;
-    this.inventoryContainer.y = startY + 25;
     this.container.addChild(this.inventoryContainer);
   }
   
@@ -226,11 +222,11 @@ export class CharacterSheet {
     // Update resources (HP, mana, etc.) and get the next Y position
     const statsYPosition = this.updateResources(player);
     
-    // Update stats with dynamic positioning
-    this.updateStats(player, statsYPosition);
+    // Update stats with dynamic positioning and get the next Y position
+    const inventoryYPosition = this.updateStats(player, statsYPosition);
     
-    // Update inventory
-    this.updateInventory();
+    // Update inventory with correct positioning
+    this.updateInventory(inventoryYPosition);
   }
   
   private updateResources(player: Entity): number {
@@ -291,7 +287,7 @@ export class CharacterSheet {
     return yOffset + 10; // Add some padding before stats
   }
   
-  private updateStats(player: Entity, yPosition: number = 200) {
+  private updateStats(player: Entity, yPosition: number = 200): number {
     // Reposition the stats label and container dynamically
     this.statsLabel.y = yPosition;
     this.statsContainer.y = yPosition + 25;
@@ -346,13 +342,20 @@ export class CharacterSheet {
         this.statsContainer.addChild(modifier);
       }
     });
+    
+    // Return the next available Y position after all stats
+    return this.statsContainer.y + (stats.length * 20) + 20; // Add padding
   }
   
   private getModifier(abilityScore: number): number {
     return Math.floor((abilityScore - 10) / 2);
   }
   
-  private updateInventory() {
+  private updateInventory(yPosition: number = 400) {
+    // Position the inventory label and container dynamically
+    this.inventoryLabel.y = yPosition;
+    this.inventoryContainer.y = yPosition + 25;
+    
     // Clear existing inventory items
     this.inventoryContainer.removeChildren();
     

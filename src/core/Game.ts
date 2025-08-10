@@ -7,7 +7,6 @@ import { MovementSystem, MovementState } from '../systems/movement/MovementSyste
 import { CombatManager } from '../systems/combat/CombatManager';
 import { GameStateManager } from '../managers/GameStateManager';
 import { ResourceManager } from '../managers/ResourceManager';
-import { WorldConfigLoader } from '../loaders/WorldConfigLoader';
 import { EventBus, EventBusConfig } from './events/EventBus';
 import { Logger } from '../utils/Logger';
 import { ErrorHandler } from '../utils/ErrorHandler';
@@ -51,8 +50,7 @@ export class Game {
     // Initialize audio system with EventBus
     this.audioSystem = new AudioSystem(this.eventBus, this.logger, this.errorHandler);
     
-    // Initialize world configuration system
-    WorldConfigLoader.initialize('fantasy');
+    // Note: World configuration is now initialized in main.ts before Game creation
     
     this.renderer = new Renderer(50, 30);
     this.tileMap = new TileMap(50, 30);

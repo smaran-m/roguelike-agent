@@ -12,22 +12,40 @@
       margin: 0;
       padding: 0;
       background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
       font-family: 'Noto Sans Mono', monospace;
+    }
+    
+    #app-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    
+    #start-screen-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
     }
     
     #game-container {
       position: relative;
+      display: none; /* Hidden until world is selected */
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
     
     /* UI overlay styles removed - now handled by PixiJS renderer */
   </style>
+  <link rel="stylesheet" href="/src/ui/start/start-screen.css">
 </head>
 <body>
-  <div id="game-container">
+  <div id="app-container">
+    <div id="start-screen-container"></div>
+    <div id="game-container"></div>
   </div>
   <script type="module" src="/src/main.ts"></script>
 </body>

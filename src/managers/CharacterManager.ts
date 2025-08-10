@@ -4,15 +4,58 @@ import { DiceSystem } from '../systems/dice/DiceSystem';
 import { EnemyLoader } from '../loaders/EnemyLoader';
 import { ItemSystem } from '../entities/ItemSystem';
 import { Logger } from '../utils/Logger';
+import { WorldConfigLoader } from '../loaders/WorldConfigLoader';
 import characterClassesData from '../data/characterClasses.json';
 
 export class CharacterManager {
   private static instance: CharacterManager;
   private currentCharacter: PlayerCharacter | null = null;
-  private characterClasses: { [key: string]: CharacterClass } = characterClassesData;
+  private characterClasses: { [key: string]: CharacterClass } = {};
 
   private constructor() {
     // Private constructor for singleton pattern
+    // Load fantasy character classes as default
+    this.characterClasses = characterClassesData;
+  }
+
+  /**
+   * Load character classes based on the current world
+   */
+  private async loadCharacterClasses(): Promise<void> {
+    const currentWorld = WorldConfigLoader.getCurrentWorld();
+    const worldKey = currentWorld?.theme || 'fantasy';
+    
+    // If already fantasy, no need to change
+    if (worldKey === 'fantasy') {
+      this.characterClasses = characterClassesData;
+      Logger.debug('Using fantasy character classes');
+      return;
+    }
+    
+    try {
+      // Try to load world-specific character classes
+      const characterClassesModule = await import(`../data/${worldKey}-characterClasses.json`);
+      this.characterClasses = characterClassesModule.default;
+      Logger.debug(`Loaded character classes for world: ${worldKey}`);
+    } catch (error) {
+      // Fallback to fantasy character classes
+      Logger.warn(`Could not load character classes for world '${worldKey}', falling back to fantasy`);
+      this.characterClasses = characterClassesData;
+    }
+  }
+
+  /**
+   * Reload character classes when world changes
+   */
+  async reloadCharacterClasses(): Promise<void> {
+    await this.loadCharacterClasses();
+  }
+
+  /**
+   * Initialize character classes after world is set
+   */
+  async initializeForWorld(): Promise<void> {
+    await this.loadCharacterClasses();
   }
 
   /**
