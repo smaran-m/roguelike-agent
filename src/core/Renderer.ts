@@ -248,7 +248,7 @@ export class Renderer {
         
         if (hpText) {
           hpText.x = screenX * this.tileSize + this.tileSize / 2;
-          hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10;
+          hpText.y = screenY * this.tileSize + this.tileSize / 2 - 20;
         }
       }
     }
@@ -375,7 +375,7 @@ export class Renderer {
       hpText.text = `${currentHp}/${maxHp}`;
       hpText.style.fill = hpColor;
       hpText.x = screenX * this.tileSize + this.tileSize / 2;
-      hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10;
+      hpText.y = screenY * this.tileSize + this.tileSize / 2 - 20;
       hpText.alpha = alpha;
       // Only show HP if entity has line of sight AND is in viewport
       hpText.visible = (alpha > 0) && inViewport;
@@ -431,7 +431,7 @@ export class Renderer {
     });
     
     hpText.x = screenX * this.tileSize + this.tileSize / 2;
-    hpText.y = screenY * this.tileSize + this.tileSize / 2 - 10;
+    hpText.y = screenY * this.tileSize + this.tileSize / 2 - 20;
     hpText.anchor.set(0.5);
     
     // Store reference for animations
@@ -461,7 +461,7 @@ export class Renderer {
     
     if (hpText) {
       hpText.x = fromX * this.tileSize + this.tileSize / 2;
-      hpText.y = fromY * this.tileSize + this.tileSize / 2 - 10;
+      hpText.y = fromY * this.tileSize + this.tileSize / 2 - 20;
     }
     
     // Simple linear animation
@@ -480,7 +480,7 @@ export class Renderer {
       
       if (hpText) {
         hpText.x = hpText.x + (targetX - hpText.x) * progress;
-        hpText.y = hpText.y + (targetY - 10 - hpText.y) * progress;
+        hpText.y = hpText.y + (targetY - 20 - hpText.y) * progress;
       }
       
       if (progress < 1) {
@@ -503,7 +503,7 @@ export class Renderer {
     this.messages.push(message);
     
     // Keep only last 5 messages
-    if (this.messages.length > 5) {
+    if (this.messages.length > 25) {
       this.messages.shift();
     }
     

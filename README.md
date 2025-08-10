@@ -1,6 +1,6 @@
 # Roguelike Agent
 
-An emoji-based roguelike game built with TypeScript and PixiJS, featuring D&D 5e-inspired combat mechanics, procedural systems, and smooth animations. The project showcases advanced game architecture, testing, and procedural audio generation.
+An emoji-based roguelike game built with TypeScript and PixiJS, inspired by games like D&D, Caves of Qud and NetHack. This was originally meant as a test for claude code that quickly grew into an engine. Things are in a rough state with not all features implemented yet for a complete game loop.
 
 ## Features
 
@@ -9,9 +9,8 @@ An emoji-based roguelike game built with TypeScript and PixiJS, featuring D&D 5e
 - **Line of sight**: Realistic FOV with ray casting
 - **Smooth animations**: Fluid movement and combat feedback
 - **Character progression**: RPG stats with multi-resource management
-- **Multi-world themes**: Fantasy, Cyberpunk, Steampunk, and Horror worlds
+- **JSON Resources**: Load items, game mechanics, sounds, worlds directly from JSON files
 - **Procedural audio**: Asset-free sound generation with spatial audio
-- **Advanced pathfinding**: A\* algorithm with caching and performance optimization
 
 ## Getting Started
 
