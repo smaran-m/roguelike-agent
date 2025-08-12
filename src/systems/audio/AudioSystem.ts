@@ -302,10 +302,10 @@ export class AudioSystem {
     this.logger.info('🔊 Testing music system', {
       isInitialized: this.isInitialized,
       audioContextState: this.audioContext?.state,
-      patternId: patternId || 'dark_exploration'
+      patternId: patternId || 'default_ambient'
     });
     
-    this.playMusic(patternId || 'dark_exploration', { volume: 1.0, fadeInTime: 500 });
+    this.playMusic(patternId || 'default_ambient', { volume: 1.0, fadeInTime: 500 });
   }
 
   // Debug function to check audio system status
@@ -367,7 +367,7 @@ export class AudioSystem {
     if (!this.backgroundMusicStarted && this.isInitialized && this.audioContext?.state === 'running') {
       this.logger.info('🔊 Starting background music for the first time');
       this.backgroundMusicStarted = true;
-      this.playMusic('dark_exploration', { 
+      this.playMusic('peaceful_ambient', { 
         volume: 1.2, 
         fadeInTime: 3000 
       });
@@ -550,7 +550,7 @@ export class AudioSystem {
 
   private handleAreaMusic(areaType: string): void {
     const musicMap: Record<string, string> = {
-      'dungeon': 'dark_exploration',
+      'dungeon': 'default_ambient',
       'town': 'peaceful_ambient',
       'combat': 'battle_intense',
       'boss': 'boss_battle'

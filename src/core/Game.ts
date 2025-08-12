@@ -64,6 +64,9 @@ export class Game {
     this.gameStateManager.initializeEntities(this.tileMap);
     this.player = this.gameStateManager.getPlayer()!;
     
+    // Initialize character sheet with player data
+    this.renderer.characterSheet.updateCharacterSheet(this.player);
+    
     // Initialize movement state
     this.movementState = {
       displayX: this.player.x,

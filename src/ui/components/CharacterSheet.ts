@@ -13,12 +13,15 @@ export class CharacterSheet {
   private nameText!: Text;
   private classText!: Text;
   private levelText!: Text;
-  private healthBarText!: Text;
-  private healthText!: Text;
   private statsLabel!: Text;
   private statsContainer!: Container;
   private inventoryLabel!: Text;
   private inventoryContainer!: Container;
+  
+  // Cached resource UI elements
+  private resourceLabels: Map<string, Text> = new Map();
+  private resourceTexts: Map<string, Text> = new Map();
+  private resourcesInitialized: boolean = false;
   
   private readonly panelWidth = 200;
   private readonly panelHeight = 600;
@@ -97,9 +100,6 @@ export class CharacterSheet {
     this.levelText.y = 120;
     this.container.addChild(this.levelText);
     
-    // Health Bar
-    this.setupHealthBar();
-    
     // Stats Section
     this.setupStatsSection();
     
@@ -108,40 +108,6 @@ export class CharacterSheet {
     
     // Add main container to app
     this.app.stage.addChild(this.container);
-  }
-  
-  private setupHealthBar() {
-    const startY = 150;
-    
-    // Health label
-    const healthLabel = new Text('Health', {
-      fontFamily: 'Noto Sans Mono, monospace',
-      fontSize: 12,
-      fill: 0xFFFFFF
-    });
-    healthLabel.x = this.padding;
-    healthLabel.y = startY;
-    this.container.addChild(healthLabel);
-    
-    // ASCII Health bar
-    this.healthBarText = new Text('[##########] 20/20', {
-      fontFamily: 'Noto Sans Mono, monospace',
-      fontSize: 11,
-      fill: 0xFFFFFF
-    });
-    this.healthBarText.x = this.padding;
-    this.healthBarText.y = startY + 20;
-    this.container.addChild(this.healthBarText);
-    
-    // Health text (numeric display)
-    this.healthText = new Text('20/20', {
-      fontFamily: 'Noto Sans Mono, monospace',
-      fontSize: 11,
-      fill: 0xFFFFFF
-    });
-    this.healthText.x = this.padding;
-    this.healthText.y = startY + 40;
-    this.container.addChild(this.healthText);
   }
   
   private setupStatsSection() {
@@ -184,6 +150,7 @@ export class CharacterSheet {
   
   /**
    * Update the character sheet with current player data
+   * This should only be called when data actually changes, not on every render
    */
   updateCharacterSheet(player: Entity) {
     // Update portrait based on health
@@ -229,62 +196,91 @@ export class CharacterSheet {
     this.updateInventory(inventoryYPosition);
   }
   
-  private updateResources(player: Entity): number {
+  private initializeResourceUI(player: Entity): number {
+    // Only initialize resources UI once
+    if (this.resourcesInitialized) {
+      return this.updateResourcesContent(player);
+    }
+
     // First, ensure the player has resources initialized
     if (!ResourceManager.hasResource(player, 'hp')) {
       ResourceManager.initializeResources(player);
     }
 
-    // Update the existing health bar elements
-    if (this.healthBarText && this.healthText) {
-      const healthDisplay = ResourceManager.getResourceDisplay(player, 'hp', 10);
-      const healthColor = ResourceManager.getResourceColor(player, 'hp');
-      
-      this.healthBarText.text = healthDisplay;
-      this.healthBarText.style.fill = healthColor;
-      
-      // Hide the duplicate numeric health text
-      this.healthText.visible = false;
-    }
-
-    // Add additional resources display below the health bar
+    // Create cached UI elements for all available resources - inline layout
     const availableResources = WorldConfigLoader.getAvailableResourceIds();
-    let yOffset = 210; // Start below the health bar
+    const startY = 150;
+    let currentY = startY;
 
-    // Remove any existing additional resource displays first
-    this.container.children.forEach(child => {
-      if (child instanceof Text && child.y >= 210 && child.y <= 400) {
-        const text = child as Text;
-        if (text.text.includes(':') && (text.text.includes('[') || /\d+/.test(text.text))) {
-          this.container.removeChild(child);
+    availableResources.forEach((resourceId: string, index: number) => {
+      if (ResourceManager.hasResource(player, resourceId)) {
+        const resourceDef = WorldConfigLoader.getResourceDefinition(resourceId);
+        const displayName = resourceDef?.displayName || resourceId.toUpperCase();
+        
+        // Create cached resource display as single line: "HP: [##########] 20/20"
+        const isFirstResource = index === 0;
+        const fontSize = isFirstResource ? 11 : 9;
+
+        const resourceText = new Text('', {
+          fontFamily: 'Noto Sans Mono, monospace',
+          fontSize: fontSize,
+          fill: 0xFFFFFF
+        });
+        resourceText.x = this.padding;
+        resourceText.y = currentY;
+        this.resourceTexts.set(resourceId, resourceText);
+        this.container.addChild(resourceText);
+        
+        // Store the display name for later use
+        this.resourceLabels.set(resourceId, new Text(displayName, { fontFamily: 'Noto Sans Mono, monospace', fontSize: 12, fill: 0xFFFFFF }));
+        
+        currentY += isFirstResource ? 20 : 12; // Less spacing for secondary resources
+      }
+    });
+
+    this.resourcesInitialized = true;
+    return this.updateResourcesContent(player);
+  }
+
+  private updateResourcesContent(player: Entity): number {
+    const availableResources = WorldConfigLoader.getAvailableResourceIds();
+    let maxYOffset = 150;
+
+    availableResources.forEach((resourceId: string, index: number) => {
+      if (ResourceManager.hasResource(player, resourceId)) {
+        const resourceText = this.resourceTexts.get(resourceId);
+        const resourceLabel = this.resourceLabels.get(resourceId);
+        if (resourceText && resourceLabel) {
+          // Create inline format: "HP: [##########] 20/20"
+          const isFirstResource = index === 0;
+          const barSize = isFirstResource ? 10 : 8;
+          const barDisplay = ResourceManager.getResourceDisplay(player, resourceId, barSize);
+          const color = ResourceManager.getResourceColor(player, resourceId);
+          const displayName = resourceLabel.text;
+
+          // Combine label and bar into single line
+          resourceText.text = `${displayName}: ${barDisplay}`;
+          resourceText.style.fill = color;
+          
+          maxYOffset = Math.max(maxYOffset, resourceText.y + (isFirstResource ? 25 : 20));
         }
       }
     });
 
-    // Count and display additional resources (excluding HP which is already displayed)
-    const additionalResources = availableResources.filter(id => id !== 'hp');
-    additionalResources.forEach((resourceId: string) => {
-      if (ResourceManager.hasResource(player, resourceId)) {
-        const resourceDef = WorldConfigLoader.getResourceDefinition(resourceId);
-        const display = ResourceManager.getResourceDisplay(player, resourceId, 8); // Smaller bars for additional resources
-        const color = ResourceManager.getResourceColor(player, resourceId);
+    return maxYOffset + 10; // Add some padding before stats
+  }
 
-        // Create resource display text
-        const resourceText = new Text(`${resourceDef?.displayName || resourceId}: ${display}`, {
-          fontFamily: 'Noto Sans Mono, monospace',
-          fontSize: 9,
-          fill: color
-        });
-        resourceText.x = this.padding;
-        resourceText.y = yOffset;
-        
-        this.container.addChild(resourceText);
-        yOffset += 12; // Move down for next resource
-      }
-    });
+  private updateResources(player: Entity): number {
+    return this.initializeResourceUI(player);
+  }
 
-    // Return the next available Y position for the stats section
-    return yOffset + 10; // Add some padding before stats
+  /**
+   * Lightweight update for just resource values (called more frequently)
+   */
+  updateResourcesOnly(player: Entity) {
+    if (this.resourcesInitialized) {
+      this.updateResourcesContent(player);
+    }
   }
   
   private updateStats(player: Entity, yPosition: number = 200): number {
@@ -306,7 +302,7 @@ export class CharacterSheet {
     ];
     
     stats.forEach((stat, index) => {
-      const yPos = index * 20;
+      const yPos = index * 12;
       
       // Stat label
       const label = new Text(stat.label, {
@@ -344,7 +340,7 @@ export class CharacterSheet {
     });
     
     // Return the next available Y position after all stats
-    return this.statsContainer.y + (stats.length * 20) + 20; // Add padding
+    return this.statsContainer.y + (stats.length * 12) + 12; // Add padding
   }
   
   private getModifier(abilityScore: number): number {

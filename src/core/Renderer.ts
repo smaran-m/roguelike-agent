@@ -383,7 +383,7 @@ export class Renderer {
     
     // Update character sheet and position text if this is the player
     if (entity.isPlayer) {
-      this.characterSheet.updateCharacterSheet(entity);
+      this.characterSheet.updateResourcesOnly(entity);
       this.updatePositionText(entity.x, entity.y);
     }
   }

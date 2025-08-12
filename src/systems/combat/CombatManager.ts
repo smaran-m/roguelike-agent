@@ -3,6 +3,7 @@ import { CombatSystem } from './CombatSystem';
 import { Renderer } from '../../core/Renderer';
 import { AnimationSystem } from '../animation/AnimationSystem';
 import { CharacterManager } from '../../managers/CharacterManager';
+import { ResourceManager } from '../../managers/ResourceManager';
 import { EventBus } from '../../core/events/EventBus';
 import { generateEventId } from '../../core/events/GameEvent';
 
@@ -109,7 +110,9 @@ export class CombatManager {
           killer: attacker.id
         });
       } else {
-        this.renderer.addMessage(`${target.name}: ${target.stats.hp}/${target.stats.maxHp} HP`);
+        const currentHp = ResourceManager.getCurrentValue(target, 'hp');
+        const maxHp = ResourceManager.getMaximumValue(target, 'hp') || currentHp;
+        this.renderer.addMessage(`${target.name}: ${currentHp}/${maxHp} HP`);
       }
       
     } else {

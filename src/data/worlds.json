@@ -55,7 +55,7 @@
     }
   },
   "cyberpunk": {
-    "name": "Neon City 2088",
+    "name": "Neuromancer",
     "description": "High-tech dystopian future with cybernetic enhancements",
     "theme": "cyberpunk",
     "damageTypes": {
