@@ -22,15 +22,36 @@ export class StartScreen {
 
   private setupHTML(): void {
     this.element.innerHTML = `
-      <div class="start-screen">
-        <div class="start-screen__header">
-          <h1 class="start-screen__title">Roguelike Agent</h1>
-          <p class="start-screen__subtitle">Choose your world to begin</p>
+      <div style="background: #000; color: #fff; font-size: 14px; line-height: 1.4; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+        <div id="ascii-header" style="margin-bottom: 40px;">
+          <pre style="margin: 0;">ROGUELIKE AGENT
+          
+==================================================.
+S       |               | |         |       |     |
+.=====. '===. | ======. | | | .===. '=. .=. | | | |
+| |   |     | |   |   | | | | |   |   | | |   | | |
+| | | '===. | |== | ==| | | | | | |=. | | '===| | |
+|   |     | | |   |   | |   | | | | | |     | | | |
+| ==+== | | |=' .===. | |===' | | | | '===. | | '=|
+|   |   | | |   |   | | |     | | | |   | |   |   |
+|== | ==+=' | .=' | | | | .===' | | '=. | | .==== |
+|   |   |   | |   | | |   |     | |   | |   |     |
+|====== | .=' | .=' | |===| ====| '== | | .=| ====|
+|       | |     |   | |   |     |     | | | |     |
+| | .===| | .===' .=' | | | .== | .===' | | '===. |
+| | |   | | |     |     |   |   | |     | |     | |
+| '=' | | '=' .=============' .===' .===| | | .=' |
+|     | |     |               |     |   |   | |   |
+| ====' '=====' | | .=========| .===' | '===' | | |
+|   |     |     | | |     |   | |     |   |   | | |
+|== | ====' ====| '=' ==. | | | | .====== '===' | |
+|   |           |       |   |     |             | E
+'==================================================
+          </pre>
         </div>
         <div id="world-picker-container"></div>
-        <div id="loading-overlay" class="loading-overlay hidden">
-          <div class="loading-spinner"></div>
-          <p>Loading world...</p>
+        <div id="loading-overlay" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+          <pre>Loading world...</pre>
         </div>
       </div>
     `;

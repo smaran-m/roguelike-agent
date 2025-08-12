@@ -44,49 +44,24 @@ export class WorldPicker {
   private render(): void {
     const worldList = this.worlds.map((world, index) => 
       this.createWorldListItem(world, index === this.selectedIndex)
-    ).join('');
+    ).join('\n');
     
-    this.element.innerHTML = `
-      <div class="world-selector">
-        <div class="world-selector__title">
-          SELECT WORLD
-        </div>
-        <div class="world-selector__controls">
-          ↑↓ Navigate  •  ENTER Select
-        </div>
-        <div class="world-selector__list">
-          ${worldList}
-        </div>
-      </div>
-    `;
+    const display = [
+      'SELECT WORLD:',
+      '',
+      worldList,
+      '',
+      'Arrow keys to navigate, ENTER to select'
+    ].join('\n');
+    
+    this.element.innerHTML = `<pre style="color: #ffffff; background: #000; font-size: 14px; line-height: 1.2; margin: 0; padding: 20px;">${display}</pre>`;
   }
 
   private createWorldListItem(world: WorldDisplayInfo, isSelected: boolean): string {
-    const themeIcon = this.getThemeIcon(world.theme);
-    const cursor = isSelected ? '>' : ' ';
-    const selectedClass = isSelected ? 'world-item--selected' : '';
-    
-    return `
-      <div class="world-item ${selectedClass}" data-world-id="${world.id}">
-        <div class="world-item__line">
-          <span class="world-item__cursor">${cursor}</span>
-          <span class="world-item__icon">${themeIcon}</span>
-          <span class="world-item__name">${world.name}</span>
-        </div>
-        <div class="world-item__description">
-          ${world.description}
-        </div>
-      </div>
-    `;
+    const cursor = isSelected ? '→' : ' ';
+    return `${cursor} ${world.name} - ${world.description}`;
   }
 
-  private getThemeIcon(theme: string): string {
-    const iconMap: Record<string, string> = {
-      fantasy: '[FANTASY]',
-      cyberpunk: '[CYBER]'
-    };
-    return iconMap[theme] || '[UNKNOWN]';
-  }
 
   private setupKeyboardEvents(): void {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -117,20 +92,7 @@ export class WorldPicker {
   }
 
   private updateSelection(): void {
-    // Update visual selection without full re-render
-    const items = this.element.querySelectorAll('.world-item');
-    items.forEach((item, index) => {
-      const cursor = item.querySelector('.world-item__cursor');
-      if (cursor) {
-        cursor.textContent = index === this.selectedIndex ? '>' : ' ';
-      }
-      
-      if (index === this.selectedIndex) {
-        item.classList.add('world-item--selected');
-      } else {
-        item.classList.remove('world-item--selected');
-      }
-    });
+    this.render();
   }
 
   private async selectWorld(worldId: string): Promise<void> {
@@ -144,16 +106,13 @@ export class WorldPicker {
   }
 
   private renderError(): void {
-    this.element.innerHTML = `
-      <div class="world-selector">
-        <div class="world-selector__title">
-          ERROR: FAILED TO LOAD WORLDS
-        </div>
-        <div class="world-selector__message">
-          USING FANTASY WORLD AS FALLBACK...
-        </div>
-      </div>
-    `;
+    const display = [
+      'ERROR: FAILED TO LOAD WORLDS',
+      '',
+      'USING FANTASY WORLD AS FALLBACK...'
+    ].join('\n');
+    
+    this.element.innerHTML = `<pre style="color: #ffffff; background: #000; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.2; margin: 0; padding: 20px;">${display}</pre>`;
 
     // Automatically select fantasy after a delay
     setTimeout(() => {
