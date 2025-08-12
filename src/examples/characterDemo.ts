@@ -24,7 +24,7 @@ console.log('=== Sample Character Generation ===\n');
 
 // Create different character types
 const characterTypes = [
-  { name: 'Aragorn', class: 'warrior', glyph: '⚔️' },
+  { name: 'Aragorn', class: 'warrior', glyph: '🤺' },
   { name: 'Gandalf', class: 'mage', glyph: '🧙' },
   { name: 'Legolas', class: 'ranger', glyph: '🏹' },
   { name: 'Gimli', class: 'cleric', glyph: '⛪' },

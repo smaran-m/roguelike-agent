@@ -3,7 +3,7 @@
     "longsword": {
       "name": "Longsword",
       "description": "A versatile martial weapon with a straight, double-edged blade.",
-      "glyph": "⚔️",
+      "glyph": "🤺",
       "color": "0xC0C0C0",
       "type": "weapon",
       "rarity": "common",

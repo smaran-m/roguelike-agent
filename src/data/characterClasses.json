@@ -15,8 +15,8 @@
       "level": 1
     },
     "appearance": {
-      "defaultGlyph": "⚔️",
-      "alternativeGlyphs": ["🛡️", "🗡️", "⚔️"],
+      "defaultGlyph": "🤺",
+      "alternativeGlyphs": ["🛡️", "🗡️", "🤺"],
       "defaultColor": "0xC0C0C0"
     },
     "startingEquipment": {

@@ -93,4 +93,4 @@ npm run test
 This project is open source under the MIT License.
 
 ---
-*Happy dungeon crawling! 🏰⚔️🎵*
+*Happy dungeon crawling! 🏰🤺🎵*

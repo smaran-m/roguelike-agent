@@ -30,7 +30,7 @@ describe('CharacterManager', () => {
     expect(warrior).not.toBeNull();
     expect(warrior?.name).toBe('Warrior');
     expect(warrior?.baseStats.strength).toBe('3d6+3');
-    expect(warrior?.appearance.defaultGlyph).toBe('⚔️');
+    expect(warrior?.appearance.defaultGlyph).toBe('🤺');
   });
 
   it('should return null for invalid character class', () => {
@@ -49,7 +49,7 @@ describe('CharacterManager', () => {
       expect(character.experience).toBe(0);
       expect(character.stats.hp).toBeGreaterThan(0);
       expect(character.stats.maxHp).toBe(character.stats.hp);
-      expect(character.appearance.glyph).toBe('⚔️');
+      expect(character.appearance.glyph).toBe('🤺');
     }
   });
 
@@ -145,7 +145,7 @@ describe('CharacterManager', () => {
     characterManager.createCharacter('Test', 'warrior');
     
     const glyphs = characterManager.getAvailableGlyphs();
-    expect(glyphs).toContain('⚔️');
+    expect(glyphs).toContain('🤺');
     expect(glyphs).toContain('🛡️');
     expect(glyphs).toContain('🗡️');
   });

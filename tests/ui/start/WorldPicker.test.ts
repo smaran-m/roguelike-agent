@@ -72,7 +72,7 @@ describe('WorldPicker', () => {
       expect(fantasyCard?.textContent).toContain('Fantasy Realm');
       expect(fantasyCard?.textContent).toContain('A magical world');
       expect(fantasyCard?.textContent).toContain('Beginner');
-      expect(fantasyCard?.querySelector('.world-card__icon')?.textContent).toBe('⚔️');
+      expect(fantasyCard?.querySelector('.world-card__icon')?.textContent).toBe('🤺');
     });
 
     test('should assign correct difficulty levels', async () => {
@@ -101,7 +101,7 @@ describe('WorldPicker', () => {
       const steampunkIcon = container.querySelector('[data-world-id="steampunk"] .world-card__icon');
       const horrorIcon = container.querySelector('[data-world-id="horror"] .world-card__icon');
 
-      expect(fantasyIcon?.textContent).toBe('⚔️');
+      expect(fantasyIcon?.textContent).toBe('🤺');
       expect(cyberpunkIcon?.textContent).toBe('🤖');
       expect(steampunkIcon?.textContent).toBe('⚙️');
       expect(horrorIcon?.textContent).toBe('👁️');
