@@ -1,16 +1,17 @@
 # Roguelike Agent
 
-An emoji-based roguelike game built with TypeScript and PixiJS, inspired by games like D&D, Caves of Qud and NetHack. This was originally meant as a test for claude code that quickly grew into an engine. Things are in a rough state with not all features implemented yet for a complete game loop.
+A text-based roguelike game built with TypeScript and PixiJS, inspired by games like D&D, Caves of Qud and Cataclysm: Dark Days Ahead. This was originally meant as a test for claude code that quickly grew into an engine. Things are in a rough state with not all features implemented yet for a complete game loop, see roadmap for more.
 
 ## Features
 
-- **Emoji-based graphics**: Unicode emojis for characters and environments
-- **Turn-based combat**: D&D 5e-inspired mechanics with damage types and resistances
-- **Line of sight**: Realistic FOV with ray casting
+- **Text-based graphics**: Entities are emojis, levels are text characters
+- **Dice combat system**: D&D 5e-inspired mechanics with damage types and resistances
+- **Line of sight**: Realistic LOS with ray casting
 - **Smooth animations**: Fluid movement and combat feedback
 - **Character progression**: RPG stats with multi-resource management
 - **JSON Resources**: Load items, game mechanics, sounds, worlds directly from JSON files
 - **Procedural audio**: Asset-free sound generation with spatial audio
+- **Event Bus**: Systems can communicate with each other through the event bus
 
 ## Getting Started
 
@@ -33,12 +34,6 @@ An emoji-based roguelike game built with TypeScript and PixiJS, inspired by game
    npm run dev
    ```
    Open `http://localhost:3000` in your browser.
-
-### Development Workflow
-1. **Manual Testing**: Run `npm run dev` to test functionality.
-2. **Automated Testing**: Use `npm run test` for the test suite.
-3. **Type Checking**: Run `npm run typecheck` for TypeScript compliance.
-4. **Production Build**: Use `npm run build` for deployment.
 
 ### Available Scripts
 - `npm run dev`: Start development server
@@ -72,16 +67,15 @@ An emoji-based roguelike game built with TypeScript and PixiJS, inspired by game
 - **Character Sheets**: RPG stats and resource display
 - **Reusable Components**: Modular UI elements
 
-## Testing
-- **326 tests** with 100% pass rate
-- **Functional testing**: Validates game logic
-- **Deterministic testing**: Seeded randomness for reproducibility
-- **Performance validation**: Pathfinding, audio, and rendering
+## Roadmap
+- Physics and properties for entities
+- Player systems
+- Context-based action system
+- Rules engine
+- Turn based combat
+- Level generation system
+- Enemy AI
 
-Run tests with:
-```bash
-npm run test
-```
 
 ## Contributing
 1. Fork the repository and create a feature branch.
@@ -91,6 +85,3 @@ npm run test
 
 ## License
 This project is open source under the MIT License.
-
----
-*Happy dungeon crawling! 🏰🤺🎵*
