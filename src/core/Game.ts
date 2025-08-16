@@ -1,4 +1,5 @@
-import { Renderer } from './Renderer';
+import { IRenderer } from './renderers/IRenderer';
+import { RendererFactory } from './renderers/RendererFactory';
 import { TileMap } from './TileMap';
 import { Entity } from '../types';
 import { LineOfSight } from './LineOfSight';
@@ -14,7 +15,7 @@ import { generateEventId } from './events/GameEvent';
 import { AudioSystem } from '../systems/audio/AudioSystem';
 
 export class Game {
-  renderer: Renderer;
+  renderer: IRenderer;
   tileMap: TileMap;
   player: Entity;
   
@@ -52,7 +53,7 @@ export class Game {
     
     // Note: World configuration is now initialized in main.ts before Game creation
     
-    this.renderer = new Renderer(50, 30);
+    this.renderer = RendererFactory.createRenderer(50, 30);
     this.tileMap = new TileMap(50, 30);
     
     // Initialize systems with EventBus
@@ -64,8 +65,10 @@ export class Game {
     this.gameStateManager.initializeEntities(this.tileMap);
     this.player = this.gameStateManager.getPlayer()!;
     
-    // Initialize character sheet with player data
-    this.renderer.characterSheet.updateCharacterSheet(this.player);
+    // Initialize character sheet with player data (PixiJS only)
+    if (this.renderer.characterSheet) {
+      this.renderer.characterSheet.updateCharacterSheet(this.player);
+    }
     
     // Initialize movement state
     this.movementState = {
@@ -174,33 +177,41 @@ export class Game {
       y: Math.round(this.movementState.displayY) 
     } as Entity);
     
-    // Re-render if camera moved 
+    // Terminal renderers need full re-render each frame
+    if (this.renderer.needsEntityClearingEachFrame?.()) {
+      this.render();
+      return;
+    }
+    
+    // Re-render if camera moved (PixiJS only)
     if (cameraMoved) {
       this.render();
       return; // render() will handle entity positioning
     }
     
-    // Update player visual position
-    const playerText = this.renderer.entityTextMap.get(this.player.id);
-    const playerHp = this.renderer.hpTextMap.get(this.player.id);
-    
-    if (playerText) {
-      const screenPos = this.renderer.worldToScreen(this.movementState.displayX, this.movementState.displayY);
-      playerText.x = screenPos.x * this.renderer.tileSize + this.renderer.tileSize / 2;
-      playerText.y = screenPos.y * this.renderer.tileSize + this.renderer.tileSize / 2;
-    }
-    
-    if (playerHp) {
-      const screenPos = this.renderer.worldToScreen(this.movementState.displayX, this.movementState.displayY);
-      playerHp.x = screenPos.x * this.renderer.tileSize + this.renderer.tileSize / 2;
-      playerHp.y = screenPos.y * this.renderer.tileSize + this.renderer.tileSize / 2 - 10;
-      // Update HP text content and color
-      const currentHp = ResourceManager.getCurrentValue(this.player, 'hp');
-      const maxHp = ResourceManager.getMaximumValue(this.player, 'hp') || currentHp;
-      const hpRatio = currentHp / maxHp;
-      const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
-      playerHp.text = `${currentHp}/${maxHp}`;
-      playerHp.style.fill = hpColor;
+    // Update player visual position (PixiJS only)
+    if (this.renderer.entityTextMap && this.renderer.hpTextMap) {
+      const playerText = this.renderer.entityTextMap.get(this.player.id);
+      const playerHp = this.renderer.hpTextMap.get(this.player.id);
+      
+      if (playerText) {
+        const screenPos = this.renderer.worldToScreen(this.movementState.displayX, this.movementState.displayY);
+        playerText.x = screenPos.x * this.renderer.tileSize + this.renderer.tileSize / 2;
+        playerText.y = screenPos.y * this.renderer.tileSize + this.renderer.tileSize / 2;
+      }
+      
+      if (playerHp) {
+        const screenPos = this.renderer.worldToScreen(this.movementState.displayX, this.movementState.displayY);
+        playerHp.x = screenPos.x * this.renderer.tileSize + this.renderer.tileSize / 2;
+        playerHp.y = screenPos.y * this.renderer.tileSize + this.renderer.tileSize / 2 - 10;
+        // Update HP text content and color
+        const currentHp = ResourceManager.getCurrentValue(this.player, 'hp');
+        const maxHp = ResourceManager.getMaximumValue(this.player, 'hp') || currentHp;
+        const hpRatio = currentHp / maxHp;
+        const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
+        playerHp.text = `${currentHp}/${maxHp}`;
+        playerHp.style.fill = hpColor;
+      }
     }
     
     // Always update visibility alpha based on current player position
@@ -256,7 +267,18 @@ export class Game {
     // Clear tiles each frame (needed for viewport changes)
     this.renderer.clearTiles();
     
-    // Don't clear entities - they persist and update properties only
+    // Clear entities for terminal renderers that redraw everything each frame
+    if (this.renderer.needsEntityClearingEachFrame?.()) {
+      this.renderer.clearEntities();
+    }
+    
+    // Set up light passes function for renderers with native LOS
+    if (this.renderer.hasNativeLOS?.() && this.renderer.setLightPassesFunction) {
+      this.renderer.setLightPassesFunction((x, y) => {
+        const tile = this.tileMap.getTile(x, y);
+        return tile.walkable && !tile.blocksLight;
+      });
+    }
     
     // Only render tiles that are visible in the camera viewport
     const startX = Math.max(0, this.renderer.cameraX);
@@ -264,22 +286,58 @@ export class Game {
     const startY = Math.max(0, this.renderer.cameraY);
     const endY = Math.min(this.tileMap.height, this.renderer.cameraY + this.renderer.viewportHeight);
     
-    // Render tiles with line of sight check (but no exploration tracking)
+    // Choose LOS algorithm based on renderer capabilities
+    const useNativeLOS = this.renderer.hasNativeLOS?.();
+    let visibleCells: Set<string> | null = null;
+    
+    if (useNativeLOS && (this.renderer as any).calculateFOV) {
+      // Use renderer's native FOV calculation
+      visibleCells = (this.renderer as any).calculateFOV(this.player.x, this.player.y, 8);
+      if (visibleCells) {
+        Logger.debug('Using native FOV algorithm:', Array.from(visibleCells).slice(0, 5));
+      }
+    }
+    
+    // Render tiles with appropriate line of sight check
     for (let y = startY; y < endY; y++) {
       for (let x = startX; x < endX; x++) {
         const tile = this.tileMap.getTile(x, y);
         const distance = Math.sqrt((x - this.player.x) ** 2 + (y - this.player.y) ** 2);
-        const hasLOS = LineOfSight.hasLineOfSight(this.tileMap, this.player.x, this.player.y, x, y);
+        
+        let hasLOS: boolean;
+        if (useNativeLOS && visibleCells) {
+          hasLOS = visibleCells.has(`${x},${y}`);
+        } else {
+          hasLOS = LineOfSight.hasLineOfSight(this.tileMap, this.player.x, this.player.y, x, y);
+        }
+        
+        // Mark tiles as explored when they become visible
+        if (hasLOS) {
+          this.tileMap.setVisibility(x, y, { explored: true, visible: true });
+        }
+        
         this.renderer.renderTileWithVisibility(x, y, tile, distance, hasLOS);
       }
     }
     
-    // Render entities with line of sight check
+    // Render entities with appropriate line of sight check
     const entities = this.gameStateManager.getAllEntities();
     for (const entity of entities) {
       const distance = Math.sqrt((entity.x - this.player.x) ** 2 + (entity.y - this.player.y) ** 2);
-      const hasLOS = LineOfSight.hasLineOfSight(this.tileMap, this.player.x, this.player.y, entity.x, entity.y);
+      
+      let hasLOS: boolean;
+      if (useNativeLOS && visibleCells) {
+        hasLOS = visibleCells.has(`${entity.x},${entity.y}`);
+      } else {
+        hasLOS = LineOfSight.hasLineOfSight(this.tileMap, this.player.x, this.player.y, entity.x, entity.y);
+      }
+      
       this.renderer.renderEntityWithVisibility(entity, distance, hasLOS);
+    }
+    
+    // Call render method for double-buffered renderers (like Malwoden)
+    if (this.renderer.render) {
+      this.renderer.render();
     }
   }
 

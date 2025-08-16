@@ -310,14 +310,14 @@ describe('Renderer', () => {
     });
 
     it('should limit message history to prevent memory issues', () => {
-      // Add more than 5 messages
-      for (let i = 1; i <= 7; i++) {
+      // Add more than 25 messages to trigger limit
+      for (let i = 1; i <= 27; i++) {
         renderer.addMessage(`Message ${i}`);
       }
       
-      expect(renderer.messages.length).toBe(5);
+      expect(renderer.messages.length).toBe(25);
       expect(renderer.messages[0]).toBe('Message 3'); // Oldest kept message
-      expect(renderer.messages[4]).toBe('Message 7'); // Newest message
+      expect(renderer.messages[24]).toBe('Message 27'); // Newest message
     });
   });
 

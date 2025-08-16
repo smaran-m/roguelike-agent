@@ -1,7 +1,6 @@
 import { Entity } from '../../types';
 import { CombatSystem } from './CombatSystem';
-import { Renderer } from '../../core/Renderer';
-import { AnimationSystem } from '../animation/AnimationSystem';
+import { IRenderer } from '../../core/renderers/IRenderer';
 import { CharacterManager } from '../../managers/CharacterManager';
 import { ResourceManager } from '../../managers/ResourceManager';
 import { EventBus } from '../../core/events/EventBus';
@@ -15,13 +14,11 @@ export interface CombatResult {
 }
 
 export class CombatManager {
-  private renderer: Renderer;
-  private animationSystem: AnimationSystem;
+  private renderer: IRenderer;
   private eventBus: EventBus;
 
-  constructor(renderer: Renderer, eventBus: EventBus) {
+  constructor(renderer: IRenderer, eventBus: EventBus) {
     this.renderer = renderer;
-    this.animationSystem = renderer.animationSystem;
     this.eventBus = eventBus;
   }
 
@@ -63,7 +60,7 @@ export class CombatManager {
     const attackResult = CombatSystem.meleeAttack(attacker, target, weaponDamage);
     
     // Visual effects for attack attempt
-    this.animationSystem.nudgeEntity(attacker, target.x, target.y);
+    this.renderer.nudgeEntity(attacker, target.x, target.y);
     
     // Enhanced attack message with weapon and attack type
     this.renderer.addMessage(`${attacker.name} makes a ${attackType} with ${weaponName} against ${target.name}!`);
@@ -93,8 +90,8 @@ export class CombatManager {
       }
       
       // Visual effects for hit
-      this.animationSystem.shakeEntity(target);
-      this.animationSystem.showFloatingDamage(target, attackResult.damage);
+      this.renderer.shakeEntity(target);
+      this.renderer.showFloatingDamage(target, attackResult.damage);
       
       if (targetKilled) {
         this.renderer.addMessage(`${target.name} died!`);
@@ -118,7 +115,7 @@ export class CombatManager {
     } else {
       this.renderer.addMessage("Miss!");
       // Shake attacker to indicate miss
-      this.animationSystem.shakeEntity(attacker);
+      this.renderer.shakeEntity(attacker);
     }
 
     return {
