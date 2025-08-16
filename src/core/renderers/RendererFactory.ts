@@ -7,7 +7,7 @@ import { HybridTerminalRenderer } from './HybridTerminalRenderer';
 export type RendererType = 'pixi' | 'rot' | 'malwoden' | 'pixi-terminal';
 
 // Easy switching between renderer types
-export const RENDERER_TYPE: RendererType = 'pixi-terminal'; // Change this to switch renderers
+export const RENDERER_TYPE: RendererType = 'pixi'; // Change this to switch renderers
 
 export class RendererFactory {
   static createRenderer(width: number, height: number, type?: RendererType): IRenderer {

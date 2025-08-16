@@ -5,7 +5,7 @@
   height: 100vh;
   background: #000000;
   color: #ffffff;
-  font-family: 'square';
+  font-family: var(--font-family);
   display: flex;
   flex-direction: column;
   /* align-items: center; */ /* This was causing the centering issue */
@@ -34,7 +34,7 @@
   display: block;
   margin: 0 auto;
   color: #cccccc;
-  font-family: 'square';
+  font-family: var(--font-family);
   font-size: 14px;
   max-width: 100%;
   overflow-x: auto;
@@ -99,7 +99,7 @@
 .world-item__cursor {
   width: 1.5rem;
   text-align: left;
-  font-family: 'square';
+  font-family: var(--font-family);
   color: #ffffff;
 
 }
@@ -150,7 +150,7 @@
   line-height: 1.2;
   margin: 0;
   padding: 20px;
-  font-family: 'square';
+  font-family: var(--font-family);
 }
 
 .world-picker__pre--error {
@@ -179,7 +179,7 @@
 .loading-spinner {
   width: 4rem;
   height: 2rem;
-  font-family: 'square';
+  font-family: var(--font-family);
   font-size: 2rem;
   color: #ffffff;
   margin-bottom: 1rem;

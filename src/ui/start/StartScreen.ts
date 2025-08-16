@@ -1,6 +1,7 @@
 import { WorldPicker } from './WorldPicker';
 import { Logger } from '../../utils/Logger';
 import { ErrorHandler, GameErrorCode } from '../../utils/ErrorHandler';
+import { injectFontCSSVariables } from '../../config/fonts';
 import './start-screen.css';
 
 export class StartScreen {
@@ -15,6 +16,9 @@ export class StartScreen {
     this.errorHandler = ErrorHandler.getInstance();
     this.element = containerElement;
     this.element.classList.add('start-screen');
+    
+    // Inject font CSS variables for unified font management
+    injectFontCSSVariables();
     
     this.setupHTML();
     this.worldPicker = WorldPicker.getInstance(
