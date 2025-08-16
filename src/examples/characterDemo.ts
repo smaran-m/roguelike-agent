@@ -1,26 +1,27 @@
 // Demo script to show the new character system capabilities
 import { CharacterManager } from '../managers/CharacterManager';
 import { CreateEntity } from '../entities/CreateEntity';
+import { Logger } from '../utils/Logger';
 
-console.log('=== Character System Demo ===\n');
+Logger.info('=== Character System Demo ===\n');
 
 const characterManager = CharacterManager.getInstance();
 
 // Show all available character classes
 const classes = CreateEntity.getAvailableCharacterClasses();
-console.log('Available Character Classes:');
+Logger.info('Available Character Classes:');
 classes.forEach(className => {
   const classDef = characterManager.getCharacterClass(className);
   if (classDef) {
-    console.log(`- ${className}: ${classDef.name} ${classDef.appearance.defaultGlyph}`);
-    console.log(`  ${classDef.description}`);
-    console.log(`  Base HP: ${classDef.baseStats.hp}, AC: ${classDef.baseStats.ac}`);
-    console.log(`  Str: ${classDef.baseStats.strength}, Int: ${classDef.baseStats.intelligence}`);
-    console.log('');
+    Logger.info(`- ${className}: ${classDef.name} ${classDef.appearance.defaultGlyph}`);
+    Logger.info(`  ${classDef.description}`);
+    Logger.info(`  Base HP: ${classDef.baseStats.hp}, AC: ${classDef.baseStats.ac}`);
+    Logger.info(`  Str: ${classDef.baseStats.strength}, Int: ${classDef.baseStats.intelligence}`);
+    Logger.info('');
   }
 });
 
-console.log('=== Sample Character Generation ===\n');
+Logger.info('=== Sample Character Generation ===\n');
 
 // Create different character types
 const characterTypes = [
@@ -39,44 +40,44 @@ characterTypes.forEach(({ name, class: className, glyph }) => {
   });
   
   if (character) {
-    console.log(`${character.name} the ${character.className.toUpperCase()} ${character.appearance.glyph}`);
-    console.log(`  Level ${character.level} - HP: ${character.stats.hp}/${character.stats.maxHp}, AC: ${character.stats.ac}`);
-    console.log(`  STR: ${character.stats.strength}, DEX: ${character.stats.dexterity}, CON: ${character.stats.constitution}`);
-    console.log(`  INT: ${character.stats.intelligence}, WIS: ${character.stats.wisdom}, CHA: ${character.stats.charisma}`);
-    console.log(`  Features: ${character.features.join(', ')}`);
-    console.log(`  Equipment: ${character.equipment.weapon}, ${character.equipment.armor}${character.equipment.shield ? ', shield' : ''}`);
+    Logger.info(`${character.name} the ${character.className.toUpperCase()} ${character.appearance.glyph}`);
+    Logger.info(`  Level ${character.level} - HP: ${character.stats.hp}/${character.stats.maxHp}, AC: ${character.stats.ac}`);
+    Logger.info(`  STR: ${character.stats.strength}, DEX: ${character.stats.dexterity}, CON: ${character.stats.constitution}`);
+    Logger.info(`  INT: ${character.stats.intelligence}, WIS: ${character.stats.wisdom}, CHA: ${character.stats.charisma}`);
+    Logger.info(`  Features: ${character.features.join(', ')}`);
+    Logger.info(`  Equipment: ${character.equipment.weapon}, ${character.equipment.armor}${character.equipment.shield ? ', shield' : ''}`);
     
     // Demo level progression
     characterManager.addExperience(1000);
     const leveledUp = characterManager.getCurrentCharacter();
     if (leveledUp && leveledUp.level > 1) {
-      console.log(`  -> LEVELED UP! Now Level ${leveledUp.level} with ${leveledUp.stats.maxHp} HP`);
+      Logger.info(`  -> LEVELED UP! Now Level ${leveledUp.level} with ${leveledUp.stats.maxHp} HP`);
     }
     
-    console.log('');
+    Logger.info('');
   }
 });
 
-console.log('=== Character Customization Demo ===\n');
+Logger.info('=== Character Customization Demo ===\n');
 
 // Demo appearance customization
 characterManager.resetCharacter();
 const customCharacter = characterManager.createCharacter('Arthas', 'warrior');
 if (customCharacter) {
-  console.log(`Original: ${customCharacter.name} ${customCharacter.appearance.glyph}`);
+  Logger.info(`Original: ${customCharacter.name} ${customCharacter.appearance.glyph}`);
   
   const availableGlyphs = characterManager.getAvailableGlyphs();
-  console.log(`Available glyphs for ${customCharacter.className}:`, availableGlyphs);
+  Logger.info(`Available glyphs for ${customCharacter.className}:`, availableGlyphs);
   
   // Change appearance
   characterManager.updateAppearance('🛡️', '0x800080');
   const updated = characterManager.getCurrentCharacter();
-  console.log(`Updated: ${updated?.name} ${updated?.appearance.glyph} (color changed to purple)`);
+  Logger.info(`Updated: ${updated?.name} ${updated?.appearance.glyph} (color changed to purple)`);
   
   // Save and load demo
   const savedData = characterManager.saveCharacter();
-  console.log('\nCharacter saved to JSON (first 100 chars):');
-  console.log(savedData?.substring(0, 100) + '...');
+  Logger.info('\nCharacter saved to JSON (first 100 chars):');
+  Logger.info(savedData?.substring(0, 100) + '...');
 }
 
 export {};

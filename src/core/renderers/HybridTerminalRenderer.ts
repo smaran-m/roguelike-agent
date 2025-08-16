@@ -1,8 +1,9 @@
 import { Tile, Entity, TileVisibility } from '../../types';
 import { IRenderer } from './IRenderer';
-import { Application, Container, Graphics, Text, BitmapFont, BitmapText } from 'pixi.js';
+import { Application, Container, Graphics, Text } from 'pixi.js';
 import { Terminal, Color, FOV } from 'malwoden';
 import { Logger } from '../../utils/Logger';
+import { getFontFamily } from '../../config/fonts';
 import { CameraSystem } from '../../systems/camera/CameraSystem';
 import { AnimationSystem } from '../../systems/animation/AnimationSystem';
 import { CharacterManager } from '../../managers/CharacterManager';
@@ -47,9 +48,8 @@ export class HybridTerminalRenderer implements IRenderer {
   private lightPasses: (pos: {x: number, y: number}) => boolean = () => true;
   private lastFOVCells: Set<string> = new Set();
   
-  // Bitmap font configuration
-  private useBitmapFont: boolean = true;
-  private bitmapFontName: string = 'terminal-font';
+  // Font configuration (using TTF fonts now)
+  // Removed bitmap font configuration - using Perfect DOS VGA 437 TTF fonts instead
   
   // Malwoden UI terminals (can be either RetroTerminal or CanvasTerminal)
   private leftTerminal?: Terminal.RetroTerminal | Terminal.CanvasTerminal;   // Character sheet
@@ -65,20 +65,25 @@ export class HybridTerminalRenderer implements IRenderer {
   private messages: string[] = [];
   private currentPlayer?: Entity;
   private uiNeedsRedraw = true;
+  private hasRenderedOnce = false;
+  private lastMessageCount = 0;
   
   // PixiJS compatibility
   characterSheet?: any = null;
 
   constructor(width: number, height: number) {
+    Logger.debug('HYBRID: HybridTerminalRenderer constructor called');
     this.gridWidth = width;
     this.gridHeight = height;
     
     this.initializeContainers();
-    this.initializeBitmapFont();
     this.initializePixiGameArea();
     this.initializeMalwodenUI();
     this.initializeFOV();
     this.initializeSystems();
+    
+    // Mark UI as needing redraw for first render
+    this.uiNeedsRedraw = true;
   }
 
   private initializeContainers() {
@@ -137,18 +142,6 @@ export class HybridTerminalRenderer implements IRenderer {
     Logger.debug('Hybrid renderer containers initialized');
   }
 
-  private initializeBitmapFont() {
-    // Use Malwoden's approach - load bitmap font from external image file
-    Logger.debug('Using Malwoden-style bitmap font approach');
-    
-    // For now, disable PixiJS bitmap fonts and rely on Malwoden's RetroTerminal approach
-    // This is much more reliable and uses actual bitmap font files
-    this.useBitmapFont = false;
-    
-    // The RetroTerminal instances (when created) will handle their own bitmap fonts
-    // using proper font image files loaded asynchronously
-    Logger.debug('Bitmap font rendering will be handled by Malwoden RetroTerminal instances');
-  }
 
   private initializePixiGameArea() {
     if (!this.gamePanel) return;
@@ -184,75 +177,87 @@ export class HybridTerminalRenderer implements IRenderer {
   }
 
   private initializeCharacterSheetTerminal() {
-    if (!this.leftPanel) return;
+    if (!this.leftPanel) {
+      Logger.error('Left panel not available for terminal initialization');
+      return;
+    }
     
+    Logger.debug('Initializing character sheet terminal...');
+    
+    // Try simple CanvasTerminal with basic font
     try {
-      // Use RetroTerminal with the existing bitmap font
-      this.leftTerminal = new Terminal.RetroTerminal({
+      this.leftTerminal = new Terminal.CanvasTerminal({
         width: this.leftPanelWidth,
         height: this.leftPanelHeight,
         foreColor: Color.White,
         backColor: Color.Black,
-        charWidth: 16,
-        charHeight: 16,
-        imageURL: '/fonts/agm_16x16.png',
+        font: new Terminal.Font(getFontFamily(), 14),
         mountNode: this.leftPanel
       });
+      Logger.debug('HYBRID: ✓ Character sheet terminal initialized with CanvasTerminal');
       
-      Logger.debug('Character sheet terminal initialized with RetroTerminal and bitmap font');
     } catch (error) {
-      Logger.error('Error initializing character sheet terminal:', error);
+      Logger.error('Error initializing character sheet CanvasTerminal:', error);
       
-      // Fallback to CanvasTerminal if RetroTerminal fails
+      // Try RetroTerminal as fallback
       try {
-        this.leftTerminal = new Terminal.CanvasTerminal({
+        this.leftTerminal = new Terminal.RetroTerminal({
           width: this.leftPanelWidth,
           height: this.leftPanelHeight,
           foreColor: Color.White,
           backColor: Color.Black,
-          font: new Terminal.Font('Courier New, monospace', 14),
+          charWidth: 16,
+          charHeight: 16,
+          imageURL: '/fonts/agm_16x16.png',
           mountNode: this.leftPanel
         });
-        Logger.debug('Fallback: Character sheet terminal initialized with CanvasTerminal');
+        Logger.debug('✓ Fallback: Character sheet terminal initialized with RetroTerminal');
+        
       } catch (fallbackError) {
-        Logger.error('Error initializing fallback terminal:', fallbackError);
+        Logger.error('✗ Both terminal types failed:', fallbackError);
       }
     }
   }
 
   private initializeCombatLogTerminal() {
-    if (!this.rightPanel) return;
+    if (!this.rightPanel) {
+      Logger.error('Right panel not available for terminal initialization');
+      return;
+    }
     
+    Logger.debug('Initializing combat log terminal...');
+    
+    // Try simple CanvasTerminal with basic font
     try {
-      // Use RetroTerminal with the existing bitmap font
-      this.rightTerminal = new Terminal.RetroTerminal({
+      this.rightTerminal = new Terminal.CanvasTerminal({
         width: this.rightPanelWidth,
         height: this.rightPanelHeight,
         foreColor: Color.White,
         backColor: Color.Black,
-        charWidth: 16,
-        charHeight: 16,
-        imageURL: '/fonts/agm_16x16.png',
+        font: new Terminal.Font(getFontFamily(), 14),
         mountNode: this.rightPanel
       });
+      Logger.debug(`HYBRID: ✓ Combat log terminal initialized with CanvasTerminal (${this.rightPanelWidth}x${this.rightPanelHeight})`);
       
-      Logger.debug('Combat log terminal initialized with RetroTerminal and bitmap font');
     } catch (error) {
-      Logger.error('Error initializing combat log terminal:', error);
+      Logger.error('Error initializing combat log CanvasTerminal:', error);
       
-      // Fallback to CanvasTerminal if RetroTerminal fails
+      // Try RetroTerminal as fallback
       try {
-        this.rightTerminal = new Terminal.CanvasTerminal({
+        this.rightTerminal = new Terminal.RetroTerminal({
           width: this.rightPanelWidth,
           height: this.rightPanelHeight,
           foreColor: Color.White,
           backColor: Color.Black,
-          font: new Terminal.Font('Courier New, monospace', 14),
+          charWidth: 16,
+          charHeight: 16,
+          imageURL: '/fonts/agm_16x16.png',
           mountNode: this.rightPanel
         });
-        Logger.debug('Fallback: Combat log terminal initialized with CanvasTerminal');
+        Logger.debug('✓ Fallback: Combat log terminal initialized with RetroTerminal');
+        
       } catch (fallbackError) {
-        Logger.error('Error initializing fallback terminal:', fallbackError);
+        Logger.error('✗ Both terminal types failed:', fallbackError);
       }
     }
   }
@@ -353,9 +358,9 @@ export class HybridTerminalRenderer implements IRenderer {
     bg.endFill();
     this.tileContainer.addChild(bg);
     
-    // Convert to ASCII and use bitmap/terminal font
+      // Use malwoden-style drawGlyph approach for consistent terminal rendering
     const asciiChar = this.tileToASCII(tile);
-    const text = this.createTerminalText(asciiChar, visibility.visible ? tile.fgColor : this.darkenColor(tile.fgColor, 0.4));
+    const text = this.createMalwodenStyleText(asciiChar, visibility.visible ? tile.fgColor : this.darkenColor(tile.fgColor, 0.4));
     
     text.x = screenX * this.tileSize + this.tileSize / 2;
     text.y = screenY * this.tileSize + this.tileSize / 2;
@@ -387,9 +392,9 @@ export class HybridTerminalRenderer implements IRenderer {
       return;
     }
     
-    // Convert to ASCII and use bitmap/terminal font
+    // Convert to ASCII and use malwoden-style terminal font
     const asciiChar = this.entityToASCII(entity);
-    const text = this.createTerminalText(asciiChar, entity.color);
+    const text = this.createMalwodenStyleText(asciiChar, entity.color);
     
     text.x = screenX * this.tileSize + this.tileSize / 2;
     text.y = screenY * this.tileSize + this.tileSize / 2;
@@ -406,7 +411,7 @@ export class HybridTerminalRenderer implements IRenderer {
       const hpRatio = currentHp / maxHp;
       const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
       
-      const hpText = this.createTerminalText(`${currentHp}/${maxHp}`, hpColor, 12);
+      const hpText = this.createMalwodenStyleText(`${currentHp}/${maxHp}`, hpColor, 12);
       
       hpText.x = screenX * this.tileSize + this.tileSize / 2;
       hpText.y = screenY * this.tileSize + this.tileSize / 2 - 20;
@@ -446,9 +451,9 @@ export class HybridTerminalRenderer implements IRenderer {
     // Get or create entity text object (persistent across frames)
     let text = this.entityTextMap.get(entity.id);
     if (!text) {
-      // Convert to ASCII and use bitmap/terminal font
+      // Convert to ASCII and use malwoden-style terminal font
       const asciiChar = this.entityToASCII(entity);
-      text = this.createTerminalText(asciiChar, entity.color);
+      text = this.createMalwodenStyleText(asciiChar, entity.color);
       text.anchor.set(0.5);
       
       this.entityTextMap.set(entity.id, text);
@@ -466,7 +471,7 @@ export class HybridTerminalRenderer implements IRenderer {
     if (!entity.isPlayer && entity.stats) {
       let hpText = this.hpTextMap.get(entity.id);
       if (!hpText) {
-        hpText = this.createTerminalText('', 0x00FF00, 10);
+        hpText = this.createMalwodenStyleText('', 0x00FF00, 10);
         hpText.anchor.set(0.5);
         this.hpTextMap.set(entity.id, hpText);
         this.entityContainer.addChild(hpText);
@@ -527,9 +532,9 @@ export class HybridTerminalRenderer implements IRenderer {
     bg.endFill();
     this.tileContainer.addChild(bg);
     
-    // Convert to ASCII and use bitmap/terminal font
+    // Convert to ASCII and use malwoden-style terminal font
     const asciiChar = this.tileToASCII(tile);
-    const text = this.createTerminalText(asciiChar, fgColor);
+    const text = this.createMalwodenStyleText(asciiChar, fgColor);
     
     text.x = screenX * this.tileSize + this.tileSize / 2;
     text.y = screenY * this.tileSize + this.tileSize / 2;
@@ -550,12 +555,22 @@ export class HybridTerminalRenderer implements IRenderer {
       Logger.debug('Skipping UI terminal updates - terminals not initialized');
       return;
     }
+    Logger.debug('Updating UI terminals...');
     this.updateCharacterSheetTerminal();
     this.updateCombatLogTerminal();
+    Logger.debug('UI terminals updated');
   }
 
   private updateCharacterSheetTerminal() {
-    if (!this.leftTerminal || !this.currentPlayer) return;
+    if (!this.leftTerminal) {
+      Logger.debug('No left terminal for character sheet');
+      return;
+    }
+    if (!this.currentPlayer) {
+      Logger.debug('No current player for character sheet');
+      return;
+    }
+    Logger.debug('Updating character sheet terminal...');
     
     this.leftTerminal.clear();
     
@@ -596,6 +611,10 @@ export class HybridTerminalRenderer implements IRenderer {
     this.leftTerminal.writeAt({x: 0, y: y++}, `INT: ${player.stats.intelligence} (${this.getModifier(player.stats.intelligence)})`, Color.White);
     this.leftTerminal.writeAt({x: 0, y: y++}, `WIS: ${player.stats.wisdom} (${this.getModifier(player.stats.wisdom)})`, Color.White);
     this.leftTerminal.writeAt({x: 0, y: y++}, `CHA: ${player.stats.charisma} (${this.getModifier(player.stats.charisma)})`, Color.White);
+    y++; // Skip line
+    
+    // Equipment/Inventory
+    y = this.renderCharacterInventory(y, player);
     
     // Bottom corner: position
     if (this.currentPlayer) {
@@ -632,8 +651,89 @@ export class HybridTerminalRenderer implements IRenderer {
     return y;
   }
 
+  private renderCharacterInventory(startY: number, _player: Entity): number {
+    if (!this.leftTerminal) return startY;
+    
+    let y = startY;
+    
+    // Equipment section title
+    this.leftTerminal.writeAt({x: 0, y: y++}, "EQUIPMENT", Color.White);
+    
+    const characterManager = CharacterManager.getInstance();
+    const currentCharacter = characterManager.getCurrentCharacter();
+    
+    if (!currentCharacter || !currentCharacter.inventory || currentCharacter.inventory.length === 0) {
+      this.leftTerminal.writeAt({x: 0, y: y++}, "(Empty)", Color.Gray);
+      return y;
+    }
+    
+    // Display inventory items (max 4-5 items to fit on screen)
+    const maxDisplayItems = Math.min(currentCharacter.inventory.length, 5);
+    for (let i = 0; i < maxDisplayItems; i++) {
+      const item = currentCharacter.inventory[i];
+      
+      // Convert item emoji to ASCII for terminal display
+      const itemChar = this.itemToASCII(item.glyph);
+      
+      // Item line: "/ Sword (1d8+2)"
+      const itemName = item.name.length > 8 ? item.name.substring(0, 8) : item.name;
+      let itemLine = `${itemChar} ${itemName}`;
+      
+      // Add damage info if weapon
+      if (item.type === 'weapon' && item.damage) {
+        const damageInfo = item.damage.length > 6 ? item.damage.substring(0, 6) : item.damage;
+        itemLine += ` (${damageInfo})`;
+      }
+      
+      // Truncate if too long for terminal width
+      if (itemLine.length > this.leftPanelWidth - 2) {
+        itemLine = itemLine.substring(0, this.leftPanelWidth - 2);
+      }
+      
+      this.leftTerminal.writeAt({x: 0, y: y++}, itemLine, Color.White);
+    }
+    
+    // Show "..." if more items exist
+    if (currentCharacter.inventory.length > maxDisplayItems) {
+      this.leftTerminal.writeAt({x: 0, y: y++}, "...", Color.Gray);
+    }
+    
+    return y;
+  }
+
+  // Convert item emojis to ASCII characters for terminal display
+  private itemToASCII(glyph: string): string {
+    switch (glyph) {
+      case '⚔️': return '/';   // Sword
+      case '🛡️': return ']';   // Shield
+      case '🏹': return ')';   // Bow
+      case '🔧': return '(';   // Tool/Hammer
+      case '🪓': return '/';   // Axe
+      case '💎': return '*';   // Gem
+      case '💰': return '$';   // Gold
+      case '🧪': return '!';   // Potion
+      case '📜': return '?';   // Scroll
+      case '🗝️': return '=';   // Key
+      case '💍': return '=';   // Ring
+      case '👕': return '[';   // Armor/Clothing
+      case '🥾': return '[';   // Boots
+      case '🎩': return '^';   // Hat
+      default:
+        // For ASCII characters, return as-is
+        const charCode = glyph.charCodeAt(0);
+        if (charCode <= 127) {
+          return glyph;
+        }
+        return '?'; // Unknown item
+    }
+  }
+
   private updateCombatLogTerminal() {
-    if (!this.rightTerminal) return;
+    if (!this.rightTerminal) {
+      Logger.debug('HYBRID: No right terminal for combat log');
+      return;
+    }
+    Logger.debug('HYBRID: Updating combat log terminal...');
     
     this.rightTerminal.clear();
     
@@ -647,7 +747,7 @@ export class HybridTerminalRenderer implements IRenderer {
     const maxLines = this.rightPanelHeight - 5; // Leave room for title and controls
     const messagesToShow = this.messages.slice(-maxLines);
     
-    messagesToShow.forEach((message) => {
+    messagesToShow.forEach((message, index) => {
       const wrappedLines = this.wrapText(message, this.rightPanelWidth - 2);
       wrappedLines.forEach((line) => {
         if (y < this.rightPanelHeight - 2) {
@@ -661,21 +761,32 @@ export class HybridTerminalRenderer implements IRenderer {
     this.rightTerminal.writeAt({x: 0, y: this.rightPanelHeight - 1}, controlsText, Color.Gray);
   }
 
-  // Helper method to create terminal text with proper monospace font
-  private createTerminalText(text: string, color: number, fontSize?: number): Text {
-    const actualFontSize = fontSize || this.tileSize * 0.8;
+  // Helper method to create malwoden-style terminal text with proper 1:1 ratio font
+  private createMalwodenStyleText(text: string, color: number, fontSize?: number): Text {
+    // Perfect DOS VGA 437 fonts work best at specific pixel sizes (8, 16, 24, 32, etc.)
+    // Choose the closest multiple of 8 that fits our tile size
+    const baseSize = Math.round((fontSize || this.tileSize * 0.75) / 8) * 8;
+    const actualFontSize = Math.max(8, baseSize); // Minimum size of 8px
     
-    // Always use Text with a proper monospace font for consistency
-    // This avoids bitmap font complexity while maintaining terminal aesthetics
-    return new Text(text, {
-      fontFamily: '"Courier New", "Lucida Console", "Monaco", monospace',
+    // Use the Perfect DOS VGA 437 fonts for authentic terminal rendering
+    const textObject = new Text(text, {
+      fontFamily: getFontFamily(),
       fontSize: actualFontSize,
       fill: color,
       align: 'center',
-      // Add some terminal-like styling
       fontWeight: 'normal',
-      letterSpacing: 0
+      letterSpacing: 0,
+      lineHeight: actualFontSize,
+      // Additional properties for crisp rendering
+      strokeThickness: 0,
+      dropShadow: false,
     });
+    
+    // Ensure pixel-perfect rendering
+    textObject.resolution = 1;
+    textObject.roundPixels = true;
+    
+    return textObject;
   }
 
   // ASCII conversion methods for terminal aesthetics
@@ -901,6 +1012,7 @@ export class HybridTerminalRenderer implements IRenderer {
 
   // UI methods
   addMessage(message: string) {
+    Logger.debug(`HYBRID: addMessage called with: "${message}"`);
     this.messages.push(message);
     
     if (this.messages.length > 30) {
@@ -908,7 +1020,11 @@ export class HybridTerminalRenderer implements IRenderer {
     }
     
     this.uiNeedsRedraw = true;
-    Logger.debug(`Hybrid renderer message added: ${message}`);
+    
+    // Force immediate render when message is added
+    setTimeout(() => {
+      this.render();
+    }, 0);
   }
 
   updatePositionText(x: number, y: number) {
@@ -1121,5 +1237,30 @@ export class HybridTerminalRenderer implements IRenderer {
 
   hasNativeLOS(): boolean {
     return this.fov !== undefined; // Uses Malwoden's FOV if available
+  }
+
+  // Main render method to ensure UI consistency
+  render() {
+    // Update UI terminals when needed and properly initialized
+    if (this.leftTerminal && this.rightTerminal) {
+      // Update UI when needed, on first render, or when messages changed
+      const messageCountChanged = this.messages.length !== this.lastMessageCount;
+      if (this.uiNeedsRedraw || !this.hasRenderedOnce || messageCountChanged) {
+        try {
+          this.updateUITerminals();
+          this.uiNeedsRedraw = false;
+          this.hasRenderedOnce = true;
+          this.lastMessageCount = this.messages.length;
+          
+          // Render the terminals to display the content
+          this.leftTerminal.render();
+          this.rightTerminal.render();
+        } catch (error) {
+          Logger.error('HYBRID: Error rendering UI terminals:', error);
+        }
+      }
+    } else {
+      Logger.debug(`HYBRID: Terminal status - left: ${!!this.leftTerminal}, right: ${!!this.rightTerminal}`);
+    }
   }
 }

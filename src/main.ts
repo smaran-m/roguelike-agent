@@ -3,17 +3,23 @@ import { StartScreen } from './ui/start/StartScreen';
 import { WorldConfigLoader } from './loaders/WorldConfigLoader';
 import { CharacterManager } from './managers/CharacterManager';
 import { Logger } from './utils/Logger';
+import { getFontsToLoad } from './config/fonts';
 
 // Wait for fonts to load completely
 document.fonts.ready.then(async () => {
   // Force load all fonts we need
   try {
-    await document.fonts.load('14px "Noto Emoji"');
-    await document.fonts.load('12px "Noto Sans Mono"');
-    await document.fonts.load('10px "Noto Sans Mono"');
-    console.log('All fonts loaded successfully');
+    // Ensure 'square' font is always loaded
+    await document.fonts.load('14px square');
+    Logger.debug('Square font loaded successfully.');
+
+    const otherFonts = getFontsToLoad();
+    for (const font of otherFonts) {
+      await document.fonts.load(font);
+    }
+    Logger.debug('All fonts loaded successfully');
   } catch (e) {
-    console.warn('Some fonts failed to load:', e);
+    Logger.warn('Some fonts failed to load:', e);
   }
   
   const logger = Logger.getInstance();

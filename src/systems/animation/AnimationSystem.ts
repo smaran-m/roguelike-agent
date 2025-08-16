@@ -1,5 +1,6 @@
 import { Entity } from '../../types';
 import { Text, Container } from 'pixi.js';
+import { getFontFamily } from '../../config/fonts';
 
 export interface AnimationTarget {
   entity: Entity;
@@ -152,7 +153,7 @@ export class AnimationSystem {
 
   showFloatingDamage(entity: Entity, damage: number) {
     const damageText = new Text(`-${damage}`, {
-      fontFamily: 'Noto Sans Mono, monospace',
+      fontFamily: getFontFamily(),
       fontSize: 22,
       fill: 0xFF4444,
       align: 'center'

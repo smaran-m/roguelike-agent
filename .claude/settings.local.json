@@ -12,7 +12,9 @@
       "WebFetch(domain:tutorial.malwoden.com)",
       "WebFetch(domain:docs.malwoden.com)",
       "WebFetch(domain:github.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(curl:*)",
+      "WebFetch(domain:www.dafont.com)"
     ],
     "deny": []
   }

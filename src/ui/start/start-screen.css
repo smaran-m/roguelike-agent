@@ -5,10 +5,10 @@
   height: 100vh;
   background: #000000;
   color: #ffffff;
-  font-family: 'Noto Sans Mono', monospace;
+  font-family: 'square';
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* align-items: center; */ /* This was causing the centering issue */
   padding: 2rem;
   box-sizing: border-box;
   overflow-y: auto;
@@ -19,6 +19,7 @@
   margin-bottom: 3rem;
   border-bottom: 2px solid #ffffff;
   padding-bottom: 1rem;
+  width: 100%;
 }
 
 .start-screen__title {
@@ -27,7 +28,16 @@
   color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  font-weight: bold;
+}
+
+.start-screen__ascii {
+  display: block;
+  margin: 0 auto;
+  color: #cccccc;
+  font-family: 'square';
+  font-size: 14px;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .start-screen__subtitle {
@@ -47,7 +57,6 @@
 
 .world-selector__title {
   font-size: 2rem;
-  font-weight: bold;
   color: #ffffff;
   text-align: center;
   margin-bottom: 2rem;
@@ -84,15 +93,15 @@
   display: flex;
   align-items: center;
   font-size: 1.1rem;
-  font-weight: bold;
   margin-bottom: 0.25rem;
 }
 
 .world-item__cursor {
   width: 1.5rem;
   text-align: left;
-  font-family: 'Noto Sans Mono', monospace;
+  font-family: 'square';
   color: #ffffff;
+
 }
 
 .world-item__icon {
@@ -134,6 +143,20 @@
   letter-spacing: 0.05em;
 }
 
+.world-picker__pre {
+  color: #ffffff;
+  background: #000;
+  font-size: 14px;
+  line-height: 1.2;
+  margin: 0;
+  padding: 20px;
+  font-family: 'square';
+}
+
+.world-picker__pre--error {
+  font-family: 'Courier New', monospace;
+}
+
 /* Loading Overlay - MS-DOS Style */
 .loading-overlay {
   position: fixed;
@@ -156,7 +179,7 @@
 .loading-spinner {
   width: 4rem;
   height: 2rem;
-  font-family: 'Noto Sans Mono', monospace;
+  font-family: 'square';
   font-size: 2rem;
   color: #ffffff;
   margin-bottom: 1rem;

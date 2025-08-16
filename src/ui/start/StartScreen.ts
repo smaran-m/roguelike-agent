@@ -1,20 +1,23 @@
 import { WorldPicker } from './WorldPicker';
 import { Logger } from '../../utils/Logger';
 import { ErrorHandler, GameErrorCode } from '../../utils/ErrorHandler';
+import './start-screen.css';
 
 export class StartScreen {
   private element: HTMLElement;
   private logger: Logger;
   private errorHandler: ErrorHandler;
   private onGameStart?: (worldId: string) => void;
+  private worldPicker: WorldPicker | null = null;
 
   constructor(containerElement: HTMLElement) {
     this.logger = Logger.getInstance();
     this.errorHandler = ErrorHandler.getInstance();
     this.element = containerElement;
+    this.element.classList.add('start-screen');
     
     this.setupHTML();
-    new WorldPicker(
+    this.worldPicker = WorldPicker.getInstance(
       this.element.querySelector('#world-picker-container')!,
       this.handleWorldSelected.bind(this)
     );
@@ -22,10 +25,9 @@ export class StartScreen {
 
   private setupHTML(): void {
     this.element.innerHTML = `
-      <div style="background: #000; color: #fff; font-size: 14px; line-height: 1.4; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-        <div id="ascii-header" style="margin-bottom: 40px;">
-          <pre style="margin: 0;">ROGUELIKE AGENT
-          
+      <header class="start-screen__header">
+        <h1 class="start-screen__title">Roguelike Agent</h1>
+        <pre class="start-screen__ascii">
 ==================================================.
 S       |               | |         |       |     |
 .=====. '===. | ======. | | | .===. '=. .=. | | | |
@@ -47,12 +49,12 @@ S       |               | |         |       |     |
 |== | ====' ====| '=' ==. | | | | .====== '===' | |
 |   |           |       |   |     |             | E
 '==================================================
-          </pre>
-        </div>
-        <div id="world-picker-container"></div>
-        <div id="loading-overlay" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-          <pre>Loading world...</pre>
-        </div>
+        </pre>
+      </header>
+      <div id="world-picker-container"></div>
+      <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p>Loading world...</p>
       </div>
     `;
   }
@@ -67,6 +69,11 @@ S       |               | |         |       |     |
       
       if (this.onGameStart) {
         this.onGameStart(worldId);
+      }
+      
+      if (this.worldPicker) {
+        this.worldPicker.destroy();
+        this.worldPicker = null;
       }
     } catch (error) {
       this.errorHandler.handle(GameErrorCode.WORLD_SELECTION_FAILED, error as Error, { worldId });

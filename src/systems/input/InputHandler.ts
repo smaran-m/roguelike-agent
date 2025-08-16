@@ -1,4 +1,5 @@
 import { Logger } from '../../utils/Logger';
+import { getFontFamily } from '../../config/fonts';
 
 export interface InputCallbacks {
   onMovementKey: (keys: Set<string>) => void;
@@ -73,7 +74,7 @@ export class InputHandler {
       color: white;
       padding: 12px 20px;
       border-radius: 6px;
-      font-family: 'Noto Sans Mono', monospace;
+      font-family: ${getFontFamily()};
       font-size: 14px;
       font-weight: bold;
       z-index: 10000;

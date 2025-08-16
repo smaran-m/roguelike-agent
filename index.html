@@ -4,15 +4,73 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LLM Roguelike</title>
+  
+  <!-- Preload all fonts for faster loading -->
+  <link rel="preload" href="/fonts/Perfect_DOS_VGA_437_Win.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/fonts/Perfect_DOS_VGA_437.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/fonts/square.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/fonts/cozette.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/fonts/8x8-square-roguelike-ascii-font.ttf" as="font" type="font/ttf" crossorigin>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono&display=block');
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Emoji&display=block');
+    /* Removed Noto fonts - using Perfect DOS VGA 437 fonts for consistent terminal rendering */
     
+    /* Perfect DOS VGA 437 fonts for terminal rendering */
+    @font-face {
+      font-family: 'Perfect DOS VGA 437';
+      src: url('/fonts/Perfect_DOS_VGA_437.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: block;
+    }
+    
+    @font-face {
+      font-family: 'Perfect DOS VGA 437 Win';
+      src: url('/fonts/Perfect_DOS_VGA_437_Win.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: block;
+    }
+    
+    /* Square font - purpose-built for roguelikes */
+    @font-face {
+      font-family: 'square';
+      src: url('/fonts/square.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: block;
+    }
+    
+    /* Cozette - chunky bitmap terminal font */
+    @font-face {
+      font-family: 'Cozette';
+      src: url('/fonts/cozette.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: block;
+    }
+    
+    /* 8x8 Square Roguelike ASCII font */
+    @font-face {
+      font-family: 'RoguelikeSquare8x8';
+      src: url('/fonts/8x8-square-roguelike-ascii-font.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: block;
+    }
+    
+    /* Removed broken font-face declarations */
+    
+    html {
+      height: 100%;
+    }
+
     body {
       margin: 0;
       padding: 0;
       background: #000;
-      font-family: 'Noto Sans Mono', monospace;
+      font-family: 'Perfect DOS VGA 437 Win', 'Perfect DOS VGA 437', monospace;
+      height: 100%;
+      overflow: hidden;
     }
     
     #app-container {

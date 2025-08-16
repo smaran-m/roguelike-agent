@@ -113,7 +113,7 @@ export class Game {
 
     //this.startGameLoop();
     
-    // Wait for Noto Emoji to be fully available before rendering
+    // Wait for Perfect DOS VGA 437 fonts to be fully available before rendering
   }
   
   
@@ -232,9 +232,9 @@ export class Game {
     
     // Load all fonts comprehensively
     try {
-      await document.fonts.load('14px "Noto Emoji"');
-      await document.fonts.load('12px "Noto Sans Mono"');
-      await document.fonts.load('10px "Noto Sans Mono"'); // For HP text
+      await document.fonts.load('16px "Perfect DOS VGA 437 Win"');
+      await document.fonts.load('12px "Perfect DOS VGA 437 Win"');
+      await document.fonts.load('8px "Perfect DOS VGA 437 Win"'); // For HP text
     } catch (e) {
       this.logger.warn('Font failed to load, using fallback');
     }
@@ -247,7 +247,7 @@ export class Game {
     if (ctx) {
       for (const emoji of testEmojis) {
         // Test each emoji with our font stack
-        ctx.font = '14px "Noto Emoji", Apple Color Emoji, Segoe UI Emoji, sans-serif';
+        ctx.font = '16px "Perfect DOS VGA 437 Win", "Perfect DOS VGA 437", Apple Color Emoji, Segoe UI Emoji, sans-serif';
         const metrics = ctx.measureText(emoji);
         this.logger.debug(`Font test for ${emoji}: width=${metrics.width}`);
       }
