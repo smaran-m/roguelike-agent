@@ -25,6 +25,7 @@ export class ROTRenderer implements IRenderer {
   private renderedEntities: Set<string> = new Set();
   private entityPositions: Map<string, {x: number, y: number}> = new Map();
   private lastFOVCells: Set<string> = new Set();
+  private exploredCells: Set<string> = new Set();
   
   // Messages
   messages: string[] = [];
@@ -94,8 +95,11 @@ export class ROTRenderer implements IRenderer {
     let bg = this.colorToHex(tile.bgColor);
     
     if (!visibility.visible) {
-      fg = '#000000';
-      bg = '#000000'; // Explored, but not visible
+      fg = '#444444'; // Dim color for explored but not visible tiles
+      bg = '#000000'; // Black background for explored but not visible tiles
+    } else {
+      // If the tile is visible, it's also explored.
+      this.exploredCells.add(`${worldX},${worldY}`);
     }
     
     this.rotDisplay.draw(screenX, screenY, char, fg, bg);
@@ -164,6 +168,21 @@ export class ROTRenderer implements IRenderer {
   }
   
   renderTileWithVisibility(worldX: number, worldY: number, tile: Tile, distance: number, hasLOS: boolean) {
+    const tileKey = `${worldX},${worldY}`;
+
+    if (hasLOS) {
+      // This tile is visible, so mark it as explored.
+      this.exploredCells.add(tileKey);
+    } else {
+      // This tile is not in LOS. Only render it if it has been explored before.
+      if (this.exploredCells.has(tileKey)) {
+        // Render as a "memory" tile.
+        this.renderTile(worldX, worldY, tile, { explored: true, visible: false });
+      }
+      // If it's not in LOS and not explored, do nothing.
+      return;
+    }
+
     const screenX = worldX - this._cameraX;
     const screenY = worldY - this._cameraY;
     
@@ -176,16 +195,11 @@ export class ROTRenderer implements IRenderer {
     let fg = this.colorToHex(tile.fgColor);
     let bg = this.colorToHex(tile.bgColor);
     
-    if (!hasLOS) {
-      fg = '#000000';
-      bg = '#000000'; // Explored, but not visible
-    } else {
-      const maxDistance = 8;
-      const alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
-      if (alpha < 1.0) {
-        fg = this.fadeHexColor(fg, alpha);
-        bg = this.fadeHexColor(bg, alpha);
-      }
+    const maxDistance = 8;
+    const alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
+    if (alpha < 1.0) {
+      fg = this.fadeHexColor(fg, alpha);
+      bg = this.fadeHexColor(bg, alpha);
     }
     
     this.rotDisplay.draw(screenX, screenY, char, fg, bg);
