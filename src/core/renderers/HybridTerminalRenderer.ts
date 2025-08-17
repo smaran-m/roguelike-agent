@@ -21,8 +21,8 @@ export class HybridTerminalRenderer implements IRenderer {
   tileSize: number = 32;
   gridWidth: number;
   gridHeight: number;
-  viewportWidth: number = 25;
-  viewportHeight: number = 15;
+  viewportWidth: number = 20;
+  viewportHeight: number = 20;
 
   // PixiJS game area
   app!: Application;
@@ -127,7 +127,7 @@ export class HybridTerminalRenderer implements IRenderer {
     this.leftPanel.id = 'character-sheet-terminal';
     this.leftPanel.style.cssText = `
       width: 300px;
-      height: 600px;
+      height: 620px;
       background: #000;
       border-right: 2px solid #444;
       overflow-y: auto;
@@ -151,7 +151,7 @@ export class HybridTerminalRenderer implements IRenderer {
     this.rightPanel.id = 'combat-log-terminal';
     this.rightPanel.style.cssText = `
       width: 400px;
-      height: 600px;
+      height: 620px;
       background: #000;
       border-left: 2px solid #444;
       overflow-y: auto;
@@ -293,6 +293,9 @@ export class HybridTerminalRenderer implements IRenderer {
       this.hpTextMap
     );
     
+    // Give animation system access to tile graphics map
+    this.animationSystem.setTileGraphicsMap(this.tileGraphicsMap);
+    
     // Initialize camera system for PixiJS area
     this.cameraSystem = new CameraSystem(
       this.gridWidth,
@@ -328,6 +331,7 @@ export class HybridTerminalRenderer implements IRenderer {
     if (!visibility.explored) {
       return;
     }
+    
     
     // Use PixiJS Graphics for tiles with full visual effects
     const bg = new Graphics();
@@ -519,6 +523,7 @@ export class HybridTerminalRenderer implements IRenderer {
       const maxDistance = 8;
       alpha = Math.max(0.3, 1.0 - (distance / maxDistance) * 0.7);
     }
+    
     
     const bg = new Graphics();
     bg.beginFill(tile.bgColor);
@@ -1154,6 +1159,32 @@ export class HybridTerminalRenderer implements IRenderer {
 
   hasNativeLOS(): boolean {
     return this.fov !== undefined; // Uses Malwoden's FOV if available
+  }
+
+
+  startDeathRipple(x: number, y: number) {
+    console.log(`🌊 HybridRenderer: Starting death ripple at (${x}, ${y})`);
+    this.animationSystem.startTileRipple(x, y);
+  }
+
+  startColorRipple(x: number, y: number, color: number, intensity: number = 1.0, radius: number = 10) {
+    console.log(`🎨 HybridRenderer: Starting color ripple at (${x}, ${y}) with color 0x${color.toString(16)}`);
+    this.animationSystem.startColorRipple(x, y, color, intensity, radius);
+  }
+
+  startLinearWave(startX: number, startY: number, direction: number, length: number, amplitude: number = 4, waveWidth: number = 1) {
+    console.log(`🌊 HybridRenderer: Starting linear wave from (${startX}, ${startY}) width ${waveWidth}`);
+    this.animationSystem.startLinearWave(startX, startY, direction, length, amplitude, waveWidth);
+  }
+
+  startColorFlash(x: number, y: number, color: number, intensity: number = 1.0, radius: number = 10) {
+    console.log(`🎨 HybridRenderer: Starting color flash at (${x}, ${y}) with color 0x${color.toString(16)}`);
+    this.animationSystem.startColorFlash(x, y, color, intensity, radius);
+  }
+
+  startConicalWave(startX: number, startY: number, startAngle: number, endAngle: number, length: number, amplitude: number = 6) {
+    console.log(`🎆 HybridRenderer: Starting conical wave from (${startX}, ${startY}) angles ${startAngle}°-${endAngle}°`);
+    this.animationSystem.startConicalWave(startX, startY, startAngle, endAngle, length, amplitude);
   }
 
   // Main render method to ensure UI consistency

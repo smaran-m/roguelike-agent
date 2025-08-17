@@ -11,7 +11,7 @@ import { ResourceManager } from '../managers/ResourceManager';
 import { EventBus, EventBusConfig } from './events/EventBus';
 import { Logger } from '../utils/Logger';
 import { ErrorHandler } from '../utils/ErrorHandler';
-import { generateEventId } from './events/GameEvent';
+import { generateEventId, EnemyDiedEvent, DamageDealtEvent } from './events/GameEvent';
 import { AudioSystem } from '../systems/audio/AudioSystem';
 
 export class Game {
@@ -108,6 +108,9 @@ export class Game {
     };
     this.inputHandler = new InputHandler(inputCallbacks);
     
+    // Subscribe to EnemyDied events for death ripple effects
+    this.setupEventSubscriptions();
+    
     // Start game loop
     this.waitForFontsAndRender();
 
@@ -116,6 +119,9 @@ export class Game {
     // Wait for Perfect DOS VGA 437 fonts to be fully available before rendering
   }
   
+  private setupEventSubscriptions() {
+    // Event subscriptions moved to individual systems where they're handled
+  }
   
   startGameLoop() {
     this.gameStateManager.startGameLoop(() => {
@@ -382,6 +388,46 @@ export class Game {
     
     this.eventBus.publish(moveEvent);
   }
+
+  // Test ripple animation directly
+  testRipple() {
+    console.log('🧪 Manual ripple test at player position');
+    if (this.renderer && this.renderer.startDeathRipple) {
+      this.renderer.startDeathRipple(this.player.x, this.player.y);
+      
+      // Force multiple renders to ensure animation shows up
+      const forceRender = () => {
+        this.render();
+        setTimeout(forceRender, 32); // ~30fps renders
+      };
+      forceRender();
+    }
+  }
+
+  // Test color ripple effects
+  testColorRipple(color: number = 0xFF0000) {
+    console.log(`🧪 Manual color ripple test at player position with color 0x${color.toString(16)}`);
+    if (this.renderer && this.renderer.startColorRipple) {
+      this.renderer.startColorRipple(this.player.x, this.player.y, color, 0.8, 8);
+    }
+  }
+
+  // Test linear wave effects
+  testLinearWave(direction: number = 0) {
+    console.log(`🧪 Manual linear wave test from player position, direction ${direction} radians`);
+    if (this.renderer && this.renderer.startLinearWave) {
+      this.renderer.startLinearWave(this.player.x, this.player.y, direction, 15, 6);
+    }
+  }
+
+  // Convenience methods for testing different effects
+  testRedFlash() { this.testColorRipple(0xFF4444); }
+  testBlueFlash() { this.testColorRipple(0x4444FF); }
+  testGreenFlash() { this.testColorRipple(0x44FF44); }
+  testRightWave() { this.testLinearWave(0); } // Right
+  testDownWave() { this.testLinearWave(Math.PI / 2); } // Down
+  testLeftWave() { this.testLinearWave(Math.PI); } // Left
+  testUpWave() { this.testLinearWave(3 * Math.PI / 2); } // Up
 
   // Debug player info
   debugPlayer() {

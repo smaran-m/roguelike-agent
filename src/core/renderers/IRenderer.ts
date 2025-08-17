@@ -34,6 +34,11 @@ export interface IRenderer {
   shakeEntity(entity: Entity): void;
   nudgeEntity(entity: Entity, targetX: number, targetY: number): void;
   showFloatingDamage(entity: Entity, damage: number): void;
+  startDeathRipple?(x: number, y: number): void;
+  startColorFlash?(x: number, y: number, color: number, intensity?: number, radius?: number): void;
+  startColorRipple?(x: number, y: number, color: number, intensity?: number, radius?: number): void;
+  startLinearWave?(startX: number, startY: number, direction: number, length: number, amplitude?: number, waveWidth?: number): void;
+  startConicalWave?(startX: number, startY: number, startAngle: number, endAngle: number, length: number, amplitude?: number): void;
   
   // Camera methods
   updateCameraForPlayer(entity: Entity): boolean;

@@ -4,7 +4,7 @@ import { IRenderer } from '../../core/renderers/IRenderer';
 import { CharacterManager } from '../../managers/CharacterManager';
 import { ResourceManager } from '../../managers/ResourceManager';
 import { EventBus } from '../../core/events/EventBus';
-import { generateEventId } from '../../core/events/GameEvent';
+import { generateEventId, EnemyDiedEvent } from '../../core/events/GameEvent';
 
 export interface CombatResult {
   success: boolean;
@@ -20,6 +20,41 @@ export class CombatManager {
   constructor(renderer: IRenderer, eventBus: EventBus) {
     this.renderer = renderer;
     this.eventBus = eventBus;
+    
+    this.setupDeathAnimations();
+  }
+  
+  private setupDeathAnimations() {
+    this.eventBus.subscribe('EnemyDied', (event) => {
+      const deathEvent = event as EnemyDiedEvent;
+      console.log('💀 CombatManager: EnemyDied event received for animations!', { 
+        position: deathEvent.position,
+        enemyId: deathEvent.enemyId 
+      });
+      
+      // Trigger death ripple animation if supported by renderer
+      // if (this.renderer && this.renderer.startDeathRipple) {
+      //   console.log('CombatManager: Starting death ripple');
+      //   this.renderer.startDeathRipple(deathEvent.position.x, deathEvent.position.y);
+        
+      //   if (this.renderer.startColorRipple) {
+      //     console.log('CombatManager: Adding red death color ripple wave');
+      //     this.renderer.startColorRipple(deathEvent.position.x, deathEvent.position.y, 0xFF0000, 1.0, 15);
+      //   }
+        
+      //   if (this.renderer.startLinearWave) {
+      //     console.log('CombatManager: Adding linear wave effect');
+      //     this.renderer.startLinearWave(deathEvent.position.x, deathEvent.position.y, 0, 20, 12, 2);
+      //   }
+        
+      //   if (this.renderer.startConicalWave) {
+      //     console.log('CombatManager: Adding conical wave effect');
+      //     this.renderer.startConicalWave(deathEvent.position.x, deathEvent.position.y, -60, 60, 18, 10);
+      //   }
+      // } else {
+      //   console.log('CombatManager: Renderer does not support death animations');
+      // }
+    });
   }
 
   attemptMeleeAttack(attacker: Entity, entities: Entity[]): CombatResult {
