@@ -1,7 +1,7 @@
 import { Tile, Entity, TileVisibility } from '../../types';
 import { IRenderer } from './IRenderer';
 import { Application, Container, Graphics, Text } from 'pixi.js';
-import { Terminal, Color, FOV } from 'malwoden';
+import { FOV } from 'malwoden';
 import { Logger } from '../../utils/Logger';
 import { getFontFamily } from '../../config/fonts';
 import { CameraSystem } from '../../systems/camera/CameraSystem';
@@ -13,7 +13,7 @@ import { WorldConfigLoader } from '../../loaders/WorldConfigLoader';
 /**
  * Hybrid renderer that combines PixiJS for the main game area with Malwoden terminals for UI
  * - Game area: Full PixiJS with animations, camera transitions, smooth effects
- * - UI areas: Native Malwoden terminals for authentic terminal styling
+ * - UI areas: Native Malwoden terminals for authentic terminal styling1
  * - Layout: Separate HTML containers for organized positioning
  */
 export class HybridTerminalRenderer implements IRenderer {
@@ -24,12 +24,6 @@ export class HybridTerminalRenderer implements IRenderer {
   viewportWidth: number = 25;
   viewportHeight: number = 15;
 
-  // Layout configuration
-  private readonly leftPanelWidth = 24;   // Character sheet terminal width
-  private readonly rightPanelWidth = 40;  // Combat log terminal width
-  private readonly leftPanelHeight = 35;  // Terminal height
-  private readonly rightPanelHeight = 35; // Terminal height
-  
   // PixiJS game area
   app!: Application;
   tileContainer!: Container;
@@ -50,10 +44,6 @@ export class HybridTerminalRenderer implements IRenderer {
   
   // Font configuration (using TTF fonts now)
   // Removed bitmap font configuration - using Perfect DOS VGA 437 TTF fonts instead
-  
-  // Malwoden UI terminals (can be either RetroTerminal or CanvasTerminal)
-  private leftTerminal?: Terminal.RetroTerminal | Terminal.CanvasTerminal;   // Character sheet
-  private rightTerminal?: Terminal.RetroTerminal | Terminal.CanvasTerminal;  // Combat log
   
   // HTML containers
   private mainContainer?: HTMLElement;
@@ -96,48 +86,100 @@ export class HybridTerminalRenderer implements IRenderer {
     // Clear existing content
     gameContainer.innerHTML = '';
     
-    // Create main flex container
+    // Create wrapper for vertical centering
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = `
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    `;
+    
+    // Create main flex container for the game interface
     this.mainContainer = document.createElement('div');
     this.mainContainer.style.cssText = `
       display: flex;
+      flex-direction: column;
       background: #000;
       font-family: 'Courier New', monospace;
-      height: 100vh;
+      border: 2px solid #444;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+      max-width: 1400px;
+      max-height: 800px;
       overflow: hidden;
     `;
     
-    // Left panel for character sheet (Malwoden terminal)
+    wrapper.appendChild(this.mainContainer);
+    gameContainer.appendChild(wrapper);
+    
+    // Create middle container for main panels
+    const middleContainer = document.createElement('div');
+    middleContainer.style.cssText = `
+      display: flex;
+      flex-direction: row;
+      flex: 1;
+    `;
+    
+    // Left panel for character sheet
     this.leftPanel = document.createElement('div');
     this.leftPanel.id = 'character-sheet-terminal';
     this.leftPanel.style.cssText = `
-      width: ${this.leftPanelWidth * 12}px;
+      width: 300px;
+      height: 600px;
       background: #000;
       border-right: 2px solid #444;
+      overflow-y: auto;
     `;
     
     // Center panel for PixiJS game area
     this.gamePanel = document.createElement('div');
     this.gamePanel.id = 'pixi-game-area';
     this.gamePanel.style.cssText = `
-      flex: 1;
+      width: ${this.viewportWidth * this.tileSize}px;
+      height: ${this.viewportHeight * this.tileSize}px;
       background: #000;
       position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     `;
     
-    // Right panel for combat log (Malwoden terminal)
+    // Right panel for combat log
     this.rightPanel = document.createElement('div');
     this.rightPanel.id = 'combat-log-terminal';
     this.rightPanel.style.cssText = `
-      width: ${this.rightPanelWidth * 12}px;
+      width: 400px;
+      height: 600px;
       background: #000;
       border-left: 2px solid #444;
+      overflow-y: auto;
+    `;
+    
+    // Bottom UI area for position and controls
+    const bottomUI = document.createElement('div');
+    bottomUI.id = 'bottom-ui';
+    bottomUI.style.cssText = `
+      height: 40px;
+      background: #000;
+      border-top: 2px solid #444;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: #cccccc;
+      font-family: var(--font-family);
+      font-size: var(--font-size-medium);
     `;
     
     // Assemble layout
-    this.mainContainer.appendChild(this.leftPanel);
-    this.mainContainer.appendChild(this.gamePanel);
-    this.mainContainer.appendChild(this.rightPanel);
-    gameContainer.appendChild(this.mainContainer);
+    middleContainer.appendChild(this.leftPanel);
+    middleContainer.appendChild(this.gamePanel);
+    middleContainer.appendChild(this.rightPanel);
+    
+    this.mainContainer.appendChild(middleContainer);
+    this.mainContainer.appendChild(bottomUI);
     
     Logger.debug('Hybrid renderer containers initialized');
   }
@@ -170,96 +212,38 @@ export class HybridTerminalRenderer implements IRenderer {
   }
 
   private initializeMalwodenUI() {
-    // Re-enable Malwoden terminals with proper bitmap font support
-    Logger.debug('Initializing Malwoden UI terminals with RetroTerminal bitmap fonts');
-    this.initializeCharacterSheetTerminal();
-    this.initializeCombatLogTerminal();
+    // Initialize UI panels with HTML/CSS instead of Malwoden terminals for better text rendering
+    Logger.debug('Initializing UI panels with HTML/CSS for better text control');
+    this.setupHTMLUIPanel(this.leftPanel!, 'character-sheet');
+    this.setupHTMLUIPanel(this.rightPanel!, 'combat-log');
+    
+    // We'll skip Malwoden terminals and use direct HTML rendering for UI text
+    // This avoids the 1-character-per-cell spacing issue
   }
 
-  private initializeCharacterSheetTerminal() {
-    if (!this.leftPanel) {
-      Logger.error('Left panel not available for terminal initialization');
-      return;
-    }
+  private setupHTMLUIPanel(panel: HTMLElement, panelType: string) {
+    panel.style.cssText += `
+      color: #ffffff;
+      font-family: var(--font-family), monospace;
+      font-size: 14px;
+      line-height: 1.2;
+      padding: 10px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    `;
     
-    Logger.debug('Initializing character sheet terminal...');
+    // Create content container
+    const content = document.createElement('div');
+    content.id = `${panelType}-content`;
+    content.style.cssText = `
+      height: 100%;
+      font-family: inherit;
+      color: inherit;
+      position: relative;
+    `;
     
-    // Try simple CanvasTerminal with basic font
-    try {
-      this.leftTerminal = new Terminal.CanvasTerminal({
-        width: this.leftPanelWidth,
-        height: this.leftPanelHeight,
-        foreColor: Color.White,
-        backColor: Color.Black,
-        font: new Terminal.Font(getFontFamily(), 14),
-        mountNode: this.leftPanel
-      });
-      Logger.debug('HYBRID: ✓ Character sheet terminal initialized with CanvasTerminal');
-      
-    } catch (error) {
-      Logger.error('Error initializing character sheet CanvasTerminal:', error);
-      
-      // Try RetroTerminal as fallback
-      try {
-        this.leftTerminal = new Terminal.RetroTerminal({
-          width: this.leftPanelWidth,
-          height: this.leftPanelHeight,
-          foreColor: Color.White,
-          backColor: Color.Black,
-          charWidth: 16,
-          charHeight: 16,
-          imageURL: '/fonts/agm_16x16.png',
-          mountNode: this.leftPanel
-        });
-        Logger.debug('✓ Fallback: Character sheet terminal initialized with RetroTerminal');
-        
-      } catch (fallbackError) {
-        Logger.error('✗ Both terminal types failed:', fallbackError);
-      }
-    }
-  }
-
-  private initializeCombatLogTerminal() {
-    if (!this.rightPanel) {
-      Logger.error('Right panel not available for terminal initialization');
-      return;
-    }
-    
-    Logger.debug('Initializing combat log terminal...');
-    
-    // Try simple CanvasTerminal with basic font
-    try {
-      this.rightTerminal = new Terminal.CanvasTerminal({
-        width: this.rightPanelWidth,
-        height: this.rightPanelHeight,
-        foreColor: Color.White,
-        backColor: Color.Black,
-        font: new Terminal.Font(getFontFamily(), 14),
-        mountNode: this.rightPanel
-      });
-      Logger.debug(`HYBRID: ✓ Combat log terminal initialized with CanvasTerminal (${this.rightPanelWidth}x${this.rightPanelHeight})`);
-      
-    } catch (error) {
-      Logger.error('Error initializing combat log CanvasTerminal:', error);
-      
-      // Try RetroTerminal as fallback
-      try {
-        this.rightTerminal = new Terminal.RetroTerminal({
-          width: this.rightPanelWidth,
-          height: this.rightPanelHeight,
-          foreColor: Color.White,
-          backColor: Color.Black,
-          charWidth: 16,
-          charHeight: 16,
-          imageURL: '/fonts/agm_16x16.png',
-          mountNode: this.rightPanel
-        });
-        Logger.debug('✓ Fallback: Combat log terminal initialized with RetroTerminal');
-        
-      } catch (fallbackError) {
-        Logger.error('✗ Both terminal types failed:', fallbackError);
-      }
-    }
+    panel.appendChild(content);
+    Logger.debug(`HTML UI panel setup complete for ${panelType}`);
   }
 
   private initializeFOV() {
@@ -381,6 +365,11 @@ export class HybridTerminalRenderer implements IRenderer {
     if (entity.isPlayer) {
       this.currentPlayer = entity;
       this.uiNeedsRedraw = true;
+      
+      // Force immediate render to update player stats
+      setTimeout(() => {
+        this.render();
+      }, 0);
     }
     
     // Render entity in PixiJS with full animation support (same as PixiRenderer)
@@ -446,6 +435,11 @@ export class HybridTerminalRenderer implements IRenderer {
     if (entity.isPlayer) {
       this.currentPlayer = entity;
       this.uiNeedsRedraw = true;
+      
+      // Force immediate render to update player stats
+      setTimeout(() => {
+        this.render();
+      }, 0);
     }
     
     // Get or create entity text object (persistent across frames)
@@ -482,7 +476,7 @@ export class HybridTerminalRenderer implements IRenderer {
       const hpRatio = currentHp / maxHp;
       const hpColor = hpRatio > 0.5 ? 0x00FF00 : hpRatio > 0.25 ? 0xFFFF00 : 0xFF0000;
       
-      hpText.text = `${currentHp}/${maxHp}`;
+      //hpText.text = `${currentHp}/${maxHp}`;
       
       // Set text color (only Text objects now)
       hpText.style.fill = hpColor;
@@ -496,6 +490,12 @@ export class HybridTerminalRenderer implements IRenderer {
     if (this.uiNeedsRedraw) {
       this.updateUITerminals();
       this.uiNeedsRedraw = false;
+    }
+    
+    // Update character sheet and position text if this is the player (same as PixiRenderer)
+    if (entity.isPlayer) {
+      // We don't have characterSheet.updateResourcesOnly, but the UI is already updated above
+      this.updatePositionText(entity.x, entity.y);
     }
   }
 
@@ -548,85 +548,109 @@ export class HybridTerminalRenderer implements IRenderer {
     this.tileGraphicsMap.set(key, { bg, text, originalColor: tile.fgColor });
   }
 
-  // Terminal UI update methods
+  // HTML UI update methods
   private updateUITerminals() {
-    // Skip UI updates if terminals are disabled
-    if (!this.leftTerminal || !this.rightTerminal) {
-      Logger.debug('Skipping UI terminal updates - terminals not initialized');
-      return;
-    }
-    Logger.debug('Updating UI terminals...');
-    this.updateCharacterSheetTerminal();
-    this.updateCombatLogTerminal();
-    Logger.debug('UI terminals updated');
+    Logger.debug('Updating HTML UI panels...');
+    this.updateCharacterSheetHTML();
+    this.updateCombatLogHTML();
+    this.updateBottomUI();
+    Logger.debug('HTML UI panels updated');
   }
 
-  private updateCharacterSheetTerminal() {
-    if (!this.leftTerminal) {
-      Logger.debug('No left terminal for character sheet');
+  private updateCharacterSheetHTML() {
+    const content = document.getElementById('character-sheet-content');
+    if (!content || !this.currentPlayer) {
+      Logger.debug('No character sheet content container or current player');
       return;
     }
-    if (!this.currentPlayer) {
-      Logger.debug('No current player for character sheet');
-      return;
-    }
-    Logger.debug('Updating character sheet terminal...');
-    
-    this.leftTerminal.clear();
-    
+
     const player = this.currentPlayer;
-    let y = 0;
+    let html = '';
     
     // Title
-    this.leftTerminal.writeAt({x: 0, y: y++}, "CHARACTER", Color.White);
-    y++; // Skip line
+    html += '<span style="color: #ffffff; font-weight: bold;">CHARACTER</span>\n\n';
     
     // Portrait
-    this.leftTerminal.writeAt({x: 10, y: y++}, "@", Color.Yellow);
-    y++; // Skip line
+    html += '<span style="color: #ffff00;">@</span> (Player)\n\n';
     
     // Name and info
-    this.leftTerminal.writeAt({x: 0, y: y++}, `Name: ${player.name}`, Color.White);
+    html += `<span style="color: #ffffff;">Name: ${player.name}</span>\n`;
     
     // Character class info
     const characterManager = CharacterManager.getInstance();
     const currentCharacter = characterManager.getCurrentCharacter();
     if (currentCharacter) {
-      this.leftTerminal.writeAt({x: 0, y: y++}, `Class: ${currentCharacter.className}`, Color.Gray);
-      this.leftTerminal.writeAt({x: 0, y: y++}, `Level: ${currentCharacter.level}`, Color.Yellow);
-      this.leftTerminal.writeAt({x: 0, y: y++}, `XP: ${currentCharacter.experience}`, Color.Gray);
-      y++; // Skip line
+      html += `<span style="color: #cccccc;">Class: ${currentCharacter.className}</span>\n`;
+      html += `<span style="color: #ffff00;">Level: ${currentCharacter.level}</span>\n`;
+      html += `<span style="color: #cccccc;">XP: ${currentCharacter.experience}</span>\n\n`;
     }
     
     // Resources
-    y = this.renderCharacterResources(y, player);
-    y++; // Skip line
+    html += this.renderCharacterResourcesHTML(player);
+    html += '\n';
     
     // Stats
-    this.leftTerminal.writeAt({x: 0, y: y++}, "STATS", Color.White);
-    this.leftTerminal.writeAt({x: 0, y: y++}, `AC: ${player.stats.ac}`, Color.Cyan);
-    this.leftTerminal.writeAt({x: 0, y: y++}, `STR: ${player.stats.strength} (${this.getModifier(player.stats.strength)})`, Color.White);
-    this.leftTerminal.writeAt({x: 0, y: y++}, `DEX: ${player.stats.dexterity} (${this.getModifier(player.stats.dexterity)})`, Color.White);
-    this.leftTerminal.writeAt({x: 0, y: y++}, `CON: ${player.stats.constitution} (${this.getModifier(player.stats.constitution)})`, Color.White);
-    this.leftTerminal.writeAt({x: 0, y: y++}, `INT: ${player.stats.intelligence} (${this.getModifier(player.stats.intelligence)})`, Color.White);
-    this.leftTerminal.writeAt({x: 0, y: y++}, `WIS: ${player.stats.wisdom} (${this.getModifier(player.stats.wisdom)})`, Color.White);
-    this.leftTerminal.writeAt({x: 0, y: y++}, `CHA: ${player.stats.charisma} (${this.getModifier(player.stats.charisma)})`, Color.White);
-    y++; // Skip line
+    html += '<span style="color: #ffffff; font-weight: bold;">STATS</span>\n';
+    html += `<span style="color: #00ffff;">AC: ${player.stats.ac}</span>\n`;
+    html += `<span style="color: #ffffff;">STR: ${player.stats.strength} (${this.getModifier(player.stats.strength)})</span>\n`;
+    html += `<span style="color: #ffffff;">DEX: ${player.stats.dexterity} (${this.getModifier(player.stats.dexterity)})</span>\n`;
+    html += `<span style="color: #ffffff;">CON: ${player.stats.constitution} (${this.getModifier(player.stats.constitution)})</span>\n`;
+    html += `<span style="color: #ffffff;">INT: ${player.stats.intelligence} (${this.getModifier(player.stats.intelligence)})</span>\n`;
+    html += `<span style="color: #ffffff;">WIS: ${player.stats.wisdom} (${this.getModifier(player.stats.wisdom)})</span>\n`;
+    html += `<span style="color: #ffffff;">CHA: ${player.stats.charisma} (${this.getModifier(player.stats.charisma)})</span>\n\n`;
     
     // Equipment/Inventory
-    y = this.renderCharacterInventory(y, player);
+    html += this.renderCharacterInventoryHTML(player);
     
-    // Bottom corner: position
-    if (this.currentPlayer) {
-      const posText = `(${this.currentPlayer.x}, ${this.currentPlayer.y})`;
-      this.leftTerminal.writeAt({x: this.leftPanelWidth - posText.length, y: this.leftPanelHeight - 1}, posText, Color.Gray);
-    }
+    content.innerHTML = html;
   }
 
-  private renderCharacterResources(startY: number, player: Entity): number {
-    if (!this.leftTerminal) return startY;
+  private updateCombatLogHTML() {
+    const content = document.getElementById('combat-log-content');
+    if (!content) {
+      Logger.debug('No combat log content container');
+      return;
+    }
+
+    let html = '';
     
-    let y = startY;
+    // Title
+    html += '<span style="color: #ffffff; font-weight: bold;">COMBAT LOG</span>\n\n';
+    
+    // Display recent messages
+    const maxLines = 25; // Enough for the panel height
+    const messagesToShow = this.messages.slice(-maxLines);
+    
+    messagesToShow.forEach((message) => {
+      html += `<span style="color: #ffffff;">${message}</span>\n`;
+    });
+    
+    content.innerHTML = html;
+    
+    // Auto-scroll to bottom
+    content.scrollTop = content.scrollHeight;
+  }
+
+  private updateBottomUI() {
+    const bottomUI = document.getElementById('bottom-ui');
+    if (!bottomUI || !this.currentPlayer) {
+      return;
+    }
+
+    // Controls help (left side)
+    const controlsText = 'WASD/Arrows: Move  Space: Attack';
+    
+    // Position display (right side)
+    const positionText = `(${this.currentPlayer.x}, ${this.currentPlayer.y})`;
+    
+    bottomUI.innerHTML = `
+      <span>${controlsText}</span>
+      <span>${positionText}</span>
+    `;
+  }
+
+  private renderCharacterResourcesHTML(player: Entity): string {
+    let html = '';
     const availableResources = WorldConfigLoader.getAvailableResourceIds();
     
     availableResources.forEach((resourceId: string) => {
@@ -640,125 +664,50 @@ export class HybridTerminalRenderer implements IRenderer {
         const barDisplay = this.createASCIIBar(current, max, barSize);
         
         const colorValue = ResourceManager.getResourceColor(player, resourceId);
-        const color = this.numberToMalwodenColor(colorValue);
+        const colorHex = this.numberToHexColor(colorValue);
         
-        this.leftTerminal!.writeAt({x: 0, y}, `${displayName}:`, Color.White);
-        this.leftTerminal!.writeAt({x: 0, y: y + 1}, `${barDisplay} ${current}/${max}`, color);
-        y += 2;
+        html += `<span style="color: #ffffff;">${displayName}:</span>\n`;
+        html += `<span style="color: ${colorHex};">${barDisplay} ${current}/${max}</span>\n`;
       }
     });
     
-    return y;
+    return html;
   }
 
-  private renderCharacterInventory(startY: number, _player: Entity): number {
-    if (!this.leftTerminal) return startY;
-    
-    let y = startY;
-    
-    // Equipment section title
-    this.leftTerminal.writeAt({x: 0, y: y++}, "EQUIPMENT", Color.White);
+  private renderCharacterInventoryHTML(_player: Entity): string {
+    let html = '<span style="color: #ffffff; font-weight: bold;">EQUIPMENT</span>\n';
     
     const characterManager = CharacterManager.getInstance();
     const currentCharacter = characterManager.getCurrentCharacter();
     
     if (!currentCharacter || !currentCharacter.inventory || currentCharacter.inventory.length === 0) {
-      this.leftTerminal.writeAt({x: 0, y: y++}, "(Empty)", Color.Gray);
-      return y;
+      html += '<span style="color: #cccccc;">(Empty)</span>\n';
+      return html;
     }
     
-    // Display inventory items (max 4-5 items to fit on screen)
     const maxDisplayItems = Math.min(currentCharacter.inventory.length, 5);
     for (let i = 0; i < maxDisplayItems; i++) {
       const item = currentCharacter.inventory[i];
+      const itemName = item.name.length > 12 ? item.name.substring(0, 12) : item.name;
+      let itemLine = `${itemName}`;
       
-      // Convert item emoji to ASCII for terminal display
-      const itemChar = this.itemToASCII(item.glyph);
-      
-      // Item line: "/ Sword (1d8+2)"
-      const itemName = item.name.length > 8 ? item.name.substring(0, 8) : item.name;
-      let itemLine = `${itemChar} ${itemName}`;
-      
-      // Add damage info if weapon
       if (item.type === 'weapon' && item.damage) {
         const damageInfo = item.damage.length > 6 ? item.damage.substring(0, 6) : item.damage;
         itemLine += ` (${damageInfo})`;
       }
       
-      // Truncate if too long for terminal width
-      if (itemLine.length > this.leftPanelWidth - 2) {
-        itemLine = itemLine.substring(0, this.leftPanelWidth - 2);
-      }
-      
-      this.leftTerminal.writeAt({x: 0, y: y++}, itemLine, Color.White);
+      html += `<span style="color: #ffffff;">${itemLine}</span>\n`;
     }
     
-    // Show "..." if more items exist
     if (currentCharacter.inventory.length > maxDisplayItems) {
-      this.leftTerminal.writeAt({x: 0, y: y++}, "...", Color.Gray);
+      html += '<span style="color: #cccccc;">...</span>\n';
     }
     
-    return y;
+    return html;
   }
 
-  // Convert item emojis to ASCII characters for terminal display
-  private itemToASCII(glyph: string): string {
-    switch (glyph) {
-      case '⚔️': return '/';   // Sword
-      case '🛡️': return ']';   // Shield
-      case '🏹': return ')';   // Bow
-      case '🔧': return '(';   // Tool/Hammer
-      case '🪓': return '/';   // Axe
-      case '💎': return '*';   // Gem
-      case '💰': return '$';   // Gold
-      case '🧪': return '!';   // Potion
-      case '📜': return '?';   // Scroll
-      case '🗝️': return '=';   // Key
-      case '💍': return '=';   // Ring
-      case '👕': return '[';   // Armor/Clothing
-      case '🥾': return '[';   // Boots
-      case '🎩': return '^';   // Hat
-      default:
-        // For ASCII characters, return as-is
-        const charCode = glyph.charCodeAt(0);
-        if (charCode <= 127) {
-          return glyph;
-        }
-        return '?'; // Unknown item
-    }
-  }
-
-  private updateCombatLogTerminal() {
-    if (!this.rightTerminal) {
-      Logger.debug('HYBRID: No right terminal for combat log');
-      return;
-    }
-    Logger.debug('HYBRID: Updating combat log terminal...');
-    
-    this.rightTerminal.clear();
-    
-    let y = 0;
-    
-    // Title
-    this.rightTerminal.writeAt({x: 0, y: y++}, "COMBAT LOG", Color.White);
-    y++; // Skip line
-    
-    // Display recent messages
-    const maxLines = this.rightPanelHeight - 5; // Leave room for title and controls
-    const messagesToShow = this.messages.slice(-maxLines);
-    
-    messagesToShow.forEach((message, index) => {
-      const wrappedLines = this.wrapText(message, this.rightPanelWidth - 2);
-      wrappedLines.forEach((line) => {
-        if (y < this.rightPanelHeight - 2) {
-          this.rightTerminal!.writeAt({x: 0, y: y++}, line, Color.White);
-        }
-      });
-    });
-    
-    // Bottom: controls
-    const controlsText = "WASD: Move  Space: Attack";
-    this.rightTerminal.writeAt({x: 0, y: this.rightPanelHeight - 1}, controlsText, Color.Gray);
+  private numberToHexColor(colorValue: number): string {
+    return `#${colorValue.toString(16).padStart(6, '0')}`;
   }
 
   // Helper method to create malwoden-style terminal text with proper 1:1 ratio font
@@ -862,39 +811,6 @@ export class HybridTerminalRenderer implements IRenderer {
   private getModifier(abilityScore: number): string {
     const mod = Math.floor((abilityScore - 10) / 2);
     return mod >= 0 ? `+${mod}` : `${mod}`;
-  }
-
-  private wrapText(text: string, maxWidth: number): string[] {
-    const words = text.split(' ');
-    const lines: string[] = [];
-    let currentLine = '';
-    
-    for (const word of words) {
-      if (currentLine.length + word.length + 1 <= maxWidth) {
-        currentLine += (currentLine ? ' ' : '') + word;
-      } else {
-        if (currentLine) lines.push(currentLine);
-        currentLine = word;
-      }
-    }
-    
-    if (currentLine) lines.push(currentLine);
-    return lines;
-  }
-
-  private numberToMalwodenColor(colorValue: number): Color {
-    switch (colorValue) {
-      case 0xFF0000: return Color.Red;
-      case 0x00FF00: return Color.Green;
-      case 0x0000FF: return Color.Blue;
-      case 0xFFFF00: return Color.Yellow;
-      case 0xFF00FF: return Color.Magenta;
-      case 0x00FFFF: return Color.Cyan;
-      case 0xFFFFFF: return Color.White;
-      case 0x808080: return Color.Gray;
-      case 0xFFA500: return Color.Orange;
-      default: return Color.White;
-    }
   }
 
   // PixiJS methods with full animation support
@@ -1033,6 +949,7 @@ export class HybridTerminalRenderer implements IRenderer {
       this.currentPlayer.y = y;
       this.uiNeedsRedraw = true;
     }
+    Logger.debug(`Position updated: (${x}, ${y})`);
   }
 
   updateVisibilityAlpha(playerX: number, playerY: number, tileMap: any, lineOfSight: any) {
@@ -1241,26 +1158,17 @@ export class HybridTerminalRenderer implements IRenderer {
 
   // Main render method to ensure UI consistency
   render() {
-    // Update UI terminals when needed and properly initialized
-    if (this.leftTerminal && this.rightTerminal) {
-      // Update UI when needed, on first render, or when messages changed
-      const messageCountChanged = this.messages.length !== this.lastMessageCount;
-      if (this.uiNeedsRedraw || !this.hasRenderedOnce || messageCountChanged) {
-        try {
-          this.updateUITerminals();
-          this.uiNeedsRedraw = false;
-          this.hasRenderedOnce = true;
-          this.lastMessageCount = this.messages.length;
-          
-          // Render the terminals to display the content
-          this.leftTerminal.render();
-          this.rightTerminal.render();
-        } catch (error) {
-          Logger.error('HYBRID: Error rendering UI terminals:', error);
-        }
+    // Always update HTML UI panels (we no longer use Malwoden terminals)
+    const messageCountChanged = this.messages.length !== this.lastMessageCount;
+    if (this.uiNeedsRedraw || !this.hasRenderedOnce || messageCountChanged) {
+      try {
+        this.updateUITerminals(); // This calls our HTML methods now
+        this.uiNeedsRedraw = false;
+        this.hasRenderedOnce = true;
+        this.lastMessageCount = this.messages.length;
+      } catch (error) {
+        Logger.error('HYBRID: Error rendering HTML UI panels:', error);
       }
-    } else {
-      Logger.debug(`HYBRID: Terminal status - left: ${!!this.leftTerminal}, right: ${!!this.rightTerminal}`);
     }
   }
 }

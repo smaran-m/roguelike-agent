@@ -609,6 +609,41 @@ export class MalwodenRenderer implements IRenderer {
   private drawText(x: number, y: number, text: string, color: Color = Color.White) {
     if (!this.terminal || y >= this.terminalHeight || x >= this.terminalWidth) return;
     
+    // Try to use more compact text rendering by checking Malwoden's Terminal API
+    const terminal = this.terminal as any;
+    
+    // Check for writeText method (common in terminal libraries)
+    if (typeof terminal.writeText === 'function') {
+      try {
+        terminal.writeText({x, y}, text, color, Color.Black);
+        return;
+      } catch (error) {
+        Logger.debug('writeText method failed, falling back to glyph rendering');
+      }
+    }
+    
+    // Check for drawText method
+    if (typeof terminal.drawText === 'function') {
+      try {
+        terminal.drawText({x, y}, text, color, Color.Black);
+        return;
+      } catch (error) {
+        Logger.debug('drawText method failed, falling back to glyph rendering');
+      }
+    }
+    
+    // Check for writeAt method
+    if (typeof terminal.writeAt === 'function') {
+      try {
+        terminal.writeAt({x, y}, text, color, Color.Black);
+        return;
+      } catch (error) {
+        Logger.debug('writeAt method failed, falling back to glyph rendering');
+      }
+    }
+    
+    // Last resort: render character by character (this causes spacing issues)
+    // We'll use smaller character width by adjusting the font size or spacing
     for (let i = 0; i < text.length && (x + i) < this.terminalWidth; i++) {
       this.terminal.drawGlyph({x: x + i, y}, new Glyph(text[i], color, Color.Black));
     }

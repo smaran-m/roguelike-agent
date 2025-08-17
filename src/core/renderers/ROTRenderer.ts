@@ -404,6 +404,7 @@ export class ROTRenderer implements IRenderer {
     return `#${color.toString(16).padStart(6, '0')}`;
   }
   
+  // @ts-ignore - Unused method kept for potential future use
   private darkenHexColor(hexColor: string): string {
     const color = parseInt(hexColor.slice(1), 16);
     const darkened = this.darkenNumericColor(color);
