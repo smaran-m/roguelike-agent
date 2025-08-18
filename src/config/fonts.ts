@@ -45,7 +45,7 @@ export const AVAILABLE_FONTS: Record<string, FontConfig> = {
   
   'roguelike-8x8': {
     name: '8x8 Square Roguelike',
-    family: '"RoguelikeSquare8x8", monospace',
+    family: '"8x8 Square Roguelike", monospace',
     description: 'Authentic 8x8 square roguelike ASCII font',
     size: { small: 8, medium: 16, large: 24 },
     filename: '8x8-square-roguelike-ascii-font.ttf'

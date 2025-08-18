@@ -14,7 +14,8 @@
       "WebFetch(domain:github.com)",
       "WebSearch",
       "Bash(curl:*)",
-      "WebFetch(domain:www.dafont.com)"
+      "WebFetch(domain:www.dafont.com)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

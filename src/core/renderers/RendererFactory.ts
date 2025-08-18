@@ -2,12 +2,13 @@ import { IRenderer } from './IRenderer';
 import { PixiRenderer } from './PixiRenderer';
 import { ROTRenderer } from './ROTRenderer';
 import { MalwodenRenderer } from './MalwodenRenderer';
-import { HybridTerminalRenderer } from './HybridTerminalRenderer';
+import { DefaultRenderer } from './DefaultRenderer';
+import { Logger } from '@/utils/Logger';
 
-export type RendererType = 'pixi' | 'rot' | 'malwoden' | 'pixi-terminal';
+export type RendererType = 'default' | 'pixi' | 'rot' | 'malwoden';
 
 // Easy switching between renderer types
-export const RENDERER_TYPE: RendererType = 'pixi-terminal'; // Change this to switch renderers
+export const RENDERER_TYPE: RendererType = 'default'; // Change this to switch renderers
 
 export class RendererFactory {
   static createRenderer(width: number, height: number, type?: RendererType): IRenderer {
@@ -20,10 +21,11 @@ export class RendererFactory {
         return new ROTRenderer(width, height);
       case 'malwoden':
         return new MalwodenRenderer(width, height);
-      case 'pixi-terminal':
-        return new HybridTerminalRenderer(width, height);
+      case 'default':
+        return new DefaultRenderer(width, height);
       default:
-        throw new Error(`Unknown renderer type: ${rendererType}`);
+        Logger.error(`Unknown renderer type: ${rendererType}`);
+        return new DefaultRenderer(width, height);
     }
   }
 }

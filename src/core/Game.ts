@@ -11,8 +11,9 @@ import { ResourceManager } from '../managers/ResourceManager';
 import { EventBus, EventBusConfig } from './events/EventBus';
 import { Logger } from '../utils/Logger';
 import { ErrorHandler } from '../utils/ErrorHandler';
-import { generateEventId, EnemyDiedEvent, DamageDealtEvent } from './events/GameEvent';
+import { generateEventId } from './events/GameEvent';
 import { AudioSystem } from '../systems/audio/AudioSystem';
+import { getFontsToLoad } from '../config/fonts';
 
 export class Game {
   renderer: IRenderer;
@@ -108,19 +109,12 @@ export class Game {
     };
     this.inputHandler = new InputHandler(inputCallbacks);
     
-    // Subscribe to EnemyDied events for death ripple effects
-    this.setupEventSubscriptions();
-    
     // Start game loop
     this.waitForFontsAndRender();
 
     //this.startGameLoop();
     
     // Wait for Perfect DOS VGA 437 fonts to be fully available before rendering
-  }
-  
-  private setupEventSubscriptions() {
-    // Event subscriptions moved to individual systems where they're handled
   }
   
   startGameLoop() {
@@ -236,31 +230,18 @@ export class Game {
       this.logger.warn('Audio initialization failed, continuing without audio');
     }
     
-    // Load all fonts comprehensively
+    // Load fonts using the centralized font system
     try {
-      await document.fonts.load('16px "Perfect DOS VGA 437 Win"');
-      await document.fonts.load('12px "Perfect DOS VGA 437 Win"');
-      await document.fonts.load('8px "Perfect DOS VGA 437 Win"'); // For HP text
+      const fontsToLoad = getFontsToLoad();
+      for (const fontString of fontsToLoad) {
+        await document.fonts.load(fontString);
+      }
     } catch (e) {
       this.logger.warn('Font failed to load, using fallback');
     }
     
-    // Test all emojis we use to ensure they render consistently
-    const testEmojis = ['🧙', '👺']; // Add all emojis used in game
-    const testCanvas = document.createElement('canvas');
-    const ctx = testCanvas.getContext('2d');
-    
-    if (ctx) {
-      for (const emoji of testEmojis) {
-        // Test each emoji with our font stack
-        ctx.font = '16px "Perfect DOS VGA 437 Win", "Perfect DOS VGA 437", Apple Color Emoji, Segoe UI Emoji, sans-serif';
-        const metrics = ctx.measureText(emoji);
-        this.logger.debug(`Font test for ${emoji}: width=${metrics.width}`);
-      }
-      
-      // Additional delay to ensure PixiJS can access fonts
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
+    // Additional delay to ensure PixiJS can access fonts
+    await new Promise(resolve => setTimeout(resolve, 200));
     
     this.render();
     this.startGameLoop();
@@ -347,98 +328,6 @@ export class Game {
     }
   }
 
-  // Audio testing utilities for debugging
-  testAudio() {
-    this.logger.debug('🔊 Audio system debug info:', this.audioSystem.getDebugInfo());
-    this.audioSystem.testSound(); // Test basic tone
-  }
-  
-  testFootstep() {
-    this.audioSystem.testSound('footstep');
-  }
-  
-  testMusic() {
-    this.audioSystem.testMusic();
-  }
-
-  // Reset and test music
-  resetMusic() {
-    this.audioSystem.resetBackgroundMusic();
-    setTimeout(() => {
-      this.audioSystem.testMusic();
-    }, 100);
-  }
-
-  // Test movement event publishing
-  testMovementEvent() {
-    const moveEvent = {
-      type: 'EntityMoved' as const,
-      id: generateEventId(),
-      timestamp: Date.now(),
-      entityId: this.player.id, // Should be 'player' based on isPlayer === true
-      oldPosition: { x: this.player.x, y: this.player.y },
-      newPosition: { x: this.player.x + 1, y: this.player.y }
-    };
-    
-    this.logger.info('🧪 Manual test - publishing EntityMoved event', { 
-      moveEvent,
-      playerId: this.player.id,
-      playerIsPlayer: this.player.isPlayer 
-    });
-    
-    this.eventBus.publish(moveEvent);
-  }
-
-  // Test ripple animation directly
-  testRipple() {
-    console.log('🧪 Manual ripple test at player position');
-    if (this.renderer && this.renderer.startDeathRipple) {
-      this.renderer.startDeathRipple(this.player.x, this.player.y);
-      
-      // Force multiple renders to ensure animation shows up
-      const forceRender = () => {
-        this.render();
-        setTimeout(forceRender, 32); // ~30fps renders
-      };
-      forceRender();
-    }
-  }
-
-  // Test color ripple effects
-  testColorRipple(color: number = 0xFF0000) {
-    console.log(`🧪 Manual color ripple test at player position with color 0x${color.toString(16)}`);
-    if (this.renderer && this.renderer.startColorRipple) {
-      this.renderer.startColorRipple(this.player.x, this.player.y, color, 0.8, 8);
-    }
-  }
-
-  // Test linear wave effects
-  testLinearWave(direction: number = 0) {
-    console.log(`🧪 Manual linear wave test from player position, direction ${direction} radians`);
-    if (this.renderer && this.renderer.startLinearWave) {
-      this.renderer.startLinearWave(this.player.x, this.player.y, direction, 15, 6);
-    }
-  }
-
-  // Convenience methods for testing different effects
-  testRedFlash() { this.testColorRipple(0xFF4444); }
-  testBlueFlash() { this.testColorRipple(0x4444FF); }
-  testGreenFlash() { this.testColorRipple(0x44FF44); }
-  testRightWave() { this.testLinearWave(0); } // Right
-  testDownWave() { this.testLinearWave(Math.PI / 2); } // Down
-  testLeftWave() { this.testLinearWave(Math.PI); } // Left
-  testUpWave() { this.testLinearWave(3 * Math.PI / 2); } // Up
-
-  // Debug player info
-  debugPlayer() {
-    this.logger.debug('🧪 Player debug info:', {
-      id: this.player.id,
-      isPlayer: this.player.isPlayer,
-      position: { x: this.player.x, y: this.player.y },
-      displayPosition: { x: this.movementState.displayX, y: this.movementState.displayY },
-      fullPlayerObject: this.player
-    });
-  }
 
   // Cleanup method for proper resource management
   destroy() {

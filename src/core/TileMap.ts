@@ -63,8 +63,8 @@ export class TileMap {
       
       this.tiles[y][x] = {
         glyph: '#',
-        fgColor: 0x808080,
-        bgColor: 0x222222,
+        fgColor: 0x222222,
+        bgColor: 0x808080,
         isEmoji: false,
         walkable: false,
         blocksLight: true

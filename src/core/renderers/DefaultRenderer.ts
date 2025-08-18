@@ -16,7 +16,7 @@ import { WorldConfigLoader } from '../../loaders/WorldConfigLoader';
  * - UI areas: Native Malwoden terminals for authentic terminal styling1
  * - Layout: Separate HTML containers for organized positioning
  */
-export class HybridTerminalRenderer implements IRenderer {
+export class DefaultRenderer implements IRenderer {
   // Core properties
   tileSize: number = 32;
   gridWidth: number;
@@ -347,8 +347,8 @@ export class HybridTerminalRenderer implements IRenderer {
     this.tileContainer.addChild(bg);
     
       // Use malwoden-style drawGlyph approach for consistent terminal rendering
-    const asciiChar = this.tileToASCII(tile);
-    const text = this.createMalwodenStyleText(asciiChar, visibility.visible ? tile.fgColor : this.darkenColor(tile.fgColor, 0.4));
+    const displayChar = this.getDisplayCharacter(tile.glyph);
+    const text = this.createMalwodenStyleText(displayChar, visibility.visible ? tile.fgColor : this.darkenColor(tile.fgColor, 0.4));
     
     text.x = screenX * this.tileSize + this.tileSize / 2;
     text.y = screenY * this.tileSize + this.tileSize / 2;
@@ -385,9 +385,9 @@ export class HybridTerminalRenderer implements IRenderer {
       return;
     }
     
-    // Convert to ASCII and use malwoden-style terminal font
-    const asciiChar = this.entityToASCII(entity);
-    const text = this.createMalwodenStyleText(asciiChar, entity.color);
+    // Use glyph directly with Unicode fallback
+    const displayChar = this.getDisplayCharacter(entity.glyph);
+    const text = this.createMalwodenStyleText(displayChar, entity.color);
     
     text.x = screenX * this.tileSize + this.tileSize / 2;
     text.y = screenY * this.tileSize + this.tileSize / 2;
@@ -449,9 +449,9 @@ export class HybridTerminalRenderer implements IRenderer {
     // Get or create entity text object (persistent across frames)
     let text = this.entityTextMap.get(entity.id);
     if (!text) {
-      // Convert to ASCII and use malwoden-style terminal font
-      const asciiChar = this.entityToASCII(entity);
-      text = this.createMalwodenStyleText(asciiChar, entity.color);
+      // Use glyph directly with Unicode fallback
+      const displayChar = this.getDisplayCharacter(entity.glyph);
+      text = this.createMalwodenStyleText(displayChar, entity.color);
       text.anchor.set(0.5);
       
       this.entityTextMap.set(entity.id, text);
@@ -537,9 +537,9 @@ export class HybridTerminalRenderer implements IRenderer {
     bg.endFill();
     this.tileContainer.addChild(bg);
     
-    // Convert to ASCII and use malwoden-style terminal font
-    const asciiChar = this.tileToASCII(tile);
-    const text = this.createMalwodenStyleText(asciiChar, fgColor);
+    // Use glyph directly with Unicode fallback
+    const displayChar = this.getDisplayCharacter(tile.glyph);
+    const text = this.createMalwodenStyleText(displayChar, fgColor);
     
     text.x = screenX * this.tileSize + this.tileSize / 2;
     text.y = screenY * this.tileSize + this.tileSize / 2;
@@ -743,65 +743,41 @@ export class HybridTerminalRenderer implements IRenderer {
     return textObject;
   }
 
-  // ASCII conversion methods for terminal aesthetics
-  private tileToASCII(tile: Tile): string {
-    // Convert tile emojis/Unicode to ASCII for terminal look
-    switch (tile.glyph) {
-      case '🟫': return '#';  // Wall
-      case '⬛': return '.';  // Floor  
-      case '🟩': return '.';  // Grass
-      case '🟦': return '~';  // Water
-      case '🟧': return '+';  // Door
-      case '⭐': return '*';  // Special
-      case '🔥': return '^';  // Fire
-      case '❄️': return '*';  // Ice
-      case '⚡': return '%';  // Lightning
-      case '🌪️': return '&';  // Wind
-      default:
-        // For any other character, try to get ASCII equivalent
-        const charCode = tile.glyph.charCodeAt(0);
-        if (charCode <= 127) {
-          return tile.glyph; // Already ASCII
-        }
-        return '.'; // Default fallback
+  // Simple character display - use glyph directly, with emoji fallback for unsupported fonts
+  private getDisplayCharacter(glyph: string): string {
+    // Handle multi-character sequences (compound emojis)
+    if (glyph.length > 1) {
+      return '@'; // Multi-character sequences are likely emojis
     }
-  }
-
-  private entityToASCII(entity: Entity): string {
-    // Convert entity emojis to ASCII characters
-    switch (entity.glyph) {
-      case '🤺': return '@';  // Player (fencer)
-      case '🧙': return '@';  // Player (wizard)
-      case '👺': return 'o';  // Goblin
-      case '🦇': return 'b';  // Bat
-      case '🐀': return 'r';  // Rat
-      case '🐺': return 'w';  // Wolf
-      case '🐻': return 'B';  // Bear
-      case '🐉': return 'D';  // Dragon
-      case '👻': return 'g';  // Ghost
-      case '💀': return 's';  // Skeleton
-      case '🧟': return 'z';  // Zombie
-      case '🕷️': return 's';  // Spider
-      case '🐍': return 'S';  // Snake
-      case '🦂': return 'a';  // Scorpion
-      case '⚔️': return '/';  // Sword
-      case '🛡️': return ']';  // Shield
-      case '💎': return '*';  // Gem
-      case '💰': return '$';  // Gold
-      case '🧪': return '!';  // Potion
-      case '📜': return '?';  // Scroll
-      case '🗝️': return '=';  // Key
-      case '🚪': return '+';  // Door
-      case '📦': return '#';  // Chest
-      default:
-        // For ASCII characters, return as-is
-        const charCode = entity.glyph.charCodeAt(0);
-        if (charCode <= 127) {
-          return entity.glyph;
-        }
-        // For unknown entities, use a generic character
-        return entity.isPlayer ? '@' : 'M'; // M for Monster
+    
+    const charCode = glyph.charCodeAt(0);
+    
+    // ASCII characters (0-127) always work
+    if (charCode <= 127) {
+      return glyph;
     }
+    
+    // Basic Unicode ranges that work well in most fonts
+    if (
+      (charCode >= 0x0080 && charCode <= 0x024F) || // Latin Extended A & B
+      (charCode >= 0x2500 && charCode <= 0x257F) || // Box Drawing
+      (charCode >= 0x2580 && charCode <= 0x259F) || // Block Elements
+      (charCode >= 0x25A0 && charCode <= 0x25FF)    // Geometric Shapes (basic)
+    ) {
+      return glyph; // Allow basic Unicode symbols like ·, ─, █, etc.
+    }
+    
+    // Block emoji ranges
+    if (
+      (charCode >= 0x1F000) ||                      // All high Unicode (emojis)
+      (charCode >= 0x2600 && charCode <= 0x26FF) || // Miscellaneous Symbols
+      (charCode >= 0x2700 && charCode <= 0x27BF)    // Dingbats
+    ) {
+      return '?'; // Replace emojis with fallback
+    }
+    
+    // For other Unicode, try to display (might work in some fonts)
+    return glyph;
   }
 
   // Utility methods
@@ -1163,27 +1139,27 @@ export class HybridTerminalRenderer implements IRenderer {
 
 
   startDeathRipple(x: number, y: number) {
-    console.log(`🌊 HybridRenderer: Starting death ripple at (${x}, ${y})`);
+    console.log(`HybridRenderer: Starting death ripple at (${x}, ${y})`);
     this.animationSystem.startTileRipple(x, y);
   }
 
   startColorRipple(x: number, y: number, color: number, intensity: number = 1.0, radius: number = 10) {
-    console.log(`🎨 HybridRenderer: Starting color ripple at (${x}, ${y}) with color 0x${color.toString(16)}`);
+    console.log(`HybridRenderer: Starting color ripple at (${x}, ${y}) with color 0x${color.toString(16)}`);
     this.animationSystem.startColorRipple(x, y, color, intensity, radius);
   }
 
   startLinearWave(startX: number, startY: number, direction: number, length: number, amplitude: number = 4, waveWidth: number = 1) {
-    console.log(`🌊 HybridRenderer: Starting linear wave from (${startX}, ${startY}) width ${waveWidth}`);
+    console.log(`HybridRenderer: Starting linear wave from (${startX}, ${startY}) width ${waveWidth}`);
     this.animationSystem.startLinearWave(startX, startY, direction, length, amplitude, waveWidth);
   }
 
   startColorFlash(x: number, y: number, color: number, intensity: number = 1.0, radius: number = 10) {
-    console.log(`🎨 HybridRenderer: Starting color flash at (${x}, ${y}) with color 0x${color.toString(16)}`);
+    console.log(`HybridRenderer: Starting color flash at (${x}, ${y}) with color 0x${color.toString(16)}`);
     this.animationSystem.startColorFlash(x, y, color, intensity, radius);
   }
 
   startConicalWave(startX: number, startY: number, startAngle: number, endAngle: number, length: number, amplitude: number = 6) {
-    console.log(`🎆 HybridRenderer: Starting conical wave from (${startX}, ${startY}) angles ${startAngle}°-${endAngle}°`);
+    console.log(`HybridRenderer: Starting conical wave from (${startX}, ${startY}) angles ${startAngle}°-${endAngle}°`);
     this.animationSystem.startConicalWave(startX, startY, startAngle, endAngle, length, amplitude);
   }
 
