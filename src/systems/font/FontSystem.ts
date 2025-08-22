@@ -7,10 +7,12 @@ export interface FontConfig {
   align: string;
 }
 
+import { getFontFamily } from '../../config/fonts';
+
 export class FontSystem {
-  // Font families
-  private static readonly EMOJI_FONT = 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif';
-  private static readonly MONO_FONT = 'Noto Sans Mono, monospace';
+  // Font families - now using centralized font config
+  private static readonly EMOJI_FONT = `${getFontFamily()}, Apple Color Emoji, Segoe UI Emoji, sans-serif`;
+  private static readonly MONO_FONT = getFontFamily();
 
   // Font sizes
   private static readonly EMOJI_SIZE_LARGE = 28;

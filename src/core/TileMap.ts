@@ -37,7 +37,7 @@ export class TileMap {
           this.tiles[y][x] = {
             glyph: '#',
             fgColor: 0x808080,
-            bgColor: 0x000000,
+            bgColor: 0x222222,
             isEmoji: false,
             walkable: false,
             blocksLight: true
@@ -47,7 +47,7 @@ export class TileMap {
           this.tiles[y][x] = {
             glyph: '·',
             fgColor: 0x404040,
-            bgColor: 0x000000,
+            bgColor: 0x222222,
             isEmoji: false,
             walkable: true,
             blocksLight: false
@@ -63,8 +63,8 @@ export class TileMap {
       
       this.tiles[y][x] = {
         glyph: '#',
-        fgColor: 0x808080,
-        bgColor: 0x000000,
+        fgColor: 0x222222,
+        bgColor: 0x808080,
         isEmoji: false,
         walkable: false,
         blocksLight: true

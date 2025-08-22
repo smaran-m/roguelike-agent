@@ -20,12 +20,7 @@ describe('CombatManager', () => {
       nudgeEntity: vi.fn(),
       shakeEntity: vi.fn(),
       showFloatingDamage: vi.fn(),
-      removeEntity: vi.fn(),
-      animationSystem: {
-        nudgeEntity: vi.fn(),
-        shakeEntity: vi.fn(),
-        showFloatingDamage: vi.fn()
-      }
+      removeEntity: vi.fn()
     };
     
     // Set up default CharacterManager mock
@@ -113,7 +108,7 @@ describe('CombatManager', () => {
     expect(result.targetKilled).toBe(false);
     expect(result.target).toBe(enemy);
     expect(mockRenderer.addMessage).toHaveBeenCalledWith('Player makes a melee attack with fists against Goblin!');
-    expect(mockRenderer.animationSystem.nudgeEntity).toHaveBeenCalledWith(player, enemy.x, enemy.y);
+    expect(mockRenderer.nudgeEntity).toHaveBeenCalledWith(player, enemy.x, enemy.y);
   });
 
   it('should handle no targets in range', () => {
@@ -142,7 +137,7 @@ describe('CombatManager', () => {
     
     expect(result.success).toBe(true);
     expect(mockRenderer.addMessage).toHaveBeenCalledWith('CRITICAL HIT! 2d6+4 = 10 damage');
-    expect(mockRenderer.animationSystem.showFloatingDamage).toHaveBeenCalledWith(enemy, 10);
+    expect(mockRenderer.showFloatingDamage).toHaveBeenCalledWith(enemy, 10);
   });
 
   it('should handle target death', () => {
@@ -176,7 +171,7 @@ describe('CombatManager', () => {
     
     expect(result.success).toBe(true);
     expect(mockRenderer.addMessage).toHaveBeenCalledWith('Miss!');
-    expect(mockRenderer.animationSystem.shakeEntity).toHaveBeenCalledWith(player);
+    expect(mockRenderer.shakeEntity).toHaveBeenCalledWith(player);
   });
 
   it('should show weapon name in combat messages when player has equipped weapon', () => {

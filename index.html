@@ -4,15 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LLM Roguelike</title>
+  
+  <!-- Font preloads and @font-face declarations are now generated dynamically by fonts.ts -->
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Mono&display=block');
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Emoji&display=block');
+    /* All @font-face declarations are now generated dynamically by fonts.ts */
     
+    html {
+      height: 100%;
+    }
+
     body {
       margin: 0;
       padding: 0;
       background: #000;
-      font-family: 'Noto Sans Mono', monospace;
+      font-family: 'Perfect DOS VGA 437 Win', 'Perfect DOS VGA 437', monospace;
+      height: 100%;
+      overflow: hidden;
     }
     
     #app-container {
@@ -36,6 +43,10 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+    }
+    
+    #game-container.active {
+      display: flex; /* Enable flexbox when game is active */
     }
     
     /* UI overlay styles removed - now handled by PixiJS renderer */

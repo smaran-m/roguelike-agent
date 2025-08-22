@@ -8,7 +8,14 @@
       "Bash(mv:*)",
       "Bash(npm run dev:*)",
       "Bash(git add:*)",
-      "Bash(del nul)"
+      "Bash(del nul)",
+      "WebFetch(domain:tutorial.malwoden.com)",
+      "WebFetch(domain:docs.malwoden.com)",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "Bash(curl:*)",
+      "WebFetch(domain:www.dafont.com)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

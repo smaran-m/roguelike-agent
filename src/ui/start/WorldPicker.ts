@@ -10,14 +10,17 @@ interface WorldDisplayInfo {
 }
 
 export class WorldPicker {
+  private static instance: WorldPicker | null = null;
+  
   private element: HTMLElement;
   private logger: Logger;
   private errorHandler: ErrorHandler;
   private onWorldSelected: (worldId: string) => Promise<void>;
   private worlds: WorldDisplayInfo[] = [];
   private selectedIndex: number = 0;
+  private keyboardHandler: ((e: KeyboardEvent) => void) | null = null;
 
-  constructor(
+  private constructor(
     containerElement: HTMLElement,
     onWorldSelected: (worldId: string) => Promise<void>
   ) {
@@ -28,6 +31,24 @@ export class WorldPicker {
     
     this.initialize();
     this.setupKeyboardEvents();
+  }
+
+  public static getInstance(
+    containerElement: HTMLElement,
+    onWorldSelected: (worldId: string) => Promise<void>
+  ): WorldPicker {
+    if (!WorldPicker.instance) {
+      WorldPicker.instance = new WorldPicker(containerElement, onWorldSelected);
+    }
+    return WorldPicker.instance;
+  }
+
+  public destroy(): void {
+    if (this.keyboardHandler) {
+      document.removeEventListener('keydown', this.keyboardHandler);
+      this.keyboardHandler = null;
+    }
+    WorldPicker.instance = null;
   }
 
   private async initialize(): Promise<void> {
@@ -54,7 +75,7 @@ export class WorldPicker {
       'Arrow keys to navigate, ENTER to select'
     ].join('\n');
     
-    this.element.innerHTML = `<pre style="color: #ffffff; background: #000; font-size: 14px; line-height: 1.2; margin: 0; padding: 20px;">${display}</pre>`;
+    this.element.innerHTML = `<pre class="world-picker__pre">${display}</pre>`;
   }
 
   private createWorldListItem(world: WorldDisplayInfo, isSelected: boolean): string {
@@ -62,9 +83,10 @@ export class WorldPicker {
     return `${cursor} ${world.name} - ${world.description}`;
   }
 
-
   private setupKeyboardEvents(): void {
-    const handleKeyPress = (e: KeyboardEvent) => {
+    this.keyboardHandler = (e: KeyboardEvent) => {
+      if (!WorldPicker.instance) return;
+
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
@@ -85,10 +107,7 @@ export class WorldPicker {
       }
     };
 
-    document.addEventListener('keydown', handleKeyPress);
-    
-    // Store reference to remove later if needed
-    (this.element as any).keyboardHandler = handleKeyPress;
+    document.addEventListener('keydown', this.keyboardHandler);
   }
 
   private updateSelection(): void {
@@ -112,7 +131,7 @@ export class WorldPicker {
       'USING FANTASY WORLD AS FALLBACK...'
     ].join('\n');
     
-    this.element.innerHTML = `<pre style="color: #ffffff; background: #000; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.2; margin: 0; padding: 20px;">${display}</pre>`;
+    this.element.innerHTML = `<pre class="world-picker__pre world-picker__pre--error">${display}</pre>`;
 
     // Automatically select fantasy after a delay
     setTimeout(() => {

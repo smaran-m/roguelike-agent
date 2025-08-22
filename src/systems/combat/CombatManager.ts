@@ -1,11 +1,10 @@
 import { Entity } from '../../types';
 import { CombatSystem } from './CombatSystem';
-import { Renderer } from '../../core/Renderer';
-import { AnimationSystem } from '../animation/AnimationSystem';
+import { IRenderer } from '../../core/renderers/IRenderer';
 import { CharacterManager } from '../../managers/CharacterManager';
 import { ResourceManager } from '../../managers/ResourceManager';
 import { EventBus } from '../../core/events/EventBus';
-import { generateEventId } from '../../core/events/GameEvent';
+import { generateEventId, EnemyDiedEvent } from '../../core/events/GameEvent';
 
 export interface CombatResult {
   success: boolean;
@@ -15,14 +14,47 @@ export interface CombatResult {
 }
 
 export class CombatManager {
-  private renderer: Renderer;
-  private animationSystem: AnimationSystem;
+  private renderer: IRenderer;
   private eventBus: EventBus;
 
-  constructor(renderer: Renderer, eventBus: EventBus) {
+  constructor(renderer: IRenderer, eventBus: EventBus) {
     this.renderer = renderer;
-    this.animationSystem = renderer.animationSystem;
     this.eventBus = eventBus;
+    
+    this.setupDeathAnimations();
+  }
+  
+  private setupDeathAnimations() {
+    this.eventBus.subscribe('EnemyDied', (event) => {
+      const deathEvent = event as EnemyDiedEvent;
+      console.log('💀 CombatManager: EnemyDied event received for animations!', { 
+        position: deathEvent.position,
+        enemyId: deathEvent.enemyId 
+      });
+      
+      // Trigger death ripple animation if supported by renderer
+      // if (this.renderer && this.renderer.startDeathRipple) {
+      //   console.log('CombatManager: Starting death ripple');
+      //   this.renderer.startDeathRipple(deathEvent.position.x, deathEvent.position.y);
+        
+      //   if (this.renderer.startColorRipple) {
+      //     console.log('CombatManager: Adding red death color ripple wave');
+      //     this.renderer.startColorRipple(deathEvent.position.x, deathEvent.position.y, 0xFF0000, 1.0, 15);
+      //   }
+        
+      //   if (this.renderer.startLinearWave) {
+      //     console.log('CombatManager: Adding linear wave effect');
+      //     this.renderer.startLinearWave(deathEvent.position.x, deathEvent.position.y, 0, 20, 12, 2);
+      //   }
+        
+      //   if (this.renderer.startConicalWave) {
+      //     console.log('CombatManager: Adding conical wave effect');
+      //     this.renderer.startConicalWave(deathEvent.position.x, deathEvent.position.y, -60, 60, 18, 10);
+      //   }
+      // } else {
+      //   console.log('CombatManager: Renderer does not support death animations');
+      // }
+    });
   }
 
   attemptMeleeAttack(attacker: Entity, entities: Entity[]): CombatResult {
@@ -33,7 +65,13 @@ export class CombatManager {
     );
     
     if (targets.length === 0) {
-      this.renderer.addMessage("No enemies in range!");
+      this.eventBus.publish({
+        type: 'MessageAdded',
+        id: generateEventId(),
+        timestamp: Date.now(),
+        message: "No enemies in range!",
+        category: 'combat'
+      });
       return { success: false, targetKilled: false };
     }
     
@@ -63,11 +101,23 @@ export class CombatManager {
     const attackResult = CombatSystem.meleeAttack(attacker, target, weaponDamage);
     
     // Visual effects for attack attempt
-    this.animationSystem.nudgeEntity(attacker, target.x, target.y);
+    this.renderer.nudgeEntity(attacker, target.x, target.y);
     
     // Enhanced attack message with weapon and attack type
-    this.renderer.addMessage(`${attacker.name} makes a ${attackType} with ${weaponName} against ${target.name}!`);
-    this.renderer.addMessage(`Attack: ${attackResult.attackRoll} vs AC ${target.stats.ac}`);
+    this.eventBus.publish({
+      type: 'MessageAdded',
+      id: generateEventId(),
+      timestamp: Date.now(),
+      message: `${attacker.name} makes a ${attackType} with ${weaponName} against ${target.name}!`,
+      category: 'combat'
+    });
+    this.eventBus.publish({
+      type: 'MessageAdded',
+      id: generateEventId(),
+      timestamp: Date.now(),
+      message: `Attack: ${attackResult.attackRoll} vs AC ${target.stats.ac}`,
+      category: 'combat'
+    });
     
     let targetKilled = false;
     
@@ -87,17 +137,35 @@ export class CombatManager {
       });
       
       if (attackResult.critical) {
-        this.renderer.addMessage(`CRITICAL HIT! ${attackResult.damageRoll} = ${attackResult.damage} damage`);
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: `CRITICAL HIT! ${attackResult.damageRoll} = ${attackResult.damage} damage`,
+          category: 'combat'
+        });
       } else {
-        this.renderer.addMessage(`Hit! ${attackResult.damageRoll} = ${attackResult.damage} damage`);
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: `Hit! ${attackResult.damageRoll} = ${attackResult.damage} damage`,
+          category: 'combat'
+        });
       }
       
       // Visual effects for hit
-      this.animationSystem.shakeEntity(target);
-      this.animationSystem.showFloatingDamage(target, attackResult.damage);
+      this.renderer.shakeEntity(target);
+      this.renderer.showFloatingDamage(target, attackResult.damage);
       
       if (targetKilled) {
-        this.renderer.addMessage(`${target.name} died!`);
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: `${target.name} died!`,
+          category: 'combat'
+        });
         this.renderer.removeEntity(target.id);
         
         // Publish enemy died event
@@ -112,13 +180,25 @@ export class CombatManager {
       } else {
         const currentHp = ResourceManager.getCurrentValue(target, 'hp');
         const maxHp = ResourceManager.getMaximumValue(target, 'hp') || currentHp;
-        this.renderer.addMessage(`${target.name}: ${currentHp}/${maxHp} HP`);
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: `${target.name}: ${currentHp}/${maxHp} HP`,
+          category: 'combat'
+        });
       }
       
     } else {
-      this.renderer.addMessage("Miss!");
+      this.eventBus.publish({
+        type: 'MessageAdded',
+        id: generateEventId(),
+        timestamp: Date.now(),
+        message: "Miss!",
+        category: 'combat'
+      });
       // Shake attacker to indicate miss
-      this.animationSystem.shakeEntity(attacker);
+      this.renderer.shakeEntity(attacker);
     }
 
     return {
