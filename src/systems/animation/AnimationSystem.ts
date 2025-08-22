@@ -439,7 +439,6 @@ export class AnimationSystem {
     
     for (let distance = 1; distance <= length; distance += 0.5) { // Start from 1 to avoid division by zero
       // Calculate angle step based on distance for good coverage
-      const circumference = 2 * Math.PI * distance;
       const angleStep = Math.max(0.05, (endRad - startRad) / Math.max(10, distance * 2)); // More granular
       
       for (let angle = startRad; angle <= endRad; angle += angleStep) {
@@ -746,25 +745,10 @@ export class AnimationSystem {
     requestAnimationFrame(animate);
   }
 
-  private blendColors(color1: number, color2: number, factor: number): number {
-    const r1 = (color1 >> 16) & 0xFF;
-    const g1 = (color1 >> 8) & 0xFF;
-    const b1 = color1 & 0xFF;
-    
-    const r2 = (color2 >> 16) & 0xFF;
-    const g2 = (color2 >> 8) & 0xFF;
-    const b2 = color2 & 0xFF;
-    
-    const r = Math.round(r1 + (r2 - r1) * factor);
-    const g = Math.round(g1 + (g2 - g1) * factor);
-    const b = Math.round(b1 + (b2 - b1) * factor);
-    
-    return (r << 16) | (g << 8) | b;
-  }
 
   private resetColorAnimations() {
     // Reset any color-modified tiles back to white tint (no color change)
-    this.tileAnimations.forEach((animData, key) => {
+    this.tileAnimations.forEach((_, key) => {
       const tileGraphics = this.tileGraphicsMap?.get(key);
       if (tileGraphics) {
         tileGraphics.bg.tint = 0xFFFFFF; // Reset background tint to white

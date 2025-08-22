@@ -1,5 +1,4 @@
-import { IRenderer } from './renderers/IRenderer';
-import { RendererFactory } from './renderers/RendererFactory';
+import { DefaultRenderer } from './renderers/DefaultRenderer';
 import { TileMap } from './TileMap';
 import { Entity } from '../types';
 import { LineOfSight } from './LineOfSight';
@@ -8,6 +7,7 @@ import { MovementSystem, MovementState } from '../systems/movement/MovementSyste
 import { CombatManager } from '../systems/combat/CombatManager';
 import { GameStateManager } from '../managers/GameStateManager';
 import { ResourceManager } from '../managers/ResourceManager';
+import { UIManager } from '../managers/UIManager';
 import { EventBus, EventBusConfig } from './events/EventBus';
 import { Logger } from '../utils/Logger';
 import { ErrorHandler } from '../utils/ErrorHandler';
@@ -16,7 +16,7 @@ import { AudioSystem } from '../systems/audio/AudioSystem';
 import { getFontsToLoad } from '../config/fonts';
 
 export class Game {
-  renderer: IRenderer;
+  renderer: DefaultRenderer;
   tileMap: TileMap;
   player: Entity;
   
@@ -31,6 +31,7 @@ export class Game {
   private movementSystem: MovementSystem;
   private combatManager: CombatManager;
   private gameStateManager: GameStateManager;
+  private uiManager: UIManager;
   
   // Movement state
   private movementState: MovementState;
@@ -52,9 +53,19 @@ export class Game {
     // Initialize audio system with EventBus
     this.audioSystem = new AudioSystem(this.eventBus, this.logger, this.errorHandler);
     
+    // Initialize UI manager with EventBus
+    this.uiManager = new UIManager(this.eventBus, this.logger);
+    
     // Note: World configuration is now initialized in main.ts before Game creation
     
-    this.renderer = RendererFactory.createRenderer(50, 30);
+    this.renderer = new DefaultRenderer(50, 30);
+    
+    // Set up UIManager to trigger renderer updates
+    this.uiManager.onUIUpdate(() => {
+      const player = this.uiManager.getCurrentPlayer() || this.player;
+      const messages = this.uiManager.getMessages();
+      this.renderer.renderUI(player, messages);
+    });
     this.tileMap = new TileMap(50, 30);
     
     // Initialize systems with EventBus
@@ -65,6 +76,9 @@ export class Game {
     // Initialize entities through game state manager with safe spawn positions
     this.gameStateManager.initializeEntities(this.tileMap);
     this.player = this.gameStateManager.getPlayer()!;
+    
+    // Initialize UI with player data
+    this.uiManager.updatePlayer(this.player);
     
     // Initialize character sheet with player data (PixiJS only)
     if (this.renderer.characterSheet) {
@@ -164,6 +178,14 @@ export class Game {
         eventId: moveEvent.id
       });
       this.eventBus.publish(moveEvent);
+      
+      // Also publish PlayerUpdated event for UI
+      this.eventBus.publish({
+        type: 'PlayerUpdated',
+        id: generateEventId(),
+        timestamp: Date.now(),
+        player: { ...this.player } // Send complete player entity
+      });
     }
   }
   
@@ -219,7 +241,8 @@ export class Game {
     // Use rounded coordinates for line of sight calculations
     const playerGridX = Math.round(this.movementState.displayX);
     const playerGridY = Math.round(this.movementState.displayY);
-    this.renderer.updateVisibilityAlpha(playerGridX, playerGridY, this.tileMap, LineOfSight);
+    const entities = this.gameStateManager.getAllEntities();
+    this.renderer.updateVisibilityAlpha(playerGridX, playerGridY, this.tileMap, LineOfSight, entities);
   }
   
   async waitForFontsAndRender() {
@@ -277,9 +300,13 @@ export class Game {
     const useNativeLOS = this.renderer.hasNativeLOS?.();
     let visibleCells: Set<string> | null = null;
     
+    // Use current visual position for FOV (consistent with updateVisuals)
+    const fovPlayerX = Math.round(this.movementState.displayX);
+    const fovPlayerY = Math.round(this.movementState.displayY);
+    
     if (useNativeLOS && (this.renderer as any).calculateFOV) {
       // Use renderer's native FOV calculation
-      visibleCells = (this.renderer as any).calculateFOV(this.player.x, this.player.y, 8);
+      visibleCells = (this.renderer as any).calculateFOV(fovPlayerX, fovPlayerY, 8);
       if (visibleCells) {
         Logger.debug('Using native FOV algorithm:', Array.from(visibleCells).slice(0, 5));
       }
@@ -289,13 +316,13 @@ export class Game {
     for (let y = startY; y < endY; y++) {
       for (let x = startX; x < endX; x++) {
         const tile = this.tileMap.getTile(x, y);
-        const distance = Math.sqrt((x - this.player.x) ** 2 + (y - this.player.y) ** 2);
+        const distance = Math.sqrt((x - fovPlayerX) ** 2 + (y - fovPlayerY) ** 2);
         
         let hasLOS: boolean;
         if (useNativeLOS && visibleCells) {
           hasLOS = visibleCells.has(`${x},${y}`);
         } else {
-          hasLOS = LineOfSight.hasLineOfSight(this.tileMap, this.player.x, this.player.y, x, y);
+          hasLOS = LineOfSight.hasLineOfSight(this.tileMap, fovPlayerX, fovPlayerY, x, y);
         }
         
         // Mark tiles as explored when they become visible
@@ -310,13 +337,13 @@ export class Game {
     // Render entities with appropriate line of sight check
     const entities = this.gameStateManager.getAllEntities();
     for (const entity of entities) {
-      const distance = Math.sqrt((entity.x - this.player.x) ** 2 + (entity.y - this.player.y) ** 2);
+      const distance = Math.sqrt((entity.x - fovPlayerX) ** 2 + (entity.y - fovPlayerY) ** 2);
       
       let hasLOS: boolean;
       if (useNativeLOS && visibleCells) {
         hasLOS = visibleCells.has(`${entity.x},${entity.y}`);
       } else {
-        hasLOS = LineOfSight.hasLineOfSight(this.tileMap, this.player.x, this.player.y, entity.x, entity.y);
+        hasLOS = LineOfSight.hasLineOfSight(this.tileMap, fovPlayerX, fovPlayerY, entity.x, entity.y);
       }
       
       this.renderer.renderEntityWithVisibility(entity, distance, hasLOS);
@@ -333,5 +360,6 @@ export class Game {
   destroy() {
     this.inputHandler.destroy();
     this.gameStateManager.cleanup();
+    this.uiManager.destroy();
   }
 }

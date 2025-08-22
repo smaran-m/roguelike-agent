@@ -65,7 +65,13 @@ export class CombatManager {
     );
     
     if (targets.length === 0) {
-      this.renderer.addMessage("No enemies in range!");
+      this.eventBus.publish({
+        type: 'MessageAdded',
+        id: generateEventId(),
+        timestamp: Date.now(),
+        message: "No enemies in range!",
+        category: 'combat'
+      });
       return { success: false, targetKilled: false };
     }
     
@@ -98,8 +104,20 @@ export class CombatManager {
     this.renderer.nudgeEntity(attacker, target.x, target.y);
     
     // Enhanced attack message with weapon and attack type
-    this.renderer.addMessage(`${attacker.name} makes a ${attackType} with ${weaponName} against ${target.name}!`);
-    this.renderer.addMessage(`Attack: ${attackResult.attackRoll} vs AC ${target.stats.ac}`);
+    this.eventBus.publish({
+      type: 'MessageAdded',
+      id: generateEventId(),
+      timestamp: Date.now(),
+      message: `${attacker.name} makes a ${attackType} with ${weaponName} against ${target.name}!`,
+      category: 'combat'
+    });
+    this.eventBus.publish({
+      type: 'MessageAdded',
+      id: generateEventId(),
+      timestamp: Date.now(),
+      message: `Attack: ${attackResult.attackRoll} vs AC ${target.stats.ac}`,
+      category: 'combat'
+    });
     
     let targetKilled = false;
     
@@ -119,9 +137,21 @@ export class CombatManager {
       });
       
       if (attackResult.critical) {
-        this.renderer.addMessage(`CRITICAL HIT! ${attackResult.damageRoll} = ${attackResult.damage} damage`);
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: `CRITICAL HIT! ${attackResult.damageRoll} = ${attackResult.damage} damage`,
+          category: 'combat'
+        });
       } else {
-        this.renderer.addMessage(`Hit! ${attackResult.damageRoll} = ${attackResult.damage} damage`);
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: `Hit! ${attackResult.damageRoll} = ${attackResult.damage} damage`,
+          category: 'combat'
+        });
       }
       
       // Visual effects for hit
@@ -129,7 +159,13 @@ export class CombatManager {
       this.renderer.showFloatingDamage(target, attackResult.damage);
       
       if (targetKilled) {
-        this.renderer.addMessage(`${target.name} died!`);
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: `${target.name} died!`,
+          category: 'combat'
+        });
         this.renderer.removeEntity(target.id);
         
         // Publish enemy died event
@@ -144,11 +180,23 @@ export class CombatManager {
       } else {
         const currentHp = ResourceManager.getCurrentValue(target, 'hp');
         const maxHp = ResourceManager.getMaximumValue(target, 'hp') || currentHp;
-        this.renderer.addMessage(`${target.name}: ${currentHp}/${maxHp} HP`);
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: `${target.name}: ${currentHp}/${maxHp} HP`,
+          category: 'combat'
+        });
       }
       
     } else {
-      this.renderer.addMessage("Miss!");
+      this.eventBus.publish({
+        type: 'MessageAdded',
+        id: generateEventId(),
+        timestamp: Date.now(),
+        message: "Miss!",
+        category: 'combat'
+      });
       // Shake attacker to indicate miss
       this.renderer.shakeEntity(attacker);
     }

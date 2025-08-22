@@ -55,6 +55,22 @@ export interface AreaEnteredEvent extends BaseGameEvent {
   areaId: string;
 }
 
+export interface MessageAddedEvent extends BaseGameEvent {
+  type: 'MessageAdded';
+  message: string;
+  category?: 'combat' | 'system' | 'info';
+}
+
+export interface PlayerUpdatedEvent extends BaseGameEvent {
+  type: 'PlayerUpdated';
+  player: import('../../types').Entity;
+}
+
+export interface UIRefreshEvent extends BaseGameEvent {
+  type: 'UIRefresh';
+  reason: 'position_changed' | 'stats_changed' | 'combat_resolved';
+}
+
 export type GameEvent = 
   | EnemyDiedEvent 
   | DamageDealtEvent 
@@ -62,7 +78,10 @@ export type GameEvent =
   | EntityMovedEvent
   | TileChangedEvent
   | MenuOpenedEvent
-  | AreaEnteredEvent;
+  | AreaEnteredEvent
+  | MessageAddedEvent
+  | PlayerUpdatedEvent
+  | UIRefreshEvent;
 
 export type EventHandler<T extends BaseGameEvent = GameEvent> = (event: T) => void;
 export type EventUnsubscriber = () => void;

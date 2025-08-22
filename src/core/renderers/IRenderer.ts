@@ -34,11 +34,6 @@ export interface IRenderer {
   shakeEntity(entity: Entity): void;
   nudgeEntity(entity: Entity, targetX: number, targetY: number): void;
   showFloatingDamage(entity: Entity, damage: number): void;
-  startDeathRipple?(x: number, y: number): void;
-  startColorFlash?(x: number, y: number, color: number, intensity?: number, radius?: number): void;
-  startColorRipple?(x: number, y: number, color: number, intensity?: number, radius?: number): void;
-  startLinearWave?(startX: number, startY: number, direction: number, length: number, amplitude?: number, waveWidth?: number): void;
-  startConicalWave?(startX: number, startY: number, startAngle: number, endAngle: number, length: number, amplitude?: number): void;
   
   // Camera methods
   updateCameraForPlayer(entity: Entity): boolean;
@@ -47,9 +42,10 @@ export interface IRenderer {
   screenToWorld(screenX: number, screenY: number): {x: number, y: number};
   
   // UI methods
-  addMessage(message: string): void;
+  addMessage?(message: string): void; // Legacy method - optional
+  renderUI?(player: Entity, messages: readonly string[]): void; // Pure rendering method
   updatePositionText(x: number, y: number): void;
-  updateVisibilityAlpha(playerX: number, playerY: number, tileMap: any, lineOfSight: any): void;
+  updateVisibilityAlpha(playerX: number, playerY: number, tileMap: any, lineOfSight: any, entities?: Entity[]): void;
   
   // Position tracking
   updateEntityPositions(): void;
@@ -58,8 +54,8 @@ export interface IRenderer {
   darkenColor(color: number, factor: number): number;
   
   // Renderer capabilities
-  needsEntityClearingEachFrame?(): boolean;
-  hasNativeLOS?(): boolean;
-  setLightPassesFunction?(lightPasses: (x: number, y: number) => boolean): void;
-  render?(): void; // Optional render method for double-buffered renderers
+  needsEntityClearingEachFrame(): boolean;
+  hasNativeLOS(): boolean;
+  setLightPassesFunction(lightPasses: (x: number, y: number) => boolean): void;
+  render(): void;
 }
