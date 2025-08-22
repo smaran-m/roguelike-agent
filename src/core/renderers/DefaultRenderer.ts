@@ -12,7 +12,7 @@ import { getFontFamily } from '../../config/fonts';
 /**
  * Hybrid renderer that combines PixiJS for the main game area with Malwoden terminals for UI
  * - Game area: Full PixiJS with animations, camera transitions, smooth effects
- * - UI areas: Native Malwoden terminals for authentic terminal styling1
+ * - UI areas: Native Malwoden terminals for authentic terminal styling
  * - Layout: Separate HTML containers for organized positioning
  */
 export class DefaultRenderer implements IRenderer {
