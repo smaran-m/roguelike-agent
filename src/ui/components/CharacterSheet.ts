@@ -379,7 +379,7 @@ export class CharacterSheet {
       
       // Item emoji
       const itemEmoji = new Text(item.glyph, {
-        fontFamily: item.isEmoji ? '"Perfect DOS VGA 437 Win", "Perfect DOS VGA 437", Apple Color Emoji, Segoe UI Emoji, sans-serif' : '"Perfect DOS VGA 437 Win", "Perfect DOS VGA 437", monospace',
+        fontFamily: item.isEmoji ? getEmojiFontFamily() : getFontFamily(),
         fontSize: 16,
         fill: item.color
       });
