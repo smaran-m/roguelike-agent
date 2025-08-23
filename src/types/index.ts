@@ -260,23 +260,3 @@ export interface WorldConfig {
 export interface WorldsCollection {
   [worldKey: string]: WorldConfig;
 }
-
-// Legacy interface for backwards compatibility
-export interface WorldSchema {
-  theme: string;
-  playerClass: string;
-  playerEmoji: string;
-  enemies: Array<{
-    name: string;
-    emoji: string;
-    stats: {
-      hp: number;
-      damage: string;
-    };
-  }>;
-  tiles: {
-    wall: string;
-    floor: string;
-    door: string;
-  };
-}

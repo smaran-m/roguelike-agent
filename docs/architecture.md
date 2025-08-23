@@ -176,7 +176,7 @@ EventBus.publish(new DamageDealtEvent({ damage: 10, damageType: 'fire' }));
 - **Performance Monitoring**: Metrics tracking and optimization alerts
 
 ### 3. Game Class (Central Orchestrator)
-**File**: `src/core/Game.ts` (221 lines)
+**File**: `src/core/Game.ts` (364 lines)
 
 **Role**: Main coordinator that manages system lifecycle and integration
 
@@ -208,18 +208,23 @@ class Game {
 4. Visual system updates camera and rendering
 5. Combat system processes attacks through CombatManager
 
-### 4. Renderer Class (Visual Engine)
-**File**: `src/core/Renderer.ts`
+### 4. DefaultRenderer Class (Hybrid Visual Engine)
+**File**: `src/core/renderers/DefaultRenderer.ts`
 
-**Role**: PixiJS-based rendering engine with sophisticated position and visibility management
+**Role**: Hybrid PixiJS + HTML rendering system with sophisticated position and visibility management
 
 **Key Features**:
 
-#### Layer Management:
+#### Hybrid Architecture:
+- **PixiJS Game Area**: Central viewport (tiles, entities, game world)
+- **HTML UI Panels**: Character sheet, combat log using styled HTML
+- **HTMLUIRenderer**: Manages 3-panel layout (300px character | game area | 400px combat)
+
+#### PixiJS Layer Management:
 ```typescript
-tileContainer: Container;      // Background tiles
-entityContainer: Container;    // Characters and objects
-messageContainer: Container;   // UI and text overlays
+tileContainer: Container;      // Background tiles (PixiJS)
+entityContainer: Container;    // Characters and objects (PixiJS)
+// UI handled by separate HTML system
 ```
 
 #### Position Translation System:
@@ -325,7 +330,7 @@ interface InputCallbacks {
 - **Environmental audio**: Spatial positioning for combat sounds
 
 ### 8. Game State Manager
-**File**: `src/managers/GameStateManager.ts` (140 lines)
+**File**: `src/managers/GameStateManager.ts` (184 lines)
 
 **Role**: Entity lifecycle management and game loop coordination
 
@@ -395,13 +400,16 @@ interface InputCallbacks {
 ### 10. User Interface Architecture
 
 #### Character Sheet System
-**File**: `src/ui/CharacterSheet.ts`
+**Files**: 
+- `src/ui/components/CharacterSheet.ts` - PixiJS-based character sheet (exists but unused)
+- `src/core/renderers/HTMLUIRenderer.ts` - Actual HTML-based character sheet implementation
 
-- **Fixed positioning**: Left panel (220px width)
-- **Hierarchical containers**: Organized UI sections with PixiJS Graphics separators
+- **HTML Panel Implementation**: Left panel (300px width) with styled HTML
+- **Dual Systems**: PixiJS CharacterSheet exists but HTMLUIRenderer handles actual display
 - **Real-time updates**: Reflects current player state with multi-resource support
-- **Multi-resource display**: ASCII bars for HP, mana, and theme-specific resources
+- **Multi-resource display**: HTML text displays for HP, mana, and theme-specific resources
 - **Dynamic theming**: Resource colors and types adapt to active world theme
+- **Note**: Architecture transitional - PixiJS system unused, HTML system functional
 
 #### Resource Display System
 **File**: `src/ui/components/ResourceDisplay.ts`
@@ -413,29 +421,24 @@ interface InputCallbacks {
 - **Real-time updates**: Reflects current entity resource states
 - **Health color progression**: Dynamic color changes (green → yellow → orange → red)
 
-**UI Layout**:
+**UI Layout** (HTML + PixiJS Hybrid):
 ```
-Character Sheet (220x600px)
-├── Portrait (48px emoji)
-├── Name & Class Info
-├── Multi-Resource Display (HP, mana, theme-specific)
-├── ASCII Resource Bars ([##########] format)
-├── Stats Section (6 D&D attributes + AC + Level)
-├── Experience Progress
-└── Equipment Section (placeholder)
-
-Game Viewport (800x480px)
-├── Tiles with distance-based alpha
-├── Entities with visibility culling
-├── HP bars above non-player entities
-├── Floating damage numbers
-└── Camera following with smooth transitions
-
-Message Log (320x600px)
-├── Combat Log title
-├── Scrolling message history (5 messages)
-├── Attack results and damage
-└── Status updates
+HTML Container (3-Panel Layout)
+├── Character Sheet Panel (300px HTML)
+│   ├── Portrait and Name
+│   ├── Multi-Resource Display (HTML text)
+│   ├── Stats Section (6 D&D attributes + AC + Level)
+│   └── Equipment Section
+├── PixiJS Game Area (640x640px)
+│   ├── Tiles with distance-based alpha
+│   ├── Entities with visibility culling
+│   ├── HP bars above non-player entities
+│   └── Camera following with smooth transitions
+└── Combat Log Panel (400px HTML)
+    ├── Combat Log title
+    ├── Scrolling message history
+    ├── Attack results and damage
+    └── Status updates
 ```
 
 #### Bottom Corner UI:
@@ -592,6 +595,7 @@ tests/                           # 100% Pass Rate - 326 tests
 - **Algorithm validation** - A*, binary heap, music theory calculations, combat mechanics
 - **Error resilience testing** - localStorage failures, invalid data handling, audio fallbacks
 - **Performance testing** - Pathfinding timing, audio synthesis, rendering optimization
+- **Architecture Testing**: Tests reflect actual implementation patterns (HTML UI, hybrid rendering)
 
 ### Key Testing Improvements:
 - **Renderer.test.ts**: Completely rewritten to test coordinate transformations, camera following, visibility calculations, and functional behavior instead of mock interactions

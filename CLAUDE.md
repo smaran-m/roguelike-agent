@@ -65,11 +65,13 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 ### Modular Architecture Structure
 
 **Core Components** (`src/core/`):
-- **Game** (`src/core/Game.ts`) - Main game coordinator and orchestration (221 lines, 40% reduction from refactoring)
-- **Renderer** (`src/core/Renderer.ts`) - PixiJS-based rendering with emoji support, animations, and camera integration
+- **Game** (`src/core/Game.ts`) - Main game coordinator with mixed architecture patterns (364 lines)
+- **DefaultRenderer** (`src/core/renderers/DefaultRenderer.ts`) - Hybrid PixiJS + HTML renderer: PixiJS for game area, HTML for UI panels
 - **TileMap** (`src/core/TileMap.ts`) - Tile-based world generation, collision detection, and visibility tracking
 - **LineOfSight** (`src/core/LineOfSight.ts`) - FOV calculation and visibility management
 - **EventBus System** (`src/core/events/`) - High-performance event system with ring buffer, aggregation, and object pooling
+  - **Currently Connected**: Player movement, UI updates, audio system, pathfinding cache invalidation
+  - **Needs Connection**: Combat visual effects, animation triggers, complete renderer decoupling
 
 **Specialized Systems** (`src/systems/`):
 - **Input System** (`src/systems/input/InputHandler.ts`) - Centralized keyboard event management with callback architecture and F12 debug toggle (107 lines)
@@ -84,7 +86,7 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - **Audio System** (`src/systems/audio/AudioSystem.ts`) - Procedural Web Audio API sound generation with spatial audio and music composition
 
 **Management Layer** (`src/managers/`):
-- **GameStateManager** (`src/managers/GameStateManager.ts`) - Entity lifecycle and game loop management (140 lines)
+- **GameStateManager** (`src/managers/GameStateManager.ts`) - Entity lifecycle and game loop management (184 lines)
 - **CharacterManager** (`src/managers/CharacterManager.ts`) - Singleton character progression with world-specific character class loading
 - **ResourceManager** (`src/managers/ResourceManager.ts`) - Multi-resource system supporting HP, mana, and theme-specific resources
 
@@ -97,15 +99,17 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - **CreateEntity** (`src/entities/CreateEntity.ts`) - Centralized entity creation utilities for consistency
 
 **UI Components** (`src/ui/`):
-- **Character Sheets** (`src/ui/CharacterSheet.ts`) - Character status display and progression UI
+- **Character Sheets** (`src/ui/components/CharacterSheet.ts`) - PixiJS-based character sheet (exists but unused)
+- **HTML UI System** (`src/core/renderers/HTMLUIRenderer.ts`) - Actual working UI via styled HTML panels
 - **Start Screen System** (`src/ui/start/`) - World selection and game initialization UI
 - **Components** (`src/ui/components/`) - Reusable UI elements and resource displays
+- **Note**: Two UI systems exist - PixiJS components (unused) and HTML system (active)
 
 **Core Utilities** (`src/utils/`):
 - **ErrorHandler** (`src/utils/ErrorHandler.ts`) - Comprehensive error handling framework with typed error codes (126 lines)
 - **Logger** (`src/utils/Logger.ts`) - Professional logging system with verbose flag control, environment variable support, and localStorage persistence (199 lines)
 
-**Type Definitions** (`src/types/index.ts`) - Shared interfaces for Tile, Entity, Combat, and WorldSchema
+**Type Definitions** (`src/types/index.ts`) - Shared interfaces for Tile, Entity, Combat, and world configuration
 
 **Data Files** (`src/data/`) - JSON configuration for character classes, enemy definitions, items, world themes, and audio
   - `characterClasses.json` - Fantasy character class definitions
@@ -120,18 +124,13 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 
 ### Key Components
 
-**Game Class**: Central coordinator that manages:
-- System coordination through dependency injection
-- Game loop orchestration and timing
-- Integration between input, movement, combat, and rendering systems
-- Camera following and viewport management
-- High-level game state coordination
-
-**Game Class**: Central coordinator that manages:
-- System coordination through dependency injection
-- Game loop orchestration and timing
-- Integration between input, movement, combat, and rendering systems
-- High-level game state coordination
+**Game Class**: Central coordinator featuring mixed architecture patterns:
+- **EventBus Integration**: Player movement, UI updates use EventBus for decoupling
+- **Direct Method Calls**: Combat, rendering use traditional coupling patterns
+- **System Coordination**: Constructor parameter injection (not true dependency injection)
+- **Hybrid Communication**: Some systems use EventBus, others use direct calls
+- Game loop orchestration through GameStateManager
+- **Note**: Architecture is transitional - some systems fully EventBus-integrated, others still coupled
 
 **InputHandler Class**: Keyboard event management featuring:
 - Callback-based architecture for system decoupling
@@ -146,11 +145,12 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - Movement state management
 - Integration with TileMap for walkability checking
 
-**CombatManager Class**: Combat orchestration featuring:
-- Integration between CombatSystem and Renderer
-- Visual effects coordination (damage numbers, animations)
+**CombatManager Class**: Combat orchestration with partial integration:
+- **EventBus Integration**: Enemy death events, combat messaging
+- **Missing Integration**: Most visual effects are commented out/disabled
+- **Direct Coupling**: Still uses direct renderer calls for immediate feedback
 - Attack range validation and positioning
-- Combat result processing and feedback
+- **Note**: Visual effects system exists but not connected - needs EventBus integration
 
 **GameStateManager Class**: Entity lifecycle management with:
 - Safe entity spawning with position validation
@@ -159,13 +159,14 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 - Game initialization and setup
 - Entity removal and cleanup
 
-**Renderer Class**: PixiJS-based renderer featuring:
-- Emoji rendering with proper font support (Noto Emoji)
-- Layered rendering (tiles + entities)
-- Move animations (150ms duration)
-- Shake effects for collisions
+**DefaultRenderer Class**: Hybrid rendering system featuring:
+- **PixiJS Game Area**: Central game viewport with tiles and entities
+- **HTML UI Panels**: Character sheet, combat log using styled HTML (not terminal emulation)
+- **HTMLUIRenderer Component**: Manages 3-panel layout (character | game | combat log)
+- Emoji rendering in PixiJS with proper font support (Noto Emoji)
 - Entity text object caching for performance
-- Integration with CameraSystem for viewport management
+- Integration with CameraSystem for game area viewport management
+- **Note**: PixiJS CharacterSheet component exists but unused - HTML system handles UI
 
 **CameraSystem Class**: Viewport and camera management featuring:
 - Camera following and viewport management
@@ -265,7 +266,11 @@ This is an emoji-based roguelike game built with TypeScript, PixiJS for renderin
 The game uses Unicode emojis as glyphs for both tiles and entities. The rendering system automatically switches between `Noto Emoji` font for emojis and `Noto Sans Mono` for ASCII characters based on the `isEmoji` flag.
 
 ### Animation System
-Smooth movement animations are implemented using requestAnimationFrame with linear interpolation. Collision feedback is provided through entity shake animations. Camera follows player movement smoothly.
+Animation system exists with GSAP integration but **partial implementation**:
+- Smooth movement animations using requestAnimationFrame with linear interpolation
+- Camera follows player movement smoothly
+- **Note**: Visual effects (shake, floating damage, combat animations) exist but most are disabled in CombatManager
+- **Needs Integration**: Full EventBus connection for combat visual effects
 
 ## Technical Notes
 
@@ -273,7 +278,7 @@ Smooth movement animations are implemented using requestAnimationFrame with line
 - Targets modern browsers with `esnext` build target
 - Dependencies: PixiJS 7.4+, MobX 6.12+, MobX State Tree 5.4+, GSAP 3.12+
 - TypeScript configuration includes both main and Node.js configs
-- Comprehensive test framework with Vitest and jsdom environment (291 tests)
+- Comprehensive test framework with Vitest and jsdom environment
 - Modular architecture with dependency injection and single responsibility principle
 - Professional error handling with typed error codes and context
 - Configurable logging system with multiple levels (DEBUG, INFO, WARN, ERROR)
@@ -297,12 +302,13 @@ The project uses consistent dark theme styling throughout:
 - **Special Colors**: Gold for levels/XP (`0xFFD700`), sky blue for AC highlight (`0x87CEEB`)
 
 ### UI Layout
-- **Character Panel**: Left-side panel (200x600px) with right border line
-- **Multi-Resource Display**: Text-based resource bars for HP, mana, and theme-specific resources
+- **3-Panel HTML Layout**: Character sheet (300px) | Game area (PixiJS) | Combat log (400px)
+- **HTML-based Character Panel**: Left panel with styled HTML for character stats and resources
+- **Multi-Resource Display**: HTML text displays for HP, mana, and theme-specific resources
 - **ASCII Resource Bars**: Text-based bars using `[##########]` format with theme-appropriate colors
 - **Dynamic Resource Layout**: Adapts to active world theme's resource configuration
-- **Bottom Corner UI**: Controls (bottom left), position coordinates (bottom right)
-- **Spacing**: Consistent 10px padding throughout UI elements
+- **Responsive Centering**: Full game UI centered in viewport with dark theme styling
+- **Consistent Styling**: Courier New font, dark backgrounds, colored borders throughout
 
 ## Recent Development
 Latest features added (as of recent commits):
@@ -315,7 +321,7 @@ Latest features added (as of recent commits):
 - **System Extraction**: Extracted CameraSystem, FontSystem, and DiceSystem for better separation of concerns
 - **Directory Restructuring**: Organized code into logical modules (core, systems, managers, loaders, entities, ui)
 - **Test Organization**: Moved all tests to root `tests/` directory with structured organization
-- **Multi-World System**: Fantasy, Cyberpunk, Steampunk, and Horror world themes with unique mechanics
+- **Multi-World System**: Fantasy and Cyberpunk world themes with unique mechanics (Steampunk/Horror referenced but not implemented)
 - **Advanced Resource Management**: Multi-resource system supporting HP, mana, heat, sanity, corruption, etc.
 - **Enhanced Combat System**: Damage types, resistance/vulnerability system, theme-specific mechanics
 - **Item System**: JSON-based item loading with damage types and world-specific variants
@@ -388,12 +394,13 @@ Test files organized by system:
 
 - **Modular Directory Structure**: Clean separation of concerns with organized directories (core, systems, managers, loaders, entities, ui)
 - **System Extraction**: Extracted specialized systems (Camera, Font, Dice) from monolithic classes for better maintainability
-- **Dependency Injection**: Systems receive dependencies through constructor injection
+- **Mixed Architecture**: Constructor parameter injection (not true dependency injection)
 - **Callback Architecture**: InputHandler uses callbacks to decouple input from game logic
 - **Single Responsibility**: Each system has a focused, well-defined purpose
+- **Transitional EventBus Integration**: Some systems fully integrated, others still use direct coupling
 - **Error Handling**: Centralized error management with context and error codes
 - **Logging**: Structured logging with configurable levels and filtering
-- **Comprehensive Testing**: 342 tests organized by system including EventBus, start screen UI, and world selection with deterministic behavior
+- **Comprehensive Testing**: Organized by system including EventBus, start screen UI, and world selection with deterministic behavior
 
 ## Development Commands for Claude
 
