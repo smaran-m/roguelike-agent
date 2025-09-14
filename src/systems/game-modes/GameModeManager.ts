@@ -196,19 +196,30 @@ export class GameModeManager {
       return 'all_participants_dead';
     }
 
-    // Check if all enemies are defeated
-    const livingEnemies = entities.filter(entity => 
-      !entity.isPlayer && 
+    // Check if all combat participant enemies are defeated
+    // Cross-reference combat participants with current entities to get fresh data
+    const combatParticipants = this.state.combatContext.participants;
+    const combatParticipantIds = new Set(combatParticipants.map(p => p.id));
+
+    // Find living enemy participants using current entity data
+    const livingEnemyParticipants = entities.filter(entity =>
+      combatParticipantIds.has(entity.id) && // Must be a combat participant
+      !entity.isPlayer &&
       entity.id !== player.id &&
       (entity.stats.resources?.hp?.current || entity.stats.hp || 0) > 0
     );
 
-    if (livingEnemies.length === 0) {
+    if (livingEnemyParticipants.length === 0) {
+      this.logger.debug('All enemy combat participants defeated', {
+        totalParticipants: combatParticipants.length,
+        livingEnemyParticipants: livingEnemyParticipants.length,
+        combatParticipantIds: Array.from(combatParticipantIds)
+      });
       return 'all_enemies_defeated';
     }
 
     // TODO: Add player fled condition when we have movement-based flee mechanics
-    
+
     return null;
   }
 

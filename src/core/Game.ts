@@ -661,6 +661,42 @@ export class Game {
     }
   }
 
+  // Developer methods for testing
+  skipEnemyTurn(): void {
+    if (this.gameModeManager.getCurrentMode() !== 'combat') {
+      console.log('❌ Not in combat mode - cannot skip enemy turn');
+      return;
+    }
+
+    const currentTurn = this.turnOrderManager.getCurrentTurn();
+    if (!currentTurn) {
+      console.log('❌ No current turn to skip');
+      return;
+    }
+
+    if (currentTurn.entityId === this.player.id) {
+      console.log('❌ It\'s the player\'s turn - cannot skip enemy turn');
+      return;
+    }
+
+    // Find the entity whose turn it is
+    const entities = this.gameStateManager.getAllEntities();
+    const currentEntity = entities.find(e => e.id === currentTurn.entityId);
+
+    console.log(`⏭️ Skipping ${currentEntity?.name || 'Unknown'}'s turn`);
+
+    this.eventBus.publish({
+      type: 'MessageAdded',
+      id: generateEventId(),
+      timestamp: Date.now(),
+      message: `${currentEntity?.name || 'Enemy'} skips turn (dev)`,
+      category: 'combat'
+    });
+
+    // End the current turn
+    this.turnOrderManager.endCurrentTurn();
+  }
+
   // Cleanup method for proper resource management
   destroy() {
     this.inputHandler.destroy();

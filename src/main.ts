@@ -59,6 +59,9 @@ document.fonts.ready.then(async () => {
       // Expose to window for debugging
       (window as any).game = game;
       (window as any).startScreen = startScreen;
+
+      // Developer console commands
+      (window as any).skipTurn = () => game?.skipEnemyTurn();
       
       logger.info('Game initialized successfully', { worldId });
       
@@ -76,6 +79,7 @@ document.fonts.ready.then(async () => {
         startScreen.hide();
         game = new Game();
         (window as any).game = game;
+        (window as any).skipTurn = () => game?.skipEnemyTurn();
       } else {
         // If fantasy also fails, show error but still try to start game
         alert('Failed to load game. Starting with minimal configuration.');
@@ -83,6 +87,7 @@ document.fonts.ready.then(async () => {
         startScreen.hide();
         game = new Game();
         (window as any).game = game;
+        (window as any).skipTurn = () => game?.skipEnemyTurn();
       }
     }
   });
