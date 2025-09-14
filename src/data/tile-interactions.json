@@ -1,0 +1,406 @@
+{
+  "door_closed": {
+    "id": "door_closed",
+    "glyph": "+",
+    "name": "Closed Door",
+    "description": "A closed door blocking passage",
+    "interactions": [
+      {
+        "id": "open_door",
+        "name": "Open Door",
+        "description": "Open the door",
+        "source": "tile_interactions:door_closed",
+        "category": "environment",
+        "requirements": [
+          {
+            "type": "range",
+            "value": 1,
+            "comparison": "lessEqual",
+            "description": "Must be adjacent to the door"
+          }
+        ],
+        "costs": [
+          {
+            "type": "actionPoint",
+            "amount": 1,
+            "description": "Takes an action to open the door"
+          }
+        ],
+        "effects": [
+          {
+            "type": "environmentChange",
+            "target": "environment",
+            "parameters": {
+              "tileChanges": {
+                "glyph": "/",
+                "walkable": true,
+                "blocksLight": false
+              }
+            },
+            "description": "Open the door, making it passable",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "single",
+          "range": 1,
+          "requiresLineOfSight": true,
+          "validTargets": [
+            {
+              "type": "tile",
+              "criteria": {
+                "hasProperty": "door_closed"
+              }
+            }
+          ]
+        },
+        "priority": 75,
+        "iconGlyph": "🚪"
+      }
+    ]
+  },
+  "door_open": {
+    "id": "door_open",
+    "glyph": "/",
+    "name": "Open Door",
+    "description": "An open door",
+    "interactions": [
+      {
+        "id": "close_door",
+        "name": "Close Door",
+        "description": "Close the door",
+        "source": "tile_interactions:door_open",
+        "category": "environment",
+        "requirements": [
+          {
+            "type": "range",
+            "value": 1,
+            "comparison": "lessEqual",
+            "description": "Must be adjacent to the door"
+          }
+        ],
+        "costs": [
+          {
+            "type": "actionPoint",
+            "amount": 1,
+            "description": "Takes an action to close the door"
+          }
+        ],
+        "effects": [
+          {
+            "type": "environmentChange",
+            "target": "environment",
+            "parameters": {
+              "tileChanges": {
+                "glyph": "+",
+                "walkable": false,
+                "blocksLight": true
+              }
+            },
+            "description": "Close the door, blocking passage",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "single",
+          "range": 1,
+          "requiresLineOfSight": true,
+          "validTargets": [
+            {
+              "type": "tile",
+              "criteria": {
+                "hasProperty": "door_open"
+              }
+            }
+          ]
+        },
+        "priority": 65,
+        "iconGlyph": "🚪"
+      }
+    ]
+  },
+  "chest_closed": {
+    "id": "chest_closed",
+    "glyph": "📦",
+    "name": "Chest",
+    "description": "A closed chest that might contain treasure",
+    "interactions": [
+      {
+        "id": "open_chest",
+        "name": "Open Chest",
+        "description": "Open the chest to see what's inside",
+        "source": "tile_interactions:chest_closed",
+        "category": "environment",
+        "requirements": [
+          {
+            "type": "range",
+            "value": 1,
+            "comparison": "lessEqual",
+            "description": "Must be adjacent to the chest"
+          }
+        ],
+        "costs": [
+          {
+            "type": "actionPoint",
+            "amount": 1,
+            "description": "Takes an action to open the chest"
+          }
+        ],
+        "effects": [
+          {
+            "type": "itemManipulation",
+            "target": "environment",
+            "parameters": {
+              "action": "reveal_loot",
+              "lootTable": "chest_common"
+            },
+            "description": "Reveal the contents of the chest",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "single",
+          "range": 1,
+          "requiresLineOfSight": true,
+          "validTargets": [
+            {
+              "type": "tile",
+              "criteria": {
+                "hasProperty": "chest_closed"
+              }
+            }
+          ]
+        },
+        "priority": 80,
+        "iconGlyph": "📦"
+      }
+    ]
+  },
+  "water": {
+    "id": "water",
+    "glyph": "~",
+    "name": "Water",
+    "description": "A source of fresh water",
+    "interactions": [
+      {
+        "id": "drink_water",
+        "name": "Drink Water",
+        "description": "Drink from the water source to quench thirst",
+        "source": "tile_interactions:water",
+        "category": "utility",
+        "requirements": [
+          {
+            "type": "range",
+            "value": 1,
+            "comparison": "lessEqual",
+            "description": "Must be adjacent to water"
+          }
+        ],
+        "costs": [
+          {
+            "type": "actionPoint",
+            "amount": 1,
+            "description": "Takes an action to drink"
+          }
+        ],
+        "effects": [
+          {
+            "type": "resourceChange",
+            "target": "self",
+            "parameters": {
+              "resourceId": "hp",
+              "amount": "1d4",
+              "operation": "add"
+            },
+            "description": "Restore a small amount of health",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "single",
+          "range": 1,
+          "requiresLineOfSight": true,
+          "validTargets": [
+            {
+              "type": "tile",
+              "criteria": {
+                "hasProperty": "water"
+              }
+            }
+          ]
+        },
+        "priority": 30,
+        "iconGlyph": "💧"
+      },
+      {
+        "id": "fill_container",
+        "name": "Fill Container",
+        "description": "Fill your container with water",
+        "source": "tile_interactions:water",
+        "category": "utility",
+        "requirements": [
+          {
+            "type": "range",
+            "value": 1,
+            "comparison": "lessEqual",
+            "description": "Must be adjacent to water"
+          },
+          {
+            "type": "equipment",
+            "target": "container",
+            "description": "Must have an empty container"
+          }
+        ],
+        "costs": [
+          {
+            "type": "actionPoint",
+            "amount": 1,
+            "description": "Takes an action to fill container"
+          }
+        ],
+        "effects": [
+          {
+            "type": "itemManipulation",
+            "target": "self",
+            "parameters": {
+              "action": "create",
+              "itemId": "water_bottle",
+              "quantity": 1
+            },
+            "description": "Create a bottle of water",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "single",
+          "range": 1,
+          "requiresLineOfSight": true,
+          "validTargets": [
+            {
+              "type": "tile",
+              "criteria": {
+                "hasProperty": "water"
+              }
+            }
+          ]
+        },
+        "priority": 25,
+        "iconGlyph": "🫗"
+      }
+    ]
+  },
+  "wall": {
+    "id": "wall",
+    "glyph": "#",
+    "name": "Wall",
+    "description": "A solid wall",
+    "interactions": [
+      {
+        "id": "examine_wall",
+        "name": "Examine Wall",
+        "description": "Look closely at the wall for secrets or unusual features",
+        "source": "tile_interactions:wall",
+        "category": "utility",
+        "requirements": [
+          {
+            "type": "range",
+            "value": 1,
+            "comparison": "lessEqual",
+            "description": "Must be adjacent to the wall"
+          }
+        ],
+        "costs": [
+          {
+            "type": "time",
+            "amount": 5,
+            "description": "Takes time to examine thoroughly"
+          }
+        ],
+        "effects": [
+          {
+            "type": "environmentChange",
+            "target": "environment",
+            "parameters": {
+              "revealHidden": true,
+              "searchDC": 12
+            },
+            "description": "May reveal hidden doors or secrets",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "single",
+          "range": 1,
+          "requiresLineOfSight": true,
+          "validTargets": [
+            {
+              "type": "tile",
+              "criteria": {
+                "isWalkable": false
+              }
+            }
+          ]
+        },
+        "priority": 40,
+        "iconGlyph": "🔍"
+      }
+    ]
+  },
+  "altar": {
+    "id": "altar",
+    "glyph": "⛪",
+    "name": "Altar",
+    "description": "A religious altar",
+    "interactions": [
+      {
+        "id": "pray",
+        "name": "Pray",
+        "description": "Offer a prayer at the altar",
+        "source": "tile_interactions:altar",
+        "category": "utility",
+        "requirements": [
+          {
+            "type": "range",
+            "value": 1,
+            "comparison": "lessEqual",
+            "description": "Must be adjacent to the altar"
+          }
+        ],
+        "costs": [
+          {
+            "type": "time",
+            "amount": 60,
+            "description": "Takes time to pray properly"
+          }
+        ],
+        "effects": [
+          {
+            "type": "statusEffect",
+            "target": "self",
+            "parameters": {
+              "statusId": "blessed",
+              "duration": 10
+            },
+            "description": "Receive a temporary blessing",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "single",
+          "range": 1,
+          "requiresLineOfSight": true,
+          "validTargets": [
+            {
+              "type": "tile",
+              "criteria": {
+                "hasProperty": "altar"
+              }
+            }
+          ]
+        },
+        "priority": 20,
+        "iconGlyph": "🙏"
+      }
+    ]
+  }
+}

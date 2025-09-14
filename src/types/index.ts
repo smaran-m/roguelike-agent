@@ -243,12 +243,18 @@ export interface ResourceOperation {
   condition?: string;   // optional condition
 }
 
+export interface CombatResources {
+  primary: string; // The resource that determines life/death (e.g., "hp")
+  secondary?: string[]; // Other combat-relevant resources (e.g., ["mana"])
+}
+
 export interface GameMechanics {
   criticalHitRule: 'double_damage' | 'double_dice' | 'max_damage_plus_roll';
   minimumDamage: number;
   roundingRule: 'floor' | 'ceiling' | 'round';
   specialMechanics?: string[];
   resources?: { [resourceId: string]: ResourceDefinition };
+  combatResources?: CombatResources;
 }
 
 export interface WorldConfig {

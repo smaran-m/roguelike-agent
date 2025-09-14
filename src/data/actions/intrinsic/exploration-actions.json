@@ -1,0 +1,161 @@
+{
+  "examine": {
+    "id": "examine",
+    "name": "Examine",
+    "description": "Look closely at something to learn more about it",
+    "source": "intrinsic",
+    "category": "utility",
+    "requirements": [
+      {
+        "type": "range",
+        "value": 3,
+        "comparison": "lessEqual",
+        "description": "Target must be within examination range"
+      },
+      {
+        "type": "lineOfSight",
+        "value": true,
+        "description": "Must be able to see target"
+      }
+    ],
+    "costs": [],
+    "effects": [
+      {
+        "type": "itemManipulation",
+        "target": "target",
+        "parameters": {
+          "action": "examine",
+          "revealProperties": true
+        },
+        "description": "Reveal detailed information about the target",
+        "timing": "immediate"
+      }
+    ],
+    "targeting": {
+      "type": "single",
+      "range": 3,
+      "requiresLineOfSight": true,
+      "validTargets": [
+        {
+          "type": "entity",
+          "criteria": {}
+        },
+        {
+          "type": "tile",
+          "criteria": {}
+        },
+        {
+          "type": "item",
+          "criteria": {}
+        }
+      ]
+    },
+    "priority": 20,
+    "iconGlyph": "🔍"
+  },
+  "search": {
+    "id": "search",
+    "name": "Search",
+    "description": "Carefully search the area for hidden objects or secrets",
+    "source": "intrinsic",
+    "category": "utility",
+    "requirements": [
+      {
+        "type": "gameMode",
+        "value": "exploration",
+        "description": "Only available during exploration"
+      }
+    ],
+    "costs": [
+      {
+        "type": "time",
+        "amount": 10,
+        "description": "Takes 10 seconds to search thoroughly"
+      }
+    ],
+    "effects": [
+      {
+        "type": "environmentChange",
+        "target": "area",
+        "parameters": {
+          "radius": 1,
+          "shape": "circle",
+          "revealHidden": true,
+          "searchDC": 15
+        },
+        "description": "Reveal hidden objects, traps, or secrets in the area",
+        "timing": "immediate"
+      }
+    ],
+    "targeting": {
+      "type": "area",
+      "range": 1,
+      "requiresLineOfSight": false,
+      "validTargets": [
+        {
+          "type": "tile",
+          "criteria": {}
+        }
+      ],
+      "areaOfEffect": {
+        "shape": "circle",
+        "size": 1,
+        "origin": "performer"
+      }
+    },
+    "priority": 30,
+    "iconGlyph": "🕵️"
+  },
+  "rest": {
+    "id": "rest",
+    "name": "Rest",
+    "description": "Take a short rest to recover some health and resources",
+    "source": "intrinsic",
+    "category": "utility",
+    "requirements": [
+      {
+        "type": "gameMode",
+        "value": "exploration",
+        "description": "Only available during exploration"
+      }
+    ],
+    "costs": [
+      {
+        "type": "time",
+        "amount": 600,
+        "description": "Takes 10 minutes to rest"
+      }
+    ],
+    "effects": [
+      {
+        "type": "healing",
+        "target": "self",
+        "parameters": {
+          "amount": "1d4+1",
+          "resourceId": "hp"
+        },
+        "description": "Recover a small amount of health",
+        "timing": "immediate"
+      },
+      {
+        "type": "resourceChange",
+        "target": "self",
+        "parameters": {
+          "resourceId": "mana",
+          "amount": "1d4",
+          "operation": "add"
+        },
+        "description": "Recover a small amount of mana",
+        "timing": "immediate"
+      }
+    ],
+    "targeting": {
+      "type": "self",
+      "range": "self",
+      "requiresLineOfSight": false,
+      "validTargets": []
+    },
+    "priority": 10,
+    "iconGlyph": "😴"
+  }
+}

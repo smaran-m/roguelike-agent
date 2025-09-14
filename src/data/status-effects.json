@@ -1,0 +1,310 @@
+{
+  "blessed": {
+    "id": "blessed",
+    "name": "Blessed",
+    "description": "Divinely blessed with healing power",
+    "duration": 10,
+    "iconGlyph": "✨",
+    "grantedActions": [
+      {
+        "id": "blessed_prayer",
+        "name": "Divine Prayer",
+        "description": "Channel your blessed state to heal yourself and allies",
+        "source": "status_effects:blessed",
+        "category": "magic",
+        "requirements": [
+          {
+            "type": "entityState",
+            "target": "blessed",
+            "value": 1,
+            "description": "Must be blessed"
+          }
+        ],
+        "costs": [
+          {
+            "type": "resource",
+            "resource": "mana",
+            "amount": 5,
+            "description": "Costs mana to channel"
+          }
+        ],
+        "effects": [
+          {
+            "type": "healing",
+            "target": "self",
+            "parameters": {
+              "amount": "2d4+2",
+              "resourceId": "hp"
+            },
+            "description": "Heal yourself",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "self",
+          "range": "self",
+          "requiresLineOfSight": false,
+          "validTargets": []
+        },
+        "priority": 65,
+        "iconGlyph": "🙏"
+      }
+    ]
+  },
+  "poisoned": {
+    "id": "poisoned",
+    "name": "Poisoned",
+    "description": "Suffering from toxins in the bloodstream",
+    "duration": 5,
+    "iconGlyph": "☠️",
+    "turnEffects": [
+      {
+        "timing": "startOfTurn",
+        "type": "resourceChange",
+        "target": "self",
+        "parameters": {
+          "resourceId": "hp",
+          "amount": "-2",
+          "operation": "add"
+        },
+        "description": "Take poison damage"
+      }
+    ],
+    "grantedActions": [
+      {
+        "id": "purge_poison",
+        "name": "Purge Poison",
+        "description": "Use force of will to fight off poison in your system",
+        "source": "status_effects:poisoned",
+        "category": "utility",
+        "requirements": [
+          {
+            "type": "entityState",
+            "target": "poisoned",
+            "value": 1,
+            "description": "Must be poisoned"
+          }
+        ],
+        "costs": [
+          {
+            "type": "actionPoint",
+            "amount": 1,
+            "description": "Requires concentration"
+          },
+          {
+            "type": "resource",
+            "resource": "hp",
+            "amount": "1d4",
+            "description": "Strains your body"
+          }
+        ],
+        "effects": [
+          {
+            "type": "statusEffect",
+            "target": "self",
+            "parameters": {
+              "statusId": "poisoned",
+              "remove": true
+            },
+            "description": "Remove poison effect",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "self",
+          "range": "self",
+          "requiresLineOfSight": false,
+          "validTargets": []
+        },
+        "priority": 85,
+        "iconGlyph": "🤢"
+      }
+    ]
+  },
+  "haste": {
+    "id": "haste",
+    "name": "Haste",
+    "description": "Moving with supernatural speed",
+    "duration": 10,
+    "iconGlyph": "💨",
+    "grantedActions": [
+      {
+        "id": "haste_movement",
+        "name": "Haste Movement",
+        "description": "Use your enhanced speed to move further",
+        "source": "status_effects:haste",
+        "category": "movement",
+        "requirements": [
+          {
+            "type": "entityState",
+            "target": "haste",
+            "value": 1,
+            "description": "Must be hasted"
+          }
+        ],
+        "costs": [],
+        "effects": [
+          {
+            "type": "resourceChange",
+            "target": "self",
+            "parameters": {
+              "resourceId": "movement",
+              "amount": 15,
+              "operation": "add"
+            },
+            "description": "Gain extra movement",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "self",
+          "range": "self",
+          "requiresLineOfSight": false,
+          "validTargets": []
+        },
+        "priority": 80,
+        "iconGlyph": "💨"
+      }
+    ]
+  },
+  "invisible": {
+    "id": "invisible",
+    "name": "Invisible",
+    "description": "Hidden from sight",
+    "duration": 5,
+    "iconGlyph": "👻",
+    "grantedActions": [
+      {
+        "id": "stealth_strike",
+        "name": "Stealth Strike",
+        "description": "Make a devastating attack while invisible",
+        "source": "status_effects:invisible",
+        "category": "attack",
+        "requirements": [
+          {
+            "type": "entityState",
+            "target": "invisible",
+            "value": 1,
+            "description": "Must be invisible"
+          },
+          {
+            "type": "range",
+            "value": 1,
+            "comparison": "lessEqual",
+            "description": "Must be adjacent to target"
+          }
+        ],
+        "costs": [
+          {
+            "type": "actionPoint",
+            "amount": 1,
+            "description": "Uses your action"
+          }
+        ],
+        "effects": [
+          {
+            "type": "damage",
+            "target": "target",
+            "parameters": {
+              "amount": "2d6+4",
+              "damageType": "piercing",
+              "criticalHit": true
+            },
+            "description": "Deal critical sneak attack damage",
+            "timing": "immediate"
+          },
+          {
+            "type": "statusEffect",
+            "target": "self",
+            "parameters": {
+              "statusId": "invisible",
+              "remove": true
+            },
+            "description": "Become visible after attacking",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "single",
+          "range": 1,
+          "requiresLineOfSight": false,
+          "validTargets": [
+            {
+              "type": "entity",
+              "criteria": {
+                "isAlive": true
+              }
+            }
+          ]
+        },
+        "priority": 95,
+        "iconGlyph": "🗡️"
+      }
+    ]
+  },
+  "burning": {
+    "id": "burning",
+    "name": "Burning",
+    "description": "On fire and taking damage",
+    "duration": 3,
+    "iconGlyph": "🔥",
+    "turnEffects": [
+      {
+        "timing": "startOfTurn",
+        "type": "resourceChange",
+        "target": "self",
+        "parameters": {
+          "resourceId": "hp",
+          "amount": "-1d4",
+          "operation": "add"
+        },
+        "description": "Take fire damage"
+      }
+    ],
+    "grantedActions": [
+      {
+        "id": "stop_drop_roll",
+        "name": "Stop, Drop, and Roll",
+        "description": "Attempt to extinguish flames by rolling on the ground",
+        "source": "status_effects:burning",
+        "category": "utility",
+        "requirements": [
+          {
+            "type": "entityState",
+            "target": "burning",
+            "value": 1,
+            "description": "Must be on fire"
+          }
+        ],
+        "costs": [
+          {
+            "type": "actionPoint",
+            "amount": 1,
+            "description": "Takes time to roll effectively"
+          }
+        ],
+        "effects": [
+          {
+            "type": "statusEffect",
+            "target": "self",
+            "parameters": {
+              "statusId": "burning",
+              "remove": true,
+              "probability": 0.75
+            },
+            "description": "75% chance to extinguish flames",
+            "timing": "immediate"
+          }
+        ],
+        "targeting": {
+          "type": "self",
+          "range": "self",
+          "requiresLineOfSight": false,
+          "validTargets": []
+        },
+        "priority": 90,
+        "iconGlyph": "🔥"
+      }
+    ]
+  }
+}

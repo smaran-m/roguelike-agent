@@ -1,0 +1,231 @@
+{
+  "move": {
+    "id": "move",
+    "name": "Move",
+    "description": "Move to an adjacent walkable tile",
+    "source": "intrinsic",
+    "category": "movement",
+    "requirements": [
+      {
+        "type": "tileProperty",
+        "target": "walkable",
+        "value": true,
+        "comparison": "equals",
+        "description": "Target tile must be walkable"
+      },
+      {
+        "type": "range",
+        "value": 1,
+        "comparison": "lessEqual",
+        "description": "Target must be adjacent"
+      }
+    ],
+    "costs": [
+      {
+        "type": "movement",
+        "amount": 5,
+        "description": "5 feet of movement"
+      }
+    ],
+    "effects": [
+      {
+        "type": "movement",
+        "target": "self",
+        "parameters": {
+          "distance": 1,
+          "direction": "toward"
+        },
+        "description": "Move to target location",
+        "timing": "immediate"
+      }
+    ],
+    "targeting": {
+      "type": "single",
+      "range": 1,
+      "requiresLineOfSight": false,
+      "validTargets": [
+        {
+          "type": "tile",
+          "criteria": {
+            "isWalkable": true
+          }
+        }
+      ]
+    },
+    "priority": 100,
+    "iconGlyph": "👣"
+  },
+  "wait": {
+    "id": "wait",
+    "name": "Wait",
+    "description": "Do nothing and end your turn",
+    "source": "intrinsic",
+    "category": "utility",
+    "requirements": [],
+    "costs": [
+      {
+        "type": "actionPoint",
+        "amount": 1,
+        "description": "Uses your action for this turn"
+      }
+    ],
+    "effects": [
+      {
+        "type": "resourceChange",
+        "target": "self",
+        "parameters": {
+          "resourceId": "actionPoints",
+          "amount": 0
+        },
+        "description": "End turn without taking action",
+        "timing": "immediate"
+      }
+    ],
+    "targeting": {
+      "type": "none",
+      "range": "self",
+      "requiresLineOfSight": false,
+      "validTargets": []
+    },
+    "priority": 1,
+    "iconGlyph": "⏸️"
+  },
+  "basic_attack": {
+    "id": "basic_attack",
+    "name": "Unarmed Strike",
+    "description": "Make a basic melee attack with your fists",
+    "source": "intrinsic",
+    "category": "attack",
+    "requirements": [
+      {
+        "type": "range",
+        "value": 1,
+        "comparison": "lessEqual",
+        "description": "Target must be within melee range"
+      },
+      {
+        "type": "lineOfSight",
+        "value": true,
+        "description": "Must be able to see target"
+      }
+    ],
+    "costs": [
+      {
+        "type": "actionPoint",
+        "amount": 1,
+        "description": "Uses your action for this turn"
+      }
+    ],
+    "effects": [
+      {
+        "type": "damage",
+        "target": "target",
+        "parameters": {
+          "amount": "1d4",
+          "damageType": "bludgeoning",
+          "attackRoll": true
+        },
+        "description": "Deal bludgeoning damage",
+        "timing": "immediate"
+      }
+    ],
+    "targeting": {
+      "type": "single",
+      "range": 1,
+      "requiresLineOfSight": true,
+      "validTargets": [
+        {
+          "type": "entity",
+          "criteria": {
+            "isAlive": true
+          }
+        }
+      ]
+    },
+    "priority": 80,
+    "iconGlyph": "👊"
+  },
+  "dodge": {
+    "id": "dodge",
+    "name": "Dodge",
+    "description": "Focus entirely on avoiding attacks until your next turn",
+    "source": "intrinsic",
+    "category": "defense",
+    "requirements": [
+      {
+        "type": "gameMode",
+        "value": "combat",
+        "description": "Only available in combat"
+      }
+    ],
+    "costs": [
+      {
+        "type": "actionPoint",
+        "amount": 1,
+        "description": "Uses your action for this turn"
+      }
+    ],
+    "effects": [
+      {
+        "type": "statusEffect",
+        "target": "self",
+        "parameters": {
+          "statusId": "dodging",
+          "duration": 1
+        },
+        "description": "Gain advantage on Dexterity saving throws and attackers have disadvantage",
+        "timing": "immediate"
+      }
+    ],
+    "targeting": {
+      "type": "self",
+      "range": "self",
+      "requiresLineOfSight": false,
+      "validTargets": []
+    },
+    "priority": 60,
+    "iconGlyph": "🛡️"
+  },
+  "dash": {
+    "id": "dash",
+    "name": "Dash",
+    "description": "Double your movement speed for this turn",
+    "source": "intrinsic",
+    "category": "movement",
+    "requirements": [
+      {
+        "type": "gameMode",
+        "value": "combat",
+        "description": "Only available in combat"
+      }
+    ],
+    "costs": [
+      {
+        "type": "actionPoint",
+        "amount": 1,
+        "description": "Uses your action for this turn"
+      }
+    ],
+    "effects": [
+      {
+        "type": "resourceChange",
+        "target": "self",
+        "parameters": {
+          "resourceId": "movement",
+          "amount": 30,
+          "operation": "add"
+        },
+        "description": "Gain additional movement equal to your speed",
+        "timing": "immediate"
+      }
+    ],
+    "targeting": {
+      "type": "self",
+      "range": "self",
+      "requiresLineOfSight": false,
+      "validTargets": []
+    },
+    "priority": 70,
+    "iconGlyph": "💨"
+  }
+}

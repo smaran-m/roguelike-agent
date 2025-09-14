@@ -112,9 +112,37 @@ export interface CombatEndedEvent extends BaseGameEvent {
   duration: number; // milliseconds
 }
 
-export type GameEvent = 
-  | EnemyDiedEvent 
-  | DamageDealtEvent 
+export interface EntityDiedEvent extends BaseGameEvent {
+  type: 'EntityDied';
+  entityId: string;
+  position: { x: number; y: number };
+  killer?: string;
+}
+
+export interface ActionProviderRegisteredEvent extends BaseGameEvent {
+  type: 'ActionProviderRegistered';
+  providerId: string;
+  description: string;
+}
+
+export interface ActionProviderUnregisteredEvent extends BaseGameEvent {
+  type: 'ActionProviderUnregistered';
+  providerId: string;
+}
+
+export interface RegisterActionProviderEvent extends BaseGameEvent {
+  type: 'RegisterActionProvider';
+  provider: any; // IActionProvider
+}
+
+export interface UnregisterActionProviderEvent extends BaseGameEvent {
+  type: 'UnregisterActionProvider';
+  providerId: string;
+}
+
+export type GameEvent =
+  | EnemyDiedEvent
+  | DamageDealtEvent
   | ResourceChangedEvent
   | EntityMovedEvent
   | TileChangedEvent
@@ -128,7 +156,12 @@ export type GameEvent =
   | TurnStartedEvent
   | TurnEndedEvent
   | CombatStartedEvent
-  | CombatEndedEvent;
+  | CombatEndedEvent
+  | EntityDiedEvent
+  | ActionProviderRegisteredEvent
+  | ActionProviderUnregisteredEvent
+  | RegisterActionProviderEvent
+  | UnregisterActionProviderEvent;
 
 export type EventHandler<T extends BaseGameEvent = GameEvent> = (event: T) => void;
 export type EventUnsubscriber = () => void;

@@ -122,8 +122,9 @@ export class CombatSystem {
   
   // Apply damage to an entity
   static applyDamage(entity: Entity, damage: number): boolean {
-    ResourceManager.modify(entity, 'hp', -damage);
-    return ResourceManager.isAtMinimum(entity, 'hp'); // Returns true if entity died
+    const primaryCombatResource = WorldConfigLoader.getCombatResource('primary');
+    ResourceManager.modify(entity, primaryCombatResource, -damage);
+    return ResourceManager.isAtMinimum(entity, primaryCombatResource); // Returns true if entity died
   }
   
   // Create default player stats with resources initialized

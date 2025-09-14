@@ -21,6 +21,10 @@
       "criticalHitRule": "double_damage",
       "minimumDamage": 1,
       "roundingRule": "floor",
+      "combatResources": {
+        "primary": "hp",
+        "secondary": ["mana"]
+      },
       "resources": {
         "hp": {
           "id": "hp",
@@ -76,6 +80,10 @@
       "criticalHitRule": "max_damage_plus_roll",
       "minimumDamage": 0,
       "roundingRule": "round",
+      "combatResources": {
+        "primary": "hp",
+        "secondary": ["heat", "neural"]
+      },
       "resources": {
         "hp": {
           "id": "hp",

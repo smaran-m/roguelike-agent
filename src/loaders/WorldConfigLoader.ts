@@ -159,6 +159,39 @@ export class WorldConfigLoader {
   }
 
   /**
+   * Get the primary combat resource for the current world
+   */
+  static getCombatResource(type: 'primary'): string {
+    const combatResources = this.currentWorld?.mechanics.combatResources;
+    if (!combatResources) {
+      // Fallback to 'hp' for worlds that don't define combat resources
+      return 'hp';
+    }
+
+    switch (type) {
+      case 'primary':
+        return combatResources.primary;
+      default:
+        return 'hp';
+    }
+  }
+
+  /**
+   * Get secondary combat resources for the current world
+   */
+  static getSecondaryCombatResources(): string[] {
+    const combatResources = this.currentWorld?.mechanics.combatResources;
+    return combatResources?.secondary || [];
+  }
+
+  /**
+   * Check if a resource is combat-critical (determines life/death)
+   */
+  static isCombatCritical(resourceId: string): boolean {
+    return this.getCombatResource('primary') === resourceId;
+  }
+
+  /**
    * Get world display information for UI
    */
   static getWorldDisplayList(): Array<{
