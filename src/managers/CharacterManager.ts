@@ -111,11 +111,18 @@ export class CharacterManager {
     const selectedGlyph = customization?.selectedGlyph || characterClass.appearance.defaultGlyph;
     const selectedColor = customization?.selectedColor || characterClass.appearance.defaultColor;
 
-    // Create starting inventory with weapon
-    const startingWeapon = ItemSystem.getStartingWeapon(characterClass.startingEquipment.weapon);
+    // Create empty starting inventory
     const inventory: import('../types').Item[] = [];
-    if (startingWeapon) {
-      inventory.push(startingWeapon);
+
+    // Initialize equipment slots
+    const equipment = new Map<string, import('../types').Item>();
+
+    // Equip starting items into appropriate slots
+    for (const [slotId, itemId] of Object.entries(characterClass.startingEquipment)) {
+      const item = ItemSystem.createItem(itemId); // Create any item type
+      if (item) {
+        equipment.set(slotId, item);
+      }
     }
 
     const character: PlayerCharacter = {
@@ -129,7 +136,7 @@ export class CharacterManager {
         glyph: selectedGlyph,
         color: EnemyLoader.parseColor(selectedColor)
       },
-      equipment: { ...characterClass.startingEquipment },
+      equipment,
       features: [...characterClass.classFeatures],
       inventory,
       customization: customization || {}
@@ -304,13 +311,13 @@ export class CharacterManager {
   }
 
   /**
-   * Get character's equipped weapon (first weapon in inventory)
+   * Get character's equipped weapon from primary_hand slot
    */
   getEquippedWeapon(): import('../types').Item | null {
     if (!this.currentCharacter) return null;
-    
-    const weapon = this.currentCharacter.inventory.find(item => item.type === 'weapon');
-    return weapon || null;
+
+    const equippedWeapon = this.currentCharacter.equipment.get('primary_hand');
+    return equippedWeapon || null;
   }
 
   /**
@@ -336,9 +343,61 @@ export class CharacterManager {
    */
   removeItemFromInventory(itemId: string): boolean {
     if (!this.currentCharacter) return false;
-    
+
     const initialLength = this.currentCharacter.inventory.length;
     this.currentCharacter.inventory = this.currentCharacter.inventory.filter(item => item.id !== itemId);
     return this.currentCharacter.inventory.length < initialLength;
+  }
+
+  /**
+   * Get item equipped in a specific slot
+   */
+  getEquippedItem(slotId: string): import('../types').Item | null {
+    if (!this.currentCharacter) return null;
+
+    return this.currentCharacter.equipment.get(slotId) || null;
+  }
+
+  /**
+   * Equip an item into a specific slot
+   */
+  equipItem(slotId: string, item: import('../types').Item): boolean {
+    if (!this.currentCharacter) return false;
+
+    // TODO: Add slot validation in future (check if item can go in this slot)
+    this.currentCharacter.equipment.set(slotId, item);
+    return true;
+  }
+
+  /**
+   * Unequip an item from a slot
+   */
+  unequipItem(slotId: string): import('../types').Item | null {
+    if (!this.currentCharacter) return null;
+
+    const item = this.currentCharacter.equipment.get(slotId);
+    if (item) {
+      this.currentCharacter.equipment.delete(slotId);
+    }
+    return item || null;
+  }
+
+  /**
+   * Get all available slots for current character class
+   */
+  getAvailableSlots(): import('../types').EquipmentSlot[] {
+    if (!this.currentCharacter) return [];
+
+    const characterClass = this.getCharacterClass(this.currentCharacter.className);
+    return characterClass?.slots || [];
+  }
+
+  /**
+   * Get all currently equipped items as slot -> item mapping
+   */
+  getAllEquippedItems(): Map<string, import('../types').Item> {
+    if (!this.currentCharacter) return new Map();
+
+    return new Map(this.currentCharacter.equipment);
   }
 }

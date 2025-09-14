@@ -562,13 +562,18 @@ export class Game {
     this.eventBus.subscribe('CombatTriggered', (event: any) => {
       const entities = this.gameStateManager.getAllEntities();
       const hostileEntity = entities.find(e => e.id === event.hostileId);
-      
-      const participants = entities.filter(entity => 
-        entity.id === event.playerId || 
-        !entity.isPlayer // Include all non-player entities nearby
-      );
-      
-      this.turnOrderManager.startCombat(participants);
+
+      // Use the participants decided by GameModeManager (the "DM")
+      const participantEntities = event.participants.map((p: any) =>
+        entities.find(e => e.id === p.id)
+      ).filter(Boolean); // Remove any null/undefined entities
+
+      // Always include the player
+      if (!participantEntities.find((e: any) => e.id === this.player.id)) {
+        participantEntities.unshift(this.player);
+      }
+
+      this.turnOrderManager.startCombat(participantEntities);
       
       // Show who spotted the player
       const triggerMessage = hostileEntity 
@@ -640,7 +645,7 @@ export class Game {
       );
 
       if (trigger) {
-        this.gameModeManager.triggerCombat(trigger, entities);
+        this.gameModeManager.triggerCombat(trigger, entities, this.tileMap);
       }
     } else if (this.gameModeManager.getCurrentMode() === 'combat') {
       // Check if combat should end

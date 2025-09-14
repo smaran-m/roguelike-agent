@@ -84,6 +84,7 @@ export interface CombatTriggeredEvent extends BaseGameEvent {
   hostileId: string;
   distance: number;
   hasLineOfSight: boolean;
+  participants: Array<{ id: string; name: string }>;
 }
 
 export interface TurnStartedEvent extends BaseGameEvent {

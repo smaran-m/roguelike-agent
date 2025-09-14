@@ -67,10 +67,13 @@ export interface CharacterAppearance {
   defaultColor: string;
 }
 
+export interface EquipmentSlot {
+  id: string;
+  name: string;
+}
+
 export interface StartingEquipment {
-  weapon: string;
-  armor: string;
-  shield: boolean;
+  [slotId: string]: string; // slotId -> itemId
 }
 
 export interface CharacterClass {
@@ -78,6 +81,7 @@ export interface CharacterClass {
   description: string;
   baseStats: EnemyStatRanges; // Reuse the same stat range system
   appearance: CharacterAppearance;
+  slots: EquipmentSlot[];
   startingEquipment: StartingEquipment;
   classFeatures: string[];
 }
@@ -93,7 +97,7 @@ export interface PlayerCharacter {
     glyph: string;
     color: number;
   };
-  equipment: StartingEquipment;
+  equipment: Map<string, Item>; // slotId -> equipped Item
   features: string[];
   inventory: Item[];
   customization: {

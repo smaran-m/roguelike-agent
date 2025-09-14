@@ -43,19 +43,6 @@ export class ItemSystem {
     return item && item.type === 'tool' ? item : null;
   }
 
-  /**
-   * Get starting weapon for a character class
-   */
-  static getStartingWeapon(weaponName: string): Item | null {
-    const item = ItemLoader.getItem(weaponName, `starting_${weaponName}`);
-    if (item && item.type === 'weapon') {
-      return item;
-    }
-    
-    // Fallback to dagger if weapon not found
-    Logger.warn(`Starting weapon '${weaponName}' not found, falling back to dagger`);
-    return ItemLoader.getItem('dagger', 'starting_dagger');
-  }
 
   /**
    * Get item damage value or return default

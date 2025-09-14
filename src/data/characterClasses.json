@@ -19,10 +19,15 @@
       "alternativeGlyphs": ["🛡️", "🗡️", "🤺"],
       "defaultColor": "0xC0C0C0"
     },
+    "slots": [
+      {"id": "primary_hand", "name": "Primary Hand"},
+      {"id": "off_hand", "name": "Off Hand"},
+      {"id": "body", "name": "Armor"}
+    ],
     "startingEquipment": {
-      "weapon": "longsword",
-      "armor": "chain_mail",
-      "shield": true
+      "primary_hand": "longsword",
+      "off_hand": "shield",
+      "body": "chain_mail"
     },
     "classFeatures": [
       "Fighting Style",
@@ -49,10 +54,14 @@
       "alternativeGlyphs": ["🔮", "📚", "⭐"],
       "defaultColor": "0x4169E1"
     },
+    "slots": [
+      {"id": "primary_hand", "name": "Primary Hand"},
+      {"id": "off_hand", "name": "Off Hand"},
+      {"id": "body", "name": "Armor"}
+    ],
     "startingEquipment": {
-      "weapon": "staff",
-      "armor": "robes",
-      "shield": false
+      "primary_hand": "staff",
+      "body": "robes"
     },
     "classFeatures": [
       "Spellcasting",
@@ -79,10 +88,14 @@
       "alternativeGlyphs": ["🥷", "🏹", "💀"],
       "defaultColor": "0x8B4513"
     },
+    "slots": [
+      {"id": "primary_hand", "name": "Primary Hand"},
+      {"id": "off_hand", "name": "Off Hand"},
+      {"id": "body", "name": "Armor"}
+    ],
     "startingEquipment": {
-      "weapon": "shortsword",
-      "armor": "leather_armor",
-      "shield": false
+      "primary_hand": "shortsword",
+      "body": "leather_armor"
     },
     "classFeatures": [
       "Sneak Attack",
@@ -109,10 +122,15 @@
       "alternativeGlyphs": ["✨", "🕊️", "📿"],
       "defaultColor": "0xFFD700"
     },
+    "slots": [
+      {"id": "primary_hand", "name": "Primary Hand"},
+      {"id": "off_hand", "name": "Off Hand"},
+      {"id": "body", "name": "Armor"}
+    ],
     "startingEquipment": {
-      "weapon": "mace",
-      "armor": "scale_mail",
-      "shield": true
+      "primary_hand": "mace",
+      "off_hand": "shield",
+      "body": "scale_mail"
     },
     "classFeatures": [
       "Divine Domain",
@@ -139,10 +157,14 @@
       "alternativeGlyphs": ["🌲", "🐺", "🦅"],
       "defaultColor": "0x228B22"
     },
+    "slots": [
+      {"id": "primary_hand", "name": "Primary Hand"},
+      {"id": "off_hand", "name": "Off Hand"},
+      {"id": "body", "name": "Armor"}
+    ],
     "startingEquipment": {
-      "weapon": "longbow",
-      "armor": "studded_leather",
-      "shield": false
+      "primary_hand": "longbow",
+      "body": "studded_leather"
     },
     "classFeatures": [
       "Favored Enemy",

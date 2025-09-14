@@ -292,34 +292,36 @@ export class HTMLUIRenderer {
   }
 
   private renderCharacterInventoryHTML(_player: Entity): string {
-    let html = '<span style="color: #ffffff; font-weight: bold;">EQUIPMENT</span>\n';
-    
+    let html = '<span style="color: #ffffff; font-weight: bold;">EQUIPPED ITEMS</span>\n';
+
     const characterManager = CharacterManager.getInstance();
-    const currentCharacter = characterManager.getCurrentCharacter();
-    
-    if (!currentCharacter || !currentCharacter.inventory || currentCharacter.inventory.length === 0) {
-      html += '<span style="color: #cccccc;">(Empty)</span>\n';
+    const equippedItems = characterManager.getAllEquippedItems();
+    const availableSlots = characterManager.getAvailableSlots();
+
+    if (equippedItems.size === 0) {
+      html += '<span style="color: #cccccc;">(Nothing equipped)</span>\n';
       return html;
     }
-    
-    const maxDisplayItems = Math.min(currentCharacter.inventory.length, 5);
-    for (let i = 0; i < maxDisplayItems; i++) {
-      const item = currentCharacter.inventory[i];
-      const itemName = item.name.length > 12 ? item.name.substring(0, 12) : item.name;
-      let itemLine = `${itemName}`;
-      
-      if (item.type === 'weapon' && item.damage) {
-        const damageInfo = item.damage.length > 6 ? item.damage.substring(0, 6) : item.damage;
-        itemLine += ` (${damageInfo})`;
+
+    // Show equipped items by slot
+    for (const slot of availableSlots) {
+      const equippedItem = equippedItems.get(slot.id);
+      if (equippedItem) {
+        const itemName = equippedItem.name.length > 12 ? equippedItem.name.substring(0, 12) : equippedItem.name;
+        let itemLine = `${slot.name}: ${itemName}`;
+
+        if (equippedItem.type === 'weapon' && equippedItem.damage) {
+          const damageInfo = equippedItem.damage.length > 6 ? equippedItem.damage.substring(0, 6) : equippedItem.damage;
+          itemLine += ` (${damageInfo})`;
+        }
+
+        html += `<span style="color: #ffffff;">${itemLine}</span>\n`;
+      } else {
+        // Show empty slots
+        html += `<span style="color: #666666;">${slot.name}: (empty)</span>\n`;
       }
-      
-      html += `<span style="color: #ffffff;">${itemLine}</span>\n`;
     }
-    
-    if (currentCharacter.inventory.length > maxDisplayItems) {
-      html += '<span style="color: #cccccc;">...</span>\n';
-    }
-    
+
     return html;
   }
 

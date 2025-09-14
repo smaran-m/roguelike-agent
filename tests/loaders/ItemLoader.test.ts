@@ -101,21 +101,21 @@ describe('ItemSystem', () => {
     expect(potion?.type).toBe('consumable');
   });
 
-  it('should get starting weapons for character classes', () => {
-    const longsword = ItemSystem.getStartingWeapon('longsword');
+  it('should create weapons for character classes', () => {
+    const longsword = ItemSystem.createItem('longsword');
     expect(longsword).toBeTruthy();
     expect(longsword?.name).toBe('Longsword');
-    expect(longsword?.id).toBe('starting_longsword');
+    expect(longsword?.type).toBe('weapon');
 
-    const staff = ItemSystem.getStartingWeapon('staff');
+    const staff = ItemSystem.createItem('staff');
     expect(staff).toBeTruthy();
     expect(staff?.name).toBe('Quarterstaff');
+    expect(staff?.type).toBe('weapon');
   });
 
-  it('should handle invalid weapon names with fallback', () => {
-    const fallback = ItemSystem.getStartingWeapon('invalid_weapon');
-    expect(fallback).toBeTruthy();
-    expect(fallback?.name).toBe('Dagger'); // Should fallback to dagger
+  it('should handle invalid item names gracefully', () => {
+    const invalidItem = ItemSystem.createItem('invalid_weapon');
+    expect(invalidItem).toBeNull();
   });
 
   it('should initialize successfully', () => {

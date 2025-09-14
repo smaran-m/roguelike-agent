@@ -19,10 +19,14 @@
       "alternativeGlyphs": ["💻", "🔌", "⚡"],
       "defaultColor": "0x00FFFF"
     },
+    "slots": [
+      {"id": "primary_hand", "name": "Primary Hand"},
+      {"id": "off_hand", "name": "Off Hand"},
+      {"id": "body", "name": "Armor"}
+    ],
     "startingEquipment": {
-      "weapon": "neural_interface",
-      "armor": "kevlar_vest",
-      "shield": false
+      "primary_hand": "neural_interface",
+      "body": "kevlar_vest"
     },
     "classFeatures": [
       "Hacking",
@@ -49,10 +53,14 @@
       "alternativeGlyphs": ["🗡️", "🔪", "💥"],
       "defaultColor": "0xFF0080"
     },
+    "slots": [
+      {"id": "primary_hand", "name": "Primary Hand"},
+      {"id": "off_hand", "name": "Off Hand"},
+      {"id": "body", "name": "Armor"}
+    ],
     "startingEquipment": {
-      "weapon": "mono_katana",
-      "armor": "cyber_armor",
-      "shield": false
+      "primary_hand": "mono_katana",
+      "body": "cyber_armor"
     },
     "classFeatures": [
       "Cyber Reflexes",
@@ -79,10 +87,14 @@
       "alternativeGlyphs": ["🏢", "💳", "👔"],
       "defaultColor": "0x4169E1"
     },
+    "slots": [
+      {"id": "primary_hand", "name": "Primary Hand"},
+      {"id": "off_hand", "name": "Off Hand"},
+      {"id": "body", "name": "Armor"}
+    ],
     "startingEquipment": {
-      "weapon": "smart_pistol",
-      "armor": "business_suit",
-      "shield": false
+      "primary_hand": "smart_pistol",
+      "body": "business_suit"
     },
     "classFeatures": [
       "Corporate Network",
@@ -109,10 +121,14 @@
       "alternativeGlyphs": ["⚙️", "🔬", "🛠️"],
       "defaultColor": "0xFF8000"
     },
+    "slots": [
+      {"id": "primary_hand", "name": "Primary Hand"},
+      {"id": "off_hand", "name": "Off Hand"},
+      {"id": "body", "name": "Armor"}
+    ],
     "startingEquipment": {
-      "weapon": "plasma_cutter",
-      "armor": "work_coveralls",
-      "shield": false
+      "primary_hand": "plasma_cutter",
+      "body": "work_coveralls"
     },
     "classFeatures": [
       "Tech Specialist",
@@ -139,10 +155,14 @@
       "alternativeGlyphs": ["🌵", "🚗", "🛣️"],
       "defaultColor": "0x8B4513"
     },
+    "slots": [
+      {"id": "primary_hand", "name": "Primary Hand"},
+      {"id": "off_hand", "name": "Off Hand"},
+      {"id": "body", "name": "Armor"}
+    ],
     "startingEquipment": {
-      "weapon": "assault_rifle",
-      "armor": "road_leathers",
-      "shield": false
+      "primary_hand": "assault_rifle",
+      "body": "road_leathers"
     },
     "classFeatures": [
       "Vehicle Affinity",
