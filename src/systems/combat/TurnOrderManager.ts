@@ -101,8 +101,37 @@ export class TurnOrderManager {
       }))
     });
 
-    // Start the first turn
-    this.startNextTurn();
+    // Start the first turn (don't increment - start at index 0 with highest initiative)
+    const currentInitiative = this.combatState.turnOrder[this.combatState.currentTurnIndex];
+    const entityId = currentInitiative.entityId;
+
+    // Reset action economy for the new turn
+    this.resetActionEconomy(entityId);
+
+    // Update turn data
+    const turnData = this.turnData.get(entityId);
+    if (turnData) {
+      turnData.turnNumber = this.combatState.currentTurn;
+      turnData.actionsRemaining = DEFAULT_ACTION_ECONOMY.actions;
+      turnData.movementRemaining = DEFAULT_ACTION_ECONOMY.movement;
+      turnData.hasUsedReaction = false;
+    }
+
+    // Publish turn started event
+    this.eventBus.publish({
+      type: 'TurnStarted',
+      id: generateEventId(),
+      timestamp: Date.now(),
+      entityId,
+      turnNumber: this.combatState.currentTurn,
+      initiative: currentInitiative.initiative
+    });
+
+    this.logger.debug('First turn started', {
+      entityId,
+      turnNumber: this.combatState.currentTurn,
+      initiative: currentInitiative.initiative
+    });
   }
 
   endCombat(): void {
