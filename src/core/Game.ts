@@ -2,7 +2,7 @@ import { DefaultRenderer } from './renderers/DefaultRenderer';
 import { TileMap } from './TileMap';
 import { Entity } from '../types';
 import { LineOfSight } from './LineOfSight';
-import { InputHandler, InputCallbacks } from '../systems/input/InputHandler';
+import { InputHandler, ModeCallbacks } from '../systems/input/InputHandler';
 import { MovementSystem, MovementState } from '../systems/movement/MovementSystem';
 import { CombatManager } from '../systems/combat/CombatManager';
 import { GameStateManager } from '../managers/GameStateManager';
@@ -14,6 +14,8 @@ import { ErrorHandler } from '../utils/ErrorHandler';
 import { generateEventId } from './events/GameEvent';
 import { AudioSystem } from '../systems/audio/AudioSystem';
 import { getFontsToLoad } from '../config/fonts';
+import { GameModeManager } from '../systems/game-modes/GameModeManager';
+import { TurnOrderManager } from '../systems/combat/TurnOrderManager';
 
 export class Game {
   renderer: DefaultRenderer;
@@ -32,6 +34,8 @@ export class Game {
   private combatManager: CombatManager;
   private gameStateManager: GameStateManager;
   private uiManager: UIManager;
+  private gameModeManager: GameModeManager;
+  private turnOrderManager: TurnOrderManager;
   
   // Movement state
   private movementState: MovementState;
@@ -73,6 +77,10 @@ export class Game {
     this.movementSystem = new MovementSystem(0.1);
     this.combatManager = new CombatManager(this.renderer, this.eventBus);
     
+    // Initialize game mode and turn order systems
+    this.gameModeManager = new GameModeManager(this.eventBus, this.logger);
+    this.turnOrderManager = new TurnOrderManager(this.eventBus, this.logger);
+    
     // Initialize entities through game state manager with safe spawn positions
     this.gameStateManager.initializeEntities(this.tileMap);
     this.player = this.gameStateManager.getPlayer()!;
@@ -93,35 +101,140 @@ export class Game {
       lastValidY: this.player.y
     };
     
-    // Setup input with direct system callbacks
-    const inputCallbacks: InputCallbacks = {
-      onMovementKey: () => {}, // Movement handled in updateMovement
-      onMovementKeyRelease: (keys) => {
-        // Snap to grid when no keys are pressed
-        if (keys.size === 0) {
+    // Setup input with mode-based callbacks
+    const modeCallbacks: ModeCallbacks = {
+      exploration: {
+        onMovementKey: () => {}, // Movement handled in updateMovement
+        onMovementKeyRelease: (keys) => {
+          // Snap to grid when no keys are pressed in exploration mode
+          if (keys.size === 0) {
+            const entities = this.gameStateManager.getAllEntities();
+            this.movementSystem.snapPlayerToGrid(
+              this.movementState, 
+              this.player, 
+              entities, 
+              this.tileMap
+            );
+          }
+        },
+        onAttack: () => {
           const entities = this.gameStateManager.getAllEntities();
-          this.movementSystem.snapPlayerToGrid(
-            this.movementState, 
-            this.player, 
-            entities, 
-            this.tileMap
-          );
+          const result = this.combatManager.attemptMeleeAttack(this.player, entities);
+          
+          if (result.success && result.targetKilled && result.target) {
+            this.gameStateManager.removeEntity(result.target.id);
+          }
+          
+          if (result.success) {
+            this.render();
+          }
         }
       },
-      onAttack: () => {
-        const entities = this.gameStateManager.getAllEntities();
-        const result = this.combatManager.attemptMeleeAttack(this.player, entities);
-        
-        if (result.success && result.targetKilled && result.target) {
-          this.gameStateManager.removeEntity(result.target.id);
-        }
-        
-        if (result.success) {
-          this.render();
+      combat: {
+        onMovementKey: () => {}, // Movement handled in updateMovement
+        onMovementKeyRelease: () => {
+          // In combat mode, movement immediately commits to grid
+          // No need to snap since combat movement is already grid-based
+        },
+        onAttack: () => {
+          // In combat mode, check if it's the player's turn
+          const currentTurn = this.turnOrderManager.getCurrentTurn();
+          if (!currentTurn || currentTurn.entityId !== this.player.id) {
+            this.eventBus.publish({
+              type: 'MessageAdded',
+              id: generateEventId(),
+              timestamp: Date.now(),
+              message: "It's not your turn!",
+              category: 'combat'
+            });
+            return;
+          }
+          
+          // Check if player has actions remaining
+          const actionEconomy = this.turnOrderManager.getActionEconomy(this.player.id);
+          if (!actionEconomy || actionEconomy.actions <= 0) {
+            this.eventBus.publish({
+              type: 'MessageAdded',
+              id: generateEventId(),
+              timestamp: Date.now(),
+              message: "No actions remaining! Press Enter to end turn.",
+              category: 'combat'
+            });
+            return;
+          }
+          
+          const entities = this.gameStateManager.getAllEntities();
+          const result = this.combatManager.attemptMeleeAttack(this.player, entities);
+          
+          if (result.success && result.targetKilled && result.target) {
+            this.gameStateManager.removeEntity(result.target.id);
+          }
+          
+          if (result.success) {
+            // Consume an action point instead of ending turn
+            if (this.turnOrderManager.consumeAction(this.player.id, 'action')) {
+              const actionEconomy = this.turnOrderManager.getActionEconomy(this.player.id);
+              const actionsLeft = actionEconomy?.actions || 0;
+              const movementLeft = actionEconomy?.movement || 0;
+              
+              this.eventBus.publish({
+                type: 'MessageAdded',
+                id: generateEventId(),
+                timestamp: Date.now(),
+                message: `Attack complete. Actions: ${actionsLeft} | Movement: ${movementLeft}ft remaining`,
+                category: 'combat'
+              });
+            }
+            this.render();
+          }
+        },
+        onEndTurn: () => {
+          const currentTurn = this.turnOrderManager.getCurrentTurn();
+          if (currentTurn && currentTurn.entityId === this.player.id) {
+            // Show what was unused before ending turn
+            const actionEconomy = this.turnOrderManager.getActionEconomy(this.player.id);
+            if (actionEconomy) {
+              const unused = [];
+              if (actionEconomy.actions > 0) unused.push(`${actionEconomy.actions} action(s)`);
+              if (actionEconomy.movement > 0) unused.push(`${actionEconomy.movement}ft movement`);
+              if (actionEconomy.bonusActions > 0) unused.push(`${actionEconomy.bonusActions} bonus action(s)`);
+              
+              const unusedText = unused.length > 0 ? ` (Unused: ${unused.join(', ')})` : '';
+              this.eventBus.publish({
+                type: 'MessageAdded',
+                id: generateEventId(),
+                timestamp: Date.now(),
+                message: `Turn ended${unusedText}.`,
+                category: 'combat'
+              });
+            }
+            
+            this.turnOrderManager.endCurrentTurn();
+          } else {
+            this.eventBus.publish({
+              type: 'MessageAdded',
+              id: generateEventId(),
+              timestamp: Date.now(),
+              message: "It's not your turn!",
+              category: 'combat'
+            });
+          }
+        },
+        onEscape: () => {
+          this.eventBus.publish({
+            type: 'MessageAdded',
+            id: generateEventId(),
+            timestamp: Date.now(),
+            message: "Use Enter to end your turn. Fleeing not yet implemented.",
+            category: 'combat'
+          });
         }
       }
     };
-    this.inputHandler = new InputHandler(inputCallbacks);
+    this.inputHandler = new InputHandler(modeCallbacks);
+    
+    // Set up game mode event handlers
+    this.setupGameModeHandlers();
     
     // Start game loop
     this.waitForFontsAndRender();
@@ -133,6 +246,7 @@ export class Game {
   
   startGameLoop() {
     this.gameStateManager.startGameLoop(() => {
+      this.updateCombatDetection();
       this.updateMovement();
       this.updateVisuals();
       this.updateEvents();
@@ -147,6 +261,32 @@ export class Game {
   updateMovement() {
     const keysPressed = this.inputHandler.getKeysPressed();
     const entities = this.gameStateManager.getAllEntities();
+    const currentMode = this.gameModeManager.getCurrentMode();
+    
+    // In combat mode, enforce turn-based movement
+    if (currentMode === 'combat') {
+      const currentTurn = this.turnOrderManager.getCurrentTurn();
+      if (!currentTurn || currentTurn.entityId !== this.player.id) {
+        // Not the player's turn - ignore movement input
+        return;
+      }
+      
+      // Check if player has movement remaining
+      const actionEconomy = this.turnOrderManager.getActionEconomy(this.player.id);
+      if (!actionEconomy || actionEconomy.movement <= 0) {
+        // No movement points left
+        if (keysPressed.size > 0) {
+          this.eventBus.publish({
+            type: 'MessageAdded',
+            id: generateEventId(),
+            timestamp: Date.now(),
+            message: "No movement points remaining! Press Enter to end turn.",
+            category: 'combat'
+          });
+        }
+        return;
+      }
+    }
     
     // Store position before movement update
     const oldX = this.player.x;
@@ -157,11 +297,29 @@ export class Game {
       this.movementState, 
       this.tileMap, 
       this.player,
-      entities
+      entities,
+      currentMode
     );
     
     // Check if player moved to new grid position and publish event
     if (this.player.x !== oldX || this.player.y !== oldY) {
+      // In combat mode, consume movement points for each grid square moved
+      if (currentMode === 'combat') {
+        const distance = Math.abs(this.player.x - oldX) + Math.abs(this.player.y - oldY);
+        const movementCost = distance * 5; // D&D: 5 feet per square
+        
+        if (this.turnOrderManager.consumeMovement(this.player.id, movementCost)) {
+          const remainingMovement = this.turnOrderManager.getActionEconomy(this.player.id)?.movement || 0;
+          this.eventBus.publish({
+            type: 'MessageAdded',
+            id: generateEventId(),
+            timestamp: Date.now(),
+            message: `Moved ${distance} square(s). ${remainingMovement} movement remaining.`,
+            category: 'combat'
+          });
+        }
+      }
+      
       const moveEvent = {
         type: 'EntityMoved' as const,
         id: generateEventId(),
@@ -356,10 +514,154 @@ export class Game {
   }
 
 
+  private setupGameModeHandlers(): void {
+    // Listen for game mode changes to update input handler
+    this.eventBus.subscribe('GameModeChanged', (event: any) => {
+      this.inputHandler.setMode(event.newMode);
+      
+      // Handle combat entry transition
+      if (event.newMode === 'combat' && event.oldMode === 'exploration') {
+        // Snap visual position to grid center
+        this.movementState.displayX = Math.round(this.movementState.displayX);
+        this.movementState.displayY = Math.round(this.movementState.displayY);
+        this.movementState.lastValidX = this.movementState.displayX;
+        this.movementState.lastValidY = this.movementState.displayY;
+        
+        // Update player logical position to match
+        this.player.x = this.movementState.displayX;
+        this.player.y = this.movementState.displayY;
+        
+        // Freeze input for 500ms to prevent accidental movement
+        this.inputHandler.freezeInput(500);
+        
+        // Show visual feedback about the transition - less redundant now that CombatTriggered shows the enemy
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: "ox{:::> COMBAT MODE <:::}xo",
+          category: 'combat'
+        });
+        
+        this.logger.info('Combat transition: snapped to grid and froze input', {
+          position: { x: this.player.x, y: this.player.y }
+        });
+        
+        // Re-render to show the position snap
+        this.render();
+      }
+      
+      this.logger.info('Game mode changed', {
+        from: event.oldMode,
+        to: event.newMode,
+        reason: event.reason
+      });
+    });
+
+    // Listen for combat triggered events to start turn-based combat
+    this.eventBus.subscribe('CombatTriggered', (event: any) => {
+      const entities = this.gameStateManager.getAllEntities();
+      const hostileEntity = entities.find(e => e.id === event.hostileId);
+      
+      const participants = entities.filter(entity => 
+        entity.id === event.playerId || 
+        !entity.isPlayer // Include all non-player entities nearby
+      );
+      
+      this.turnOrderManager.startCombat(participants);
+      
+      // Show who spotted the player
+      const triggerMessage = hostileEntity 
+        ? `Spotted by ${hostileEntity.name}!`
+        : "Enemy spotted!";
+        
+      this.eventBus.publish({
+        type: 'MessageAdded',
+        id: generateEventId(),
+        timestamp: Date.now(),
+        message: `${triggerMessage} Rolling initiative...`,
+        category: 'combat'
+      });
+    });
+
+    // Listen for combat ended events
+    this.eventBus.subscribe('CombatEnded', (event: any) => {
+      this.eventBus.publish({
+        type: 'MessageAdded',
+        id: generateEventId(),
+        timestamp: Date.now(),
+        message: `Combat ended: ${event.reason.replace(/_/g, ' ')}`,
+        category: 'combat'
+      });
+    });
+
+    // Listen for turn changes
+    this.eventBus.subscribe('TurnStarted', (event: any) => {
+      const entities = this.gameStateManager.getAllEntities();
+      const entity = entities.find(e => e.id === event.entityId);
+      if (entity) {
+        const isPlayerTurn = entity.id === this.player.id;
+        const actionEconomy = this.turnOrderManager.getActionEconomy(entity.id);
+        
+        let turnMessage = `${entity.name}'s turn (Initiative: ${event.initiative})`;
+        if (isPlayerTurn && actionEconomy) {
+          turnMessage += `\n━━━ YOUR TURN ━━━`;
+          turnMessage += `\nActions: ${actionEconomy.actions} | Movement: ${actionEconomy.movement}ft | Bonus: ${actionEconomy.bonusActions} | Reactions: ${actionEconomy.reactions}`;
+          turnMessage += `\n• WASD/Arrows: Move • Space: Attack • Enter: End Turn`;
+        }
+        
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: turnMessage,
+          category: 'combat'
+        });
+        
+        // Update UI with combat status
+        this.eventBus.publish({
+          type: 'UIRefresh',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          reason: 'combat_resolved'
+        });
+      }
+    });
+  }
+
+  private updateCombatDetection(): void {
+    // Only check for combat triggers in exploration mode
+    if (this.gameModeManager.getCurrentMode() === 'exploration') {
+      const entities = this.gameStateManager.getAllEntities();
+      const trigger = this.gameModeManager.checkForCombatTriggers(
+        this.player,
+        entities,
+        this.tileMap
+      );
+
+      if (trigger) {
+        this.gameModeManager.triggerCombat(trigger, entities);
+      }
+    } else if (this.gameModeManager.getCurrentMode() === 'combat') {
+      // Check if combat should end
+      const entities = this.gameStateManager.getAllEntities();
+      const endCondition = this.gameModeManager.checkCombatEndConditions(
+        this.player,
+        entities
+      );
+
+      if (endCondition) {
+        this.gameModeManager.endCombat(endCondition);
+      }
+    }
+  }
+
   // Cleanup method for proper resource management
   destroy() {
     this.inputHandler.destroy();
     this.gameStateManager.cleanup();
     this.uiManager.destroy();
+    this.gameModeManager.destroy();
+    this.turnOrderManager.destroy();
   }
 }

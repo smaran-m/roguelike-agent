@@ -71,6 +71,46 @@ export interface UIRefreshEvent extends BaseGameEvent {
   reason: 'position_changed' | 'stats_changed' | 'combat_resolved';
 }
 
+export interface GameModeChangedEvent extends BaseGameEvent {
+  type: 'GameModeChanged';
+  oldMode: import('../../systems/game-modes/GameModeTypes').GameMode;
+  newMode: import('../../systems/game-modes/GameModeTypes').GameMode;
+  reason: 'combat_detected' | 'combat_ended' | 'manual_switch';
+}
+
+export interface CombatTriggeredEvent extends BaseGameEvent {
+  type: 'CombatTriggered';
+  playerId: string;
+  hostileId: string;
+  distance: number;
+  hasLineOfSight: boolean;
+}
+
+export interface TurnStartedEvent extends BaseGameEvent {
+  type: 'TurnStarted';
+  entityId: string;
+  turnNumber: number;
+  initiative: number;
+}
+
+export interface TurnEndedEvent extends BaseGameEvent {
+  type: 'TurnEnded';
+  entityId: string;
+  turnNumber: number;
+}
+
+export interface CombatStartedEvent extends BaseGameEvent {
+  type: 'CombatStarted';
+  participants: string[]; // Entity IDs
+  turnOrder: Array<{ entityId: string; initiative: number }>;
+}
+
+export interface CombatEndedEvent extends BaseGameEvent {
+  type: 'CombatEnded';
+  reason: 'all_enemies_defeated' | 'player_fled' | 'all_participants_dead';
+  duration: number; // milliseconds
+}
+
 export type GameEvent = 
   | EnemyDiedEvent 
   | DamageDealtEvent 
@@ -81,7 +121,13 @@ export type GameEvent =
   | AreaEnteredEvent
   | MessageAddedEvent
   | PlayerUpdatedEvent
-  | UIRefreshEvent;
+  | UIRefreshEvent
+  | GameModeChangedEvent
+  | CombatTriggeredEvent
+  | TurnStartedEvent
+  | TurnEndedEvent
+  | CombatStartedEvent
+  | CombatEndedEvent;
 
 export type EventHandler<T extends BaseGameEvent = GameEvent> = (event: T) => void;
 export type EventUnsubscriber = () => void;

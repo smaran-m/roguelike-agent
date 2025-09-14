@@ -69,7 +69,7 @@ export class CombatManager {
         type: 'MessageAdded',
         id: generateEventId(),
         timestamp: Date.now(),
-        message: "No enemies in range!",
+        message: "No enemies in range! Move closer or end turn.",
         category: 'combat'
       });
       return { success: false, targetKilled: false };

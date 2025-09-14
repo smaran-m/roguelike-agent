@@ -379,7 +379,7 @@ export class CharacterSheet {
       
       // Item emoji
       const itemEmoji = new Text(item.glyph, {
-        fontFamily: item.isEmoji ? getEmojiFontFamily() : getFontFamily(),
+        fontFamily: item.isEmoji ? 'Noto Emoji, Apple Color Emoji, Segoe UI Emoji, sans-serif' : getFontFamily(),
         fontSize: 16,
         fill: item.color
       });

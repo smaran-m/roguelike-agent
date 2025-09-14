@@ -1,5 +1,6 @@
 import { Entity } from '../../types';
 import { TileMap } from '../../core/TileMap';
+import { GameMode } from '../game-modes/GameModeTypes';
 
 export interface MovementState {
   displayX: number;
@@ -20,33 +21,60 @@ export class MovementSystem {
     movementState: MovementState, 
     tileMap: TileMap,
     player: Entity,
-    entities: Entity[] = []
+    entities: Entity[] = [],
+    gameMode: GameMode = 'exploration'
   ): boolean {
     if (keysPressed.size === 0) return false;
     
     let dx = 0, dy = 0;
     
-    if (keysPressed.has('arrowup') || keysPressed.has('w')) dy -= this.movementSpeed;
-    if (keysPressed.has('arrowdown') || keysPressed.has('s')) dy += this.movementSpeed;
-    if (keysPressed.has('arrowleft') || keysPressed.has('a')) dx -= this.movementSpeed;
-    if (keysPressed.has('arrowright') || keysPressed.has('d')) dx += this.movementSpeed;
+    // In combat mode, use grid-based movement (1 tile at a time)
+    // In exploration mode, use smooth movement
+    const moveStep = gameMode === 'combat' ? 1 : this.movementSpeed;
     
-    const newDisplayX = movementState.displayX + dx;
-    const newDisplayY = movementState.displayY + dy;
+    if (keysPressed.has('arrowup') || keysPressed.has('w')) dy -= moveStep;
+    if (keysPressed.has('arrowdown') || keysPressed.has('s')) dy += moveStep;
+    if (keysPressed.has('arrowleft') || keysPressed.has('a')) dx -= moveStep;
+    if (keysPressed.has('arrowright') || keysPressed.has('d')) dx += moveStep;
+    
+    // In combat mode, calculate grid target position
+    let newDisplayX: number, newDisplayY: number;
+    
+    if (gameMode === 'combat') {
+      // Grid-based movement - move to adjacent grid squares
+      const currentGridX = Math.round(movementState.displayX);
+      const currentGridY = Math.round(movementState.displayY);
+      newDisplayX = currentGridX + dx;
+      newDisplayY = currentGridY + dy;
+    } else {
+      // Smooth movement
+      newDisplayX = movementState.displayX + dx;
+      newDisplayY = movementState.displayY + dy;
+    }
     
     // Check if the new position is valid (both tiles and entities)
     if (this.isValidPosition(newDisplayX, newDisplayY, tileMap, entities, player.id)) {
       movementState.displayX = newDisplayX;
       movementState.displayY = newDisplayY;
       
-      // Update last valid grid position if we're on a valid grid cell
-      const gridX = Math.round(movementState.displayX);
-      const gridY = Math.round(movementState.displayY);
-      if (this.isValidGridPosition(gridX, gridY, tileMap, entities, player.id)) {
+      // In combat mode, immediately update logical position since we're moving by grid
+      if (gameMode === 'combat') {
+        const gridX = Math.round(newDisplayX);
+        const gridY = Math.round(newDisplayY);
         movementState.lastValidX = gridX;
         movementState.lastValidY = gridY;
         player.x = gridX;
         player.y = gridY;
+      } else {
+        // In exploration mode, update last valid grid position if we're on a valid grid cell
+        const gridX = Math.round(movementState.displayX);
+        const gridY = Math.round(movementState.displayY);
+        if (this.isValidGridPosition(gridX, gridY, tileMap, entities, player.id)) {
+          movementState.lastValidX = gridX;
+          movementState.lastValidY = gridY;
+          player.x = gridX;
+          player.y = gridY;
+        }
       }
       return true;
     }
