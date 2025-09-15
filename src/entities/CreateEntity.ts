@@ -195,9 +195,9 @@ export class CreateEntity {
       
       // Check minimum distance from ALL existing entities
       const tooCloseToExistingEntity = existingEntities.some(entity => {
-        const distance = Math.sqrt(
-          Math.pow(spawnPos.x - entity.x, 2) + 
-          Math.pow(spawnPos.y - entity.y, 2)
+        const distance = Math.max(
+          Math.abs(spawnPos.x - entity.x),
+          Math.abs(spawnPos.y - entity.y)
         );
         // Use different minimum distances based on entity type
         const minDistance = entity.isPlayer ? minDistanceFromPlayer : 1; // At least 1 tile from other enemies

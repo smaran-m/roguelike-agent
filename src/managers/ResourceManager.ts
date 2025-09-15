@@ -60,9 +60,23 @@ export class ResourceManager {
     // Initialize resources based on world config
     Object.values(worldConfig.mechanics.resources).forEach(resourceDef => {
       if (!this.getResource(entity, resourceDef.id)) {
-        const defaultCurrent = resourceDef.hasCap ? (resourceDef.defaultMaximum || 10) : 0;
-        const defaultMax = resourceDef.hasCap ? (resourceDef.defaultMaximum || 10) : undefined;
-        this.createResource(entity, resourceDef.id, defaultCurrent, defaultMax, resourceDef);
+        // Check if entity already has this resource in stats.resources
+        const existingResource = entity.stats.resources?.[resourceDef.id];
+        if (existingResource) {
+          // Use existing values from entity stats
+          this.createResource(
+            entity,
+            resourceDef.id,
+            existingResource.current,
+            existingResource.max || existingResource.maximum,
+            resourceDef
+          );
+        } else {
+          // Use default values
+          const defaultCurrent = resourceDef.hasCap ? (resourceDef.defaultMaximum || 10) : 0;
+          const defaultMax = resourceDef.hasCap ? (resourceDef.defaultMaximum || 10) : undefined;
+          this.createResource(entity, resourceDef.id, defaultCurrent, defaultMax, resourceDef);
+        }
       }
     });
   }

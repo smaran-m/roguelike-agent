@@ -75,13 +75,36 @@ export class EnemyLoader {
     }
 
     const stats = definition.stats;
-    
-    // Roll for HP and set maxHp to the same value
-    const hp = DiceSystem.rollDice(stats.hp).total;
-    
+
+    // Handle new resource system format
+    const resources: { [key: string]: { current: number; max: number } } = {};
+
+    if (stats.resources) {
+      // New resource system format
+      for (const [resourceId, resourceData] of Object.entries(stats.resources)) {
+        // Roll dice once and use same value for both current and max
+        if (typeof resourceData.current === 'string' && typeof resourceData.max === 'string' && resourceData.current === resourceData.max) {
+          const rolledValue = DiceSystem.rollDice(resourceData.current).total;
+          resources[resourceId] = { current: rolledValue, max: rolledValue };
+        } else {
+          const current = typeof resourceData.current === 'string'
+            ? DiceSystem.rollDice(resourceData.current).total
+            : resourceData.current;
+          const max = typeof resourceData.max === 'string'
+            ? DiceSystem.rollDice(resourceData.max).total
+            : resourceData.max;
+          resources[resourceId] = { current, max };
+        }
+      }
+    } else if (stats.hp) {
+      // Legacy format fallback - convert old 'hp' to new resource system
+      const hp = DiceSystem.rollDice(stats.hp).total;
+      resources.hp = { current: hp, max: hp };
+    }
+
     return {
-      hp,
-      maxHp: hp,
+      hp: resources.hp?.current || 10, // Legacy compatibility
+      maxHp: resources.hp?.max || 10, // Legacy compatibility
       ac: stats.ac,
       strength: DiceSystem.rollDice(stats.strength).total,
       dexterity: DiceSystem.rollDice(stats.dexterity).total,
@@ -91,6 +114,7 @@ export class EnemyLoader {
       charisma: DiceSystem.rollDice(stats.charisma).total,
       proficiencyBonus: stats.proficiencyBonus,
       level: stats.level,
+      resources, // Add the new resources property
       damageResistances: definition.damageResistances,
       damageVulnerabilities: definition.damageVulnerabilities,
       damageImmunities: definition.damageImmunities

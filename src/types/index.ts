@@ -38,7 +38,10 @@ export interface EntityStats {
 }
 
 export interface EnemyStatRanges {
-  hp: string; // D&D dice notation like "2d6+2" 
+  // Legacy format
+  hp?: string; // D&D dice notation like "2d6+2" (legacy)
+
+  // Core stats
   ac: number;
   strength: string;
   dexterity: string;
@@ -48,6 +51,14 @@ export interface EnemyStatRanges {
   charisma: string;
   proficiencyBonus: number;
   level: number;
+
+  // New resource system format
+  resources?: {
+    [resourceId: string]: {
+      current: string | number; // Can be dice notation or fixed value
+      max: string | number; // Can be dice notation or fixed value
+    };
+  };
 }
 
 export interface EnemyDefinition {

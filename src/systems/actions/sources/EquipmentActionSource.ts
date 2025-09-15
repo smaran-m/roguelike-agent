@@ -23,7 +23,8 @@ export class EquipmentActionSource implements IActionSource {
 
   canActivate(context: ActionContext): boolean {
     // Available if entity has any equipped items
-    return context.equippedItems.size > 0;
+    const hasEquipment = context.equippedItems.size > 0;
+    return hasEquipment;
   }
 
   getAvailableActions(context: ActionContext): Action[] {

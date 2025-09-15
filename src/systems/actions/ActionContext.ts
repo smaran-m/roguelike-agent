@@ -5,6 +5,7 @@ import { TileMap } from '../../core/TileMap';
 import { LineOfSight } from '../../core/LineOfSight';
 import { ResourceManager } from '../../managers/ResourceManager';
 import { WorldConfigLoader } from '../../loaders/WorldConfigLoader';
+import { CharacterManager } from '../../managers/CharacterManager';
 import { Logger } from '../../utils/Logger';
 
 export class ActionContextBuilder {
@@ -82,7 +83,7 @@ export class ActionContextBuilder {
         }
 
         const tile = tileMap.getTile(x, y);
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        const distance = this.getGridDistance(entity.x, entity.y, x, y);
 
         nearbyTiles.push({ x, y, tile, distance });
       }
@@ -110,10 +111,7 @@ export class ActionContextBuilder {
       if (otherEntity.id === entity.id) continue; // Skip self
 
       // Check distance
-      const distance = Math.sqrt(
-        Math.pow(entity.x - otherEntity.x, 2) +
-        Math.pow(entity.y - otherEntity.y, 2)
-      );
+      const distance = this.getGridDistance(entity.x, entity.y, otherEntity.x, otherEntity.y);
 
       if (distance > visibilityRange) continue;
 
@@ -133,8 +131,8 @@ export class ActionContextBuilder {
 
     // Sort by distance (closest first)
     visibleEntities.sort((a, b) => {
-      const distA = Math.sqrt(Math.pow(entity.x - a.x, 2) + Math.pow(entity.y - a.y, 2));
-      const distB = Math.sqrt(Math.pow(entity.x - b.x, 2) + Math.pow(entity.y - b.y, 2));
+      const distA = this.getGridDistance(entity.x, entity.y, a.x, a.y);
+      const distB = this.getGridDistance(entity.x, entity.y, b.x, b.y);
       return distA - distB;
     });
 
@@ -147,14 +145,22 @@ export class ActionContextBuilder {
   private static buildEquippedItems(entity: Entity): Map<string, Item> {
     const equippedItems = new Map<string, Item>();
 
-    // For now, use a basic check for equipment - this will be enhanced when
-    // the equipment slot system from Task 2.1 is implemented
-    if (entity.stats && 'equipment' in entity.stats) {
-      const equipment = (entity.stats as any).equipment;
-      if (equipment instanceof Map) {
-        equipment.forEach((item: Item, slotId: string) => {
-          equippedItems.set(slotId, item);
-        });
+    // Use CharacterManager for equipped items
+    if (entity.isPlayer) {
+      const characterManager = CharacterManager.getInstance();
+
+      // Get all equipped items (this should include weapons)
+      const allEquippedItems = characterManager.getAllEquippedItems();
+      allEquippedItems.forEach((item, slotId) => {
+        equippedItems.set(slotId, item);
+      });
+
+      // If no weapon found in getAllEquippedItems, try getEquippedWeapon as fallback
+      if (!Array.from(equippedItems.values()).some(item => item.type === 'weapon')) {
+        const weapon = characterManager.getEquippedWeapon();
+        if (weapon) {
+          equippedItems.set('mainhand', weapon);
+        }
       }
     }
 
@@ -244,10 +250,17 @@ export class ActionContextBuilder {
   }
 
   /**
-   * Get distance between two points
+   * Get distance between two points (Euclidean - for visual/animation purposes)
    */
   static getDistance(x1: number, y1: number, x2: number, y2: number): number {
     return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  }
+
+  /**
+   * Get grid distance between two points (for game logic)
+   */
+  static getGridDistance(x1: number, y1: number, x2: number, y2: number): number {
+    return Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
   }
 
   /**
@@ -263,7 +276,11 @@ export class ActionContextBuilder {
     if (range === 'self') return entity.x === targetX && entity.y === targetY;
     if (range === 'touch') range = 1;
 
-    const distance = this.getDistance(entity.x, entity.y, targetX, targetY);
+    // Use grid distance for melee attacks (range 1), Euclidean for ranged
+    const distance = (range as number) <= 1
+      ? Math.max(Math.abs(entity.x - targetX), Math.abs(entity.y - targetY)) // Grid distance
+      : this.getDistance(entity.x, entity.y, targetX, targetY); // Euclidean distance
+
     return distance <= (range as number);
   }
 }

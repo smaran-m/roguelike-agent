@@ -75,8 +75,13 @@ export class Game {
     // Initialize systems with EventBus
     this.gameStateManager = new GameStateManager();
     this.movementSystem = new MovementSystem(0.1);
-    this.combatManager = new CombatManager(this.renderer, this.eventBus);
-    
+    this.combatManager = new CombatManager(this.renderer, this.eventBus, this.logger);
+
+    // Set up action execution callback for turn management
+    this.combatManager.setActionExecutedCallback((result, action) => {
+      this.handleActionExecuted(result, action);
+    });
+
     // Initialize game mode and turn order systems
     this.gameModeManager = new GameModeManager(this.eventBus, this.logger);
     this.turnOrderManager = new TurnOrderManager(this.eventBus, this.logger);
@@ -118,15 +123,25 @@ export class Game {
           }
         },
         onAttack: () => {
+          // In exploration mode, show action selection UI
           const entities = this.gameStateManager.getAllEntities();
-          const result = this.combatManager.attemptMeleeAttack(this.player, entities);
-          
-          if (result.success && result.targetKilled && result.target) {
-            this.gameStateManager.removeEntity(result.target.id);
+
+          // Check if action selection UI is already open
+          if (this.combatManager.isActionSelectionVisible()) {
+            return; // UI is already open, ignore additional spacebar presses
           }
-          
-          if (result.success) {
-            this.render();
+
+          // Show action selection UI
+          const shown = this.combatManager.showActionSelection(this.player, entities, this.tileMap);
+
+          if (!shown) {
+            this.eventBus.publish({
+              type: 'MessageAdded',
+              id: generateEventId(),
+              timestamp: Date.now(),
+              message: "No actions available right now.",
+              category: 'system'
+            });
           }
         }
       },
@@ -149,7 +164,7 @@ export class Game {
             });
             return;
           }
-          
+
           // Check if player has actions remaining
           const actionEconomy = this.turnOrderManager.getActionEconomy(this.player.id);
           if (!actionEconomy || actionEconomy.actions <= 0) {
@@ -162,30 +177,25 @@ export class Game {
             });
             return;
           }
-          
-          const entities = this.gameStateManager.getAllEntities();
-          const result = this.combatManager.attemptMeleeAttack(this.player, entities);
-          
-          if (result.success && result.targetKilled && result.target) {
-            this.gameStateManager.removeEntity(result.target.id);
+
+          // Check if action selection UI is already open
+          if (this.combatManager.isActionSelectionVisible()) {
+            return; // UI is already open, ignore additional spacebar presses
           }
-          
-          if (result.success) {
-            // Consume an action point instead of ending turn
-            if (this.turnOrderManager.consumeAction(this.player.id, 'action')) {
-              const actionEconomy = this.turnOrderManager.getActionEconomy(this.player.id);
-              const actionsLeft = actionEconomy?.actions || 0;
-              const movementLeft = actionEconomy?.movement || 0;
-              
-              this.eventBus.publish({
-                type: 'MessageAdded',
-                id: generateEventId(),
-                timestamp: Date.now(),
-                message: `Attack complete. Actions: ${actionsLeft} | Movement: ${movementLeft}ft remaining`,
-                category: 'combat'
-              });
-            }
-            this.render();
+
+          // In combat mode, show action selection UI
+          const entities = this.gameStateManager.getAllEntities();
+          const shown = this.combatManager.showActionSelection(this.player, entities, this.tileMap);
+
+          if (!shown) {
+            this.eventBus.publish({
+              type: 'MessageAdded',
+              id: generateEventId(),
+              timestamp: Date.now(),
+              message: "No actions available! Press Enter to end turn.",
+              category: 'combat'
+            });
+            return;
           }
         },
         onEndTurn: () => {
@@ -695,6 +705,42 @@ export class Game {
 
     // End the current turn
     this.turnOrderManager.endCurrentTurn();
+  }
+
+  /**
+   * Handle action execution from the action selection UI
+   * This includes turn management and entity cleanup
+   */
+  private handleActionExecuted(result: any, action: any): void {
+    // Handle entity removal if target was killed
+    if (result.success && result.targetKilled && result.target) {
+      this.gameStateManager.removeEntity(result.target.id);
+    }
+
+    // Handle turn management based on current game mode
+    const currentMode = this.gameModeManager.getCurrentMode();
+
+    if (currentMode === 'combat') {
+      // In combat mode, consume an action point and update turn display
+      if (this.turnOrderManager.consumeAction(this.player.id, 'action')) {
+        const actionEconomy = this.turnOrderManager.getActionEconomy(this.player.id);
+        const actionsLeft = actionEconomy?.actions || 0;
+        const movementLeft = actionEconomy?.movement || 0;
+
+        this.eventBus.publish({
+          type: 'MessageAdded',
+          id: generateEventId(),
+          timestamp: Date.now(),
+          message: `${action.name} complete. Actions: ${actionsLeft} | Movement: ${movementLeft}ft remaining`,
+          category: 'combat'
+        });
+      }
+    }
+
+    // Always re-render after action execution
+    if (result.success) {
+      this.render();
+    }
   }
 
   // Cleanup method for proper resource management

@@ -264,10 +264,8 @@ export class GameModeManager {
   }
 
   private calculateDistance(entity1: Entity, entity2: Entity): number {
-    return Math.sqrt(
-      Math.pow(entity1.x - entity2.x, 2) +
-      Math.pow(entity1.y - entity2.y, 2)
-    );
+    // Use grid distance for game logic consistency
+    return Math.max(Math.abs(entity1.x - entity2.x), Math.abs(entity1.y - entity2.y));
   }
 
   /**

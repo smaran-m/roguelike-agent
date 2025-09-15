@@ -7,6 +7,7 @@ import {
   ActionCategory
 } from '../ActionTypes';
 import { Logger } from '../../../utils/Logger';
+import basicActionsJson from '../../../data/actions/intrinsic/basic-actions.json';
 
 export class IntrinsicActionSource implements IActionSource {
   readonly id = 'intrinsic';
@@ -28,8 +29,11 @@ export class IntrinsicActionSource implements IActionSource {
   getAvailableActions(context: ActionContext): Action[] {
     const availableActions: Action[] = [];
 
+
     for (const action of this.actions.values()) {
-      if (this.validateActionRequirements(action, context)) {
+      const isValid = this.validateActionRequirements(action, context);
+
+      if (isValid) {
         availableActions.push(action);
       }
     }
@@ -53,13 +57,8 @@ export class IntrinsicActionSource implements IActionSource {
    */
   private loadIntrinsicActions(): void {
     try {
-      // Load basic actions
-      const basicActions = this.loadActionFile('/src/data/actions/intrinsic/basic-actions.json');
-      this.addActionsFromData(basicActions);
-
-      // Load exploration actions
-      const explorationActions = this.loadActionFile('/src/data/actions/intrinsic/exploration-actions.json');
-      this.addActionsFromData(explorationActions);
+      // Load basic actions from the imported JSON file
+      this.addActionsFromData(basicActionsJson);
 
       this.logger.info('Intrinsic actions loaded', {
         totalActions: this.actions.size,
@@ -69,409 +68,104 @@ export class IntrinsicActionSource implements IActionSource {
       this.logger.error('Failed to load intrinsic actions', {
         error: error instanceof Error ? error.message : String(error)
       });
+
+      // Fallback: Create essential basic actions if JSON loading fails
+      this.createFallbackActions();
     }
   }
 
-  private loadActionFile(relativePath: string): any {
-    // In a real implementation, this would use dynamic import or fetch
-    // For now, we'll create the actions programmatically
-    if (relativePath.includes('basic-actions.json')) {
-      return {
-        move: {
-          id: 'move',
-          name: 'Move',
-          description: 'Move to an adjacent walkable tile',
-          source: 'intrinsic',
-          category: 'movement',
-          requirements: [
-            {
-              type: 'tileProperty',
-              target: 'walkable',
-              value: true,
-              comparison: 'equals',
-              description: 'Target tile must be walkable'
-            },
-            {
-              type: 'range',
-              value: 1,
-              comparison: 'lessEqual',
-              description: 'Target must be adjacent'
-            }
-          ],
-          costs: [
-            {
-              type: 'movement',
-              amount: 5,
-              description: '5 feet of movement'
-            }
-          ],
-          effects: [
-            {
-              type: 'movement',
-              target: 'self',
-              parameters: {
-                distance: 1,
-                direction: 'toward'
-              },
-              description: 'Move to target location',
-              timing: 'immediate'
-            }
-          ],
-          targeting: {
-            type: 'single',
-            range: 1,
-            requiresLineOfSight: false,
-            validTargets: [
-              {
-                type: 'tile',
-                criteria: {
-                  isWalkable: true
-                }
-              }
-            ]
-          },
-          priority: 100,
-          iconGlyph: '👣'
+  /**
+   * Create fallback actions if JSON loading fails
+   */
+  private createFallbackActions(): void {
+    // Create minimal essential actions as fallback
+    const basicAttack: Action = {
+      id: 'basic_attack',
+      name: 'Unarmed Strike',
+      description: 'Make a basic melee attack with your fists',
+      source: 'intrinsic',
+      category: ActionCategory.ATTACK,
+      requirements: [
+        {
+          type: RequirementType.RANGE,
+          value: 1,
+          comparison: 'lessEqual',
+          description: 'Target must be within melee range'
         },
-        wait: {
-          id: 'wait',
-          name: 'Wait',
-          description: 'Do nothing and end your turn',
-          source: 'intrinsic',
-          category: 'utility',
-          requirements: [],
-          costs: [
-            {
-              type: 'actionPoint',
-              amount: 1,
-              description: 'Uses your action for this turn'
-            }
-          ],
-          effects: [
-            {
-              type: 'resourceChange',
-              target: 'self',
-              parameters: {
-                resourceId: 'actionPoints',
-                amount: 0
-              },
-              description: 'End turn without taking action',
-              timing: 'immediate'
-            }
-          ],
-          targeting: {
-            type: 'none',
-            range: 'self',
-            requiresLineOfSight: false,
-            validTargets: []
-          },
-          priority: 1,
-          iconGlyph: '⏸️'
-        },
-        basic_attack: {
-          id: 'basic_attack',
-          name: 'Unarmed Strike',
-          description: 'Make a basic melee attack with your fists',
-          source: 'intrinsic',
-          category: 'attack',
-          requirements: [
-            {
-              type: 'range',
-              value: 1,
-              comparison: 'lessEqual',
-              description: 'Target must be within melee range'
-            },
-            {
-              type: 'lineOfSight',
-              value: true,
-              description: 'Must be able to see target'
-            }
-          ],
-          costs: [
-            {
-              type: 'actionPoint',
-              amount: 1,
-              description: 'Uses your action for this turn'
-            }
-          ],
-          effects: [
-            {
-              type: 'damage',
-              target: 'target',
-              parameters: {
-                amount: '1d4',
-                damageType: 'bludgeoning',
-                attackRoll: true
-              },
-              description: 'Deal bludgeoning damage',
-              timing: 'immediate'
-            }
-          ],
-          targeting: {
-            type: 'single',
-            range: 1,
-            requiresLineOfSight: true,
-            validTargets: [
-              {
-                type: 'entity',
-                criteria: {
-                  isAlive: true
-                }
-              }
-            ]
-          },
-          priority: 80,
-          iconGlyph: '👊'
-        },
-        dodge: {
-          id: 'dodge',
-          name: 'Dodge',
-          description: 'Focus entirely on avoiding attacks until your next turn',
-          source: 'intrinsic',
-          category: 'defense',
-          requirements: [
-            {
-              type: 'gameMode',
-              value: 'combat',
-              description: 'Only available in combat'
-            }
-          ],
-          costs: [
-            {
-              type: 'actionPoint',
-              amount: 1,
-              description: 'Uses your action for this turn'
-            }
-          ],
-          effects: [
-            {
-              type: 'statusEffect',
-              target: 'self',
-              parameters: {
-                statusId: 'dodging',
-                duration: 1
-              },
-              description: 'Gain advantage on Dexterity saving throws and attackers have disadvantage',
-              timing: 'immediate'
-            }
-          ],
-          targeting: {
-            type: 'self',
-            range: 'self',
-            requiresLineOfSight: false,
-            validTargets: []
-          },
-          priority: 60,
-          iconGlyph: '🛡️'
-        },
-        dash: {
-          id: 'dash',
-          name: 'Dash',
-          description: 'Double your movement speed for this turn',
-          source: 'intrinsic',
-          category: 'movement',
-          requirements: [
-            {
-              type: 'gameMode',
-              value: 'combat',
-              description: 'Only available in combat'
-            }
-          ],
-          costs: [
-            {
-              type: 'actionPoint',
-              amount: 1,
-              description: 'Uses your action for this turn'
-            }
-          ],
-          effects: [
-            {
-              type: 'resourceChange',
-              target: 'self',
-              parameters: {
-                resourceId: 'movement',
-                amount: 30,
-                operation: 'add'
-              },
-              description: 'Gain additional movement equal to your speed',
-              timing: 'immediate'
-            }
-          ],
-          targeting: {
-            type: 'self',
-            range: 'self',
-            requiresLineOfSight: false,
-            validTargets: []
-          },
-          priority: 70,
-          iconGlyph: '💨'
+        {
+          type: RequirementType.LINE_OF_SIGHT,
+          value: 'true',
+          description: 'Must be able to see target'
         }
-      };
-    } else if (relativePath.includes('exploration-actions.json')) {
-      return {
-        examine: {
-          id: 'examine',
-          name: 'Examine',
-          description: 'Look closely at something to learn more about it',
-          source: 'intrinsic',
-          category: 'utility',
-          requirements: [
-            {
-              type: 'range',
-              value: 3,
-              comparison: 'lessEqual',
-              description: 'Target must be within examination range'
-            },
-            {
-              type: 'lineOfSight',
-              value: true,
-              description: 'Must be able to see target'
-            }
-          ],
-          costs: [],
-          effects: [
-            {
-              type: 'itemManipulation',
-              target: 'target',
-              parameters: {
-                action: 'examine',
-                revealProperties: true
-              },
-              description: 'Reveal detailed information about the target',
-              timing: 'immediate'
-            }
-          ],
-          targeting: {
-            type: 'single',
-            range: 3,
-            requiresLineOfSight: true,
-            validTargets: [
-              {
-                type: 'entity',
-                criteria: {}
-              },
-              {
-                type: 'tile',
-                criteria: {}
-              },
-              {
-                type: 'item',
-                criteria: {}
-              }
-            ]
-          },
-          priority: 20,
-          iconGlyph: '🔍'
-        },
-        search: {
-          id: 'search',
-          name: 'Search',
-          description: 'Carefully search the area for hidden objects or secrets',
-          source: 'intrinsic',
-          category: 'utility',
-          requirements: [
-            {
-              type: 'gameMode',
-              value: 'exploration',
-              description: 'Only available during exploration'
-            }
-          ],
-          costs: [
-            {
-              type: 'time',
-              amount: 10,
-              description: 'Takes 10 seconds to search thoroughly'
-            }
-          ],
-          effects: [
-            {
-              type: 'environmentChange',
-              target: 'area',
-              parameters: {
-                radius: 1,
-                shape: 'circle',
-                revealHidden: true,
-                searchDC: 15
-              },
-              description: 'Reveal hidden objects, traps, or secrets in the area',
-              timing: 'immediate'
-            }
-          ],
-          targeting: {
-            type: 'area',
-            range: 1,
-            requiresLineOfSight: false,
-            validTargets: [
-              {
-                type: 'tile',
-                criteria: {}
-              }
-            ],
-            areaOfEffect: {
-              shape: 'circle',
-              size: 1,
-              origin: 'performer'
-            }
-          },
-          priority: 30,
-          iconGlyph: '🕵️'
-        },
-        rest: {
-          id: 'rest',
-          name: 'Rest',
-          description: 'Take a short rest to recover some health and resources',
-          source: 'intrinsic',
-          category: 'utility',
-          requirements: [
-            {
-              type: 'gameMode',
-              value: 'exploration',
-              description: 'Only available during exploration'
-            }
-          ],
-          costs: [
-            {
-              type: 'time',
-              amount: 600,
-              description: 'Takes 10 minutes to rest'
-            }
-          ],
-          effects: [
-            {
-              type: 'healing',
-              target: 'self',
-              parameters: {
-                amount: '1d4+1',
-                resourceId: 'hp'
-              },
-              description: 'Recover a small amount of health',
-              timing: 'immediate'
-            },
-            {
-              type: 'resourceChange',
-              target: 'self',
-              parameters: {
-                resourceId: 'mana',
-                amount: '1d4',
-                operation: 'add'
-              },
-              description: 'Recover a small amount of mana',
-              timing: 'immediate'
-            }
-          ],
-          targeting: {
-            type: 'self',
-            range: 'self',
-            requiresLineOfSight: false,
-            validTargets: []
-          },
-          priority: 10,
-          iconGlyph: '😴'
+      ],
+      costs: [
+        {
+          type: 'actionPoint' as any,
+          amount: 1,
+          description: 'Uses your action for this turn'
         }
-      };
-    }
+      ],
+      effects: [
+        {
+          type: 'damage' as any,
+          target: 'target',
+          parameters: {
+            amount: '1d4',
+            damageType: 'bludgeoning',
+            attackRoll: true
+          },
+          description: 'Deal bludgeoning damage',
+          timing: 'immediate'
+        }
+      ],
+      targeting: {
+        type: 'single' as any,
+        range: 1,
+        requiresLineOfSight: true,
+        validTargets: [
+          {
+            type: 'entity',
+            criteria: {
+              isAlive: true
+            }
+          }
+        ]
+      },
+      priority: 80,
+      iconGlyph: '👊'
+    };
 
-    return {};
+    const wait: Action = {
+      id: 'wait',
+      name: 'Wait',
+      description: 'Do nothing and end your turn',
+      source: 'intrinsic',
+      category: ActionCategory.UTILITY,
+      requirements: [],
+      costs: [
+        {
+          type: 'actionPoint' as any,
+          amount: 1,
+          description: 'Uses your action for this turn'
+        }
+      ],
+      effects: [],
+      targeting: {
+        type: 'none' as any,
+        range: 'self',
+        requiresLineOfSight: false,
+        validTargets: []
+      },
+      priority: 1,
+      iconGlyph: '⏸️'
+    };
+
+    this.actions.set('basic_attack', basicAttack);
+    this.actions.set('wait', wait);
+
+    this.logger.warn('Using fallback actions due to JSON loading failure', {
+      fallbackActions: Array.from(this.actions.keys())
+    });
   }
 
   private addActionsFromData(actionData: any): void {
