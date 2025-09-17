@@ -1,5 +1,5 @@
 import { PlayerCharacter, CharacterClass, EntityStats } from '../types';
-import { CombatSystem } from '../systems/combat/CombatSystem';
+import { GameMechanics } from '../engine/GameMechanics';
 import { DiceSystem } from '../systems/dice/DiceSystem';
 import { EnemyLoader } from '../loaders/EnemyLoader';
 import { ItemSystem } from '../entities/ItemSystem';
@@ -232,7 +232,7 @@ export class CharacterManager {
     if (characterClass) {
       const hitDie = characterClass.baseStats.hp.split('d')[1]?.split('+')[0] || '8';
       const hpGain = DiceSystem.rollDice(`1d${hitDie}`).total + 
-                     CombatSystem.getModifier(this.currentCharacter.stats.constitution);
+                     GameMechanics.getModifier(this.currentCharacter.stats.constitution);
       
       this.currentCharacter.stats.hp = (this.currentCharacter.stats.hp || 0) + Math.max(1, hpGain);
       this.currentCharacter.stats.maxHp = this.currentCharacter.stats.hp;

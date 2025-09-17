@@ -11,6 +11,7 @@ import { TileMap } from '../../core/TileMap';
 import { EventBus } from '../../core/events/EventBus';
 import { ResourceManager } from '../../managers/ResourceManager';
 import { CombatSystem } from '../combat/CombatSystem';
+import { GameMechanics } from '../../engine/GameMechanics';
 import { DiceSystem } from '../dice/DiceSystem';
 import { Logger } from '../../utils/Logger';
 import { generateEventId } from '../../core/events/GameEvent';
@@ -104,7 +105,7 @@ export class ActionExecutionEngine {
             // Use grid distance for melee (range 1), Euclidean for ranged
             const distance = requiredRange <= 1
               ? Math.max(Math.abs(performer.x - targetEntity.x), Math.abs(performer.y - targetEntity.y))
-              : CombatSystem.getDistance(performer, targetEntity);
+              : GameMechanics.getDistance(performer, targetEntity);
 
             if (requirement.comparison === 'lessEqual' && distance > requiredRange) {
               return { valid: false, message: `Target too far away (${distance} > ${requiredRange})` };

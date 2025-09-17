@@ -1,5 +1,5 @@
 import { Entity } from '../types';
-import { CombatSystem } from '../systems/combat/CombatSystem';
+import { GameMechanics } from '../engine/GameMechanics';
 import { TileMap } from '../core/TileMap';
 import { EnemyLoader } from '../loaders/EnemyLoader';
 import { CharacterManager } from '../managers/CharacterManager';
@@ -47,7 +47,7 @@ export class CreateEntity {
         color: 0x4169E1,
         name: 'Player',
         isEmoji: true,
-        stats: CombatSystem.createPlayerStats(),
+        stats: GameMechanics.createPlayerStats(),
         isPlayer: true
       };
       

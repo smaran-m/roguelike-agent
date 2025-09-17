@@ -9,8 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:actions": "tsx src/systems/actions/test-action-system-simple.ts"
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "gsap": "^3.12.5",

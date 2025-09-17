@@ -1,5 +1,6 @@
 import { Entity } from '../../types';
 import { CombatSystem } from './CombatSystem';
+import { GameMechanics } from '../../engine/GameMechanics';
 import { IRenderer } from '../../core/renderers/IRenderer';
 import { CharacterManager } from '../../managers/CharacterManager';
 import { EventBus } from '../../core/events/EventBus';
@@ -74,32 +75,32 @@ export class CombatManager {
   private setupDeathAnimations() {
     this.eventBus.subscribe('EnemyDied', (event) => {
       const deathEvent = event as EnemyDiedEvent;
-      console.log('💀 CombatManager: EnemyDied event received for animations!', { 
+      this.logger.debug('💀 CombatManager: EnemyDied event received for animations!', { 
         position: deathEvent.position,
         enemyId: deathEvent.enemyId 
       });
       
       // Trigger death ripple animation if supported by renderer
       // if (this.renderer && this.renderer.startDeathRipple) {
-      //   console.log('CombatManager: Starting death ripple');
+      //   this.logger.debug('CombatManager: Starting death ripple');
       //   this.renderer.startDeathRipple(deathEvent.position.x, deathEvent.position.y);
         
       //   if (this.renderer.startColorRipple) {
-      //     console.log('CombatManager: Adding red death color ripple wave');
+      //     this.logger.debug('CombatManager: Adding red death color ripple wave');
       //     this.renderer.startColorRipple(deathEvent.position.x, deathEvent.position.y, 0xFF0000, 1.0, 15);
       //   }
         
       //   if (this.renderer.startLinearWave) {
-      //     console.log('CombatManager: Adding linear wave effect');
+      //     this.logger.debug('CombatManager: Adding linear wave effect');
       //     this.renderer.startLinearWave(deathEvent.position.x, deathEvent.position.y, 0, 20, 12, 2);
       //   }
         
       //   if (this.renderer.startConicalWave) {
-      //     console.log('CombatManager: Adding conical wave effect');
+      //     this.logger.debug('CombatManager: Adding conical wave effect');
       //     this.renderer.startConicalWave(deathEvent.position.x, deathEvent.position.y, -60, 60, 18, 10);
       //   }
       // } else {
-      //   console.log('CombatManager: Renderer does not support death animations');
+      //   this.logger.debug('CombatManager: Renderer does not support death animations');
       // }
     });
   }
@@ -206,7 +207,7 @@ export class CombatManager {
   private discoverAvailableActions(entity: Entity, entities: Entity[], tileMap?: TileMap): any[] {
     const defaultTileMap = tileMap || new TileMap(20, 20);
 
-    console.log('Calling actionDiscovery.discoverActions for:', entity.name);
+    this.logger.debug('Calling actionDiscovery.discoverActions for:', entity.name);
 
     const discoveryResult = this.actionDiscovery.discoverActions(
       entity,
@@ -215,7 +216,7 @@ export class CombatManager {
       defaultTileMap
     );
 
-    console.log('Raw discovery result:', {
+    this.logger.debug('Raw discovery result:', {
       actionsFound: discoveryResult.actions.length,
       actions: discoveryResult.actions.map(a => ({ id: a.id, name: a.name, source: a.source }))
     });
@@ -227,29 +228,29 @@ export class CombatManager {
    * Find actions that have valid targets available
    */
   private findActionsWithValidTargets(actions: any[], performer: Entity, entities: Entity[], tileMap?: TileMap): Array<{action: any, validTargets: any[]}> {
-    console.log('Actions to validate:', actions.length);
-    console.log('Entities available:', entities.length);
-    console.log('Entities:', entities.map(e => ({ id: e.id, name: e.name, x: e.x, y: e.y })));
-    console.log('Performer position:', { x: performer.x, y: performer.y });
+    this.logger.debug('Actions to validate:', actions.length);
+    this.logger.debug('Entities available:', entities.length);
+    this.logger.debug('Entities:', entities.map(e => ({ id: e.id, name: e.name, x: e.x, y: e.y })));
+    this.logger.debug('Performer position:', { x: performer.x, y: performer.y });
 
     const actionsWithTargets: Array<{action: any, validTargets: any[]}> = [];
 
     for (const action of actions) {
-      console.log(`\nValidating action: ${action.id} (${action.name})`);
-      console.log('  Targeting type:', action.targeting?.type);
+      this.logger.debug(`\nValidating action: ${action.id} (${action.name})`);
+      this.logger.debug('  Targeting type:', action.targeting?.type);
 
       const validTargets = this.findValidTargetsForAction(action, performer, entities, tileMap);
-      console.log(`  Valid targets found: ${validTargets.length}`);
+      this.logger.debug(`  Valid targets found: ${validTargets.length}`);
 
       const shouldInclude = validTargets.length > 0 || action.targeting?.type === 'self' || action.targeting?.type === 'none';
-      console.log(`  Should include: ${shouldInclude}`);
+      this.logger.debug(`  Should include: ${shouldInclude}`);
 
       if (shouldInclude) {
         actionsWithTargets.push({ action, validTargets });
       }
     }
 
-    console.log(`Final actions with targets: ${actionsWithTargets.length}`);
+    this.logger.debug(`Final actions with targets: ${actionsWithTargets.length}`);
     return actionsWithTargets;
   }
 
@@ -282,17 +283,17 @@ export class CombatManager {
    * Find valid single targets for an action
    */
   private findSingleTargets(action: any, performer: Entity, entities: Entity[], tileMap?: TileMap): Entity[] {
-    console.log(`\n--- Finding single targets for ${action.name} ---`);
+    this.logger.debug(`\n--- Finding single targets for ${action.name} ---`);
     const validTargets: Entity[] = [];
     const targeting = action.targeting;
     const range = targeting?.range || 1;
-    console.log('Action range:', range);
+    this.logger.debug('Action range:', range);
 
     for (const entity of entities) {
-      console.log(`\nChecking entity: ${entity.name} at (${entity.x}, ${entity.y})`);
+      this.logger.debug(`\nChecking entity: ${entity.name} at (${entity.x}, ${entity.y})`);
 
       if (entity.id === performer.id) {
-        console.log('  -> Skipped: Same as performer');
+        this.logger.debug('  -> Skipped: Same as performer');
         continue;
       }
 
@@ -300,31 +301,31 @@ export class CombatManager {
       const maxRange = typeof range === 'number' ? range : (range === 'unlimited' ? Infinity : 1);
       const distance = maxRange <= 1
         ? Math.max(Math.abs(performer.x - entity.x), Math.abs(performer.y - entity.y)) // Grid distance for melee
-        : CombatSystem.getDistance(performer, entity); // Euclidean distance for ranged
-      console.log(`  -> Distance: ${distance} (${maxRange <= 1 ? 'grid' : 'euclidean'}), Max range: ${maxRange}`);
+        : GameMechanics.getDistance(performer, entity); // Euclidean distance for ranged
+      this.logger.debug(`  -> Distance: ${distance} (${maxRange <= 1 ? 'grid' : 'euclidean'}), Max range: ${maxRange}`);
       if (distance > maxRange) {
-        console.log('  -> Skipped: Out of range');
+        this.logger.debug('  -> Skipped: Out of range');
         continue;
       }
 
       // Check line of sight if required
       if (targeting?.requiresLineOfSight && tileMap && !this.hasLineOfSight(performer, entity, tileMap)) {
-        console.log('  -> Skipped: No line of sight');
+        this.logger.debug('  -> Skipped: No line of sight');
         continue;
       }
 
       // Check target criteria
       const matchesCriteria = this.matchesTargetCriteria(entity, targeting?.validTargets);
-      console.log(`  -> Matches criteria: ${matchesCriteria}`);
-      console.log(`  -> Valid targets config:`, targeting?.validTargets);
+      this.logger.debug(`  -> Matches criteria: ${matchesCriteria}`);
+      this.logger.debug(`  -> Valid targets config:`, targeting?.validTargets);
 
       if (matchesCriteria) {
-        console.log('  -> VALID TARGET FOUND!');
+        this.logger.debug('  -> VALID TARGET FOUND!');
         validTargets.push(entity);
       }
     }
 
-    console.log(`Total valid targets found: ${validTargets.length}`);
+    this.logger.debug(`Total valid targets found: ${validTargets.length}`);
     return validTargets;
   }
 
@@ -369,8 +370,8 @@ export class CombatManager {
     } else if (bestActionWithTargets.validTargets.length > 0) {
       // Select the closest target
       selectedTarget = bestActionWithTargets.validTargets.reduce((closest, current) => {
-        const closestDistance = CombatSystem.getDistance(performer, closest);
-        const currentDistance = CombatSystem.getDistance(performer, current);
+        const closestDistance = GameMechanics.getDistance(performer, closest);
+        const currentDistance = GameMechanics.getDistance(performer, current);
         return currentDistance < closestDistance ? current : closest;
       });
     }
@@ -418,43 +419,43 @@ export class CombatManager {
    * Check if a target matches the action's target criteria
    */
   private matchesTargetCriteria(target: Entity, validTargetCriteria: any[]): boolean {
-    console.log(`    Checking target criteria for ${target.name}:`);
-    console.log(`      Target has stats:`, !!target.stats);
+    this.logger.debug(`    Checking target criteria for ${target.name}:`);
+    this.logger.debug(`      Target has stats:`, !!target.stats);
 
     // Check primary combat resource using world config
     const worldConfig = WorldConfigLoader.getCurrentWorld();
     const primaryResourceId = worldConfig?.mechanics?.combatResources?.primary || 'hp';
     const currentHealth = target.stats?.resources?.[primaryResourceId]?.current;
 
-    console.log(`      Primary resource (${primaryResourceId}):`, currentHealth);
-    console.log(`      Criteria:`, validTargetCriteria);
+    this.logger.debug(`      Primary resource (${primaryResourceId}):`, currentHealth);
+    this.logger.debug(`      Criteria:`, validTargetCriteria);
 
     if (!validTargetCriteria || validTargetCriteria.length === 0) {
-      console.log(`      No criteria specified -> TRUE`);
+      this.logger.debug(`      No criteria specified -> TRUE`);
       return true;
     }
 
     for (const criteria of validTargetCriteria) {
-      console.log(`      Checking criteria type:`, criteria.type);
+      this.logger.debug(`      Checking criteria type:`, criteria.type);
       if (criteria.type === 'entity') {
-        console.log(`        Entity criteria:`, criteria.criteria);
+        this.logger.debug(`        Entity criteria:`, criteria.criteria);
 
         // Check entity criteria
         if (criteria.criteria?.isAlive !== undefined && !target.stats) {
-          console.log(`        Failed: isAlive check but no stats -> FALSE`);
+          this.logger.debug(`        Failed: isAlive check but no stats -> FALSE`);
           return false;
         }
         if (criteria.criteria?.isAlive && (currentHealth || 0) <= 0) {
-          console.log(`        Failed: isAlive check but ${primaryResourceId} <= 0 -> FALSE`);
+          this.logger.debug(`        Failed: isAlive check but ${primaryResourceId} <= 0 -> FALSE`);
           return false;
         }
         // Add more criteria checks as needed
-        console.log(`        Passed entity criteria -> TRUE`);
+        this.logger.debug(`        Passed entity criteria -> TRUE`);
         return true;
       }
     }
 
-    console.log(`      No matching criteria found -> FALSE`);
+    this.logger.debug(`      No matching criteria found -> FALSE`);
     return false;
   }
 
@@ -462,7 +463,7 @@ export class CombatManager {
   findTargetsInRange(attacker: Entity, entities: Entity[]): Entity[] {
     return entities.filter(entity =>
       entity.id !== attacker.id &&
-      CombatSystem.isInMeleeRange(attacker, entity)
+      GameMechanics.isInMeleeRange(attacker, entity)
     );
   }
 
@@ -516,10 +517,10 @@ export class CombatManager {
     // Get all available actions
     const actionsWithTargets = this.getAvailableActionsWithTargets(entity, entities, tileMap);
 
-    console.log('Entity:', entity.name, entity.isPlayer);
-    console.log('Total actionsWithTargets found:', actionsWithTargets.length);
+    this.logger.debug('Entity:', entity.name, entity.isPlayer?.toString() ?? "false");
+    this.logger.debug('Total actionsWithTargets found:', actionsWithTargets.length);
     actionsWithTargets.forEach((actionWithTargets, index) => {
-      console.log(`Action ${index + 1}:`, {
+      this.logger.debug(`Action ${index + 1}:`, {
         id: actionWithTargets.action.id,
         name: actionWithTargets.action.name,
         category: actionWithTargets.action.category,

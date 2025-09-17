@@ -93,18 +93,30 @@ export class EnemyLoader {
           const max = typeof resourceData.max === 'string'
             ? DiceSystem.rollDice(resourceData.max).total
             : resourceData.max;
-          resources[resourceId] = { current, max };
+          resources[resourceId] = {
+            id: resourceId,
+            current,
+            maximum: max,
+            minimum: 0,
+            displayName: resourceId
+          };
         }
       }
     } else if (stats.hp) {
       // Legacy format fallback - convert old 'hp' to new resource system
       const hp = DiceSystem.rollDice(stats.hp).total;
-      resources.hp = { current: hp, max: hp };
+      resources.hp = {
+        id: 'hp',
+        current: hp,
+        maximum: hp,
+        minimum: 0,
+        displayName: 'Health'
+      };
     }
 
     return {
       hp: resources.hp?.current || 10, // Legacy compatibility
-      maxHp: resources.hp?.max || 10, // Legacy compatibility
+      maxHp: resources.hp?.maximum || 10, // Legacy compatibility
       ac: stats.ac,
       strength: DiceSystem.rollDice(stats.strength).total,
       dexterity: DiceSystem.rollDice(stats.dexterity).total,
