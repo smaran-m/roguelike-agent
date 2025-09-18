@@ -140,6 +140,20 @@ export interface UnregisterActionProviderEvent extends BaseGameEvent {
   providerId: string;
 }
 
+export interface CheckRolledEvent extends BaseGameEvent {
+  type: 'CheckRolled';
+  kind: 'attack' | 'skill' | 'save' | 'other';
+  performerId: string;
+  targetId?: string;
+  roll: number;
+  total: number;
+  dc?: number;        // fixed DC or target armour class
+  success: boolean;
+  advantage?: boolean;
+  disadvantage?: boolean;
+}
+
+
 export type GameEvent =
   | EnemyDiedEvent
   | DamageDealtEvent
@@ -161,7 +175,8 @@ export type GameEvent =
   | ActionProviderRegisteredEvent
   | ActionProviderUnregisteredEvent
   | RegisterActionProviderEvent
-  | UnregisterActionProviderEvent;
+  | UnregisterActionProviderEvent
+  | CheckRolledEvent;
 
 export type EventHandler<T extends BaseGameEvent = GameEvent> = (event: T) => void;
 export type EventUnsubscriber = () => void;

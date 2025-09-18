@@ -21,7 +21,10 @@ export class Game {
   renderer: DefaultRenderer;
   tileMap: TileMap;
   player: Entity;
-  
+
+  // Global EventBus reference
+  private static globalEventBus: EventBus | null = null;
+
   // Core systems
   private eventBus: EventBus;
   private logger: Logger;
@@ -53,6 +56,9 @@ export class Game {
       maxPoolSize: 100
     };
     this.eventBus = new EventBus(eventBusConfig, this.logger, this.errorHandler);
+
+    // Set global EventBus reference
+    Game.globalEventBus = this.eventBus;
     
     // Initialize audio system with EventBus
     this.audioSystem = new AudioSystem(this.eventBus, this.logger, this.errorHandler);
@@ -750,5 +756,13 @@ export class Game {
     this.uiManager.destroy();
     this.gameModeManager.destroy();
     this.turnOrderManager.destroy();
+  }
+
+  /**
+   * Get the global EventBus instance
+   * This allows any module to access the shared EventBus without dependency injection
+   */
+  static getGlobalEventBus(): EventBus | null {
+    return Game.globalEventBus;
   }
 }

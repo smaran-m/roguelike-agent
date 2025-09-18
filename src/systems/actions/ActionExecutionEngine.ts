@@ -1,20 +1,42 @@
 import {
   Action,
   ActionContext,
-  ActionEffect,
   RequirementType,
   CostType,
-  EffectType
+  ResourceOpParameters
 } from './ActionTypes';
+
+interface SkillCheckParameters {
+  skill: string;
+  mode: 'dc' | 'contest';
+  dc?: number;
+  contest?: { againstSkill?: string; radius?: number; anyOrAll?: 'any'|'all' };
+  onSuccess?: Effect[];
+  onFailure?: Effect[];
+}
 import { Entity } from '../../types';
 import { TileMap } from '../../core/TileMap';
 import { EventBus } from '../../core/events/EventBus';
 import { ResourceManager } from '../../managers/ResourceManager';
-import { CombatSystem } from '../combat/CombatSystem';
+import { WorldConfigLoader } from '../../loaders/WorldConfigLoader';
 import { GameMechanics } from '../../engine/GameMechanics';
 import { DiceSystem } from '../dice/DiceSystem';
 import { Logger } from '../../utils/Logger';
 import { generateEventId } from '../../core/events/GameEvent';
+import { Game } from '../../core/Game';
+
+// New effect system types
+type CustomEffectType = 'damage' | 'resourceChange' | 'resourceOp' | 'statusEffect' | 'movement' | 'skillCheck' | 'event';
+
+interface Effect {
+  type: CustomEffectType;
+  target: string;
+  parameters: Record<string, any>;
+  timing?: string;
+}
+
+type EffectResolver = (ctx: ActionContext, eff: Effect) => Promise<void>;
+const RESOLVERS: Record<CustomEffectType, EffectResolver> = {} as any;
 
 export interface ActionExecutionResult {
   success: boolean;
@@ -37,13 +59,13 @@ export class ActionExecutionEngine {
   /**
    * Execute an action with validation and effect resolution
    */
-  executeAction(
+  async executeAction(
     action: Action,
     performer: Entity,
     target: Entity | { x: number; y: number } | null,
     context: ActionContext,
     tileMap?: TileMap
-  ): ActionExecutionResult {
+  ): Promise<ActionExecutionResult> {
     this.logger.debug('Executing action', {
       actionId: action.id,
       performerId: performer.id,
@@ -68,8 +90,8 @@ export class ActionExecutionEngine {
       };
     }
 
-    // Execute effects
-    const effectResults = this.executeEffects(action, performer, target, context, tileMap);
+    // Execute effects with new resolver system
+    const effectResults = await this.executeEffectsWithResolvers(action, performer, target, context, tileMap);
 
     // Publish events for UI updates
     this.eventBus.publish({
@@ -162,22 +184,48 @@ export class ActionExecutionEngine {
     return { success: true, message: '' };
   }
 
-  private executeEffects(
+  private async executeEffectsWithResolvers(
     action: Action,
     performer: Entity,
     target: Entity | { x: number; y: number } | null,
-    _context: ActionContext,
+    context: ActionContext,
     _tileMap?: TileMap
-  ): { message: string; targetKilled?: boolean; target?: Entity; effects: string[] } {
+  ): Promise<{ message: string; targetKilled?: boolean; target?: Entity; effects: string[] }> {
+    // Convert ActionEffect to Effect format and execute with resolvers
     const effectMessages: string[] = [];
     let targetKilled = false;
     let affectedTarget: Entity | undefined;
 
-    for (const effect of action.effects) {
-      const result = this.executeEffect(effect, performer, target, _context, _tileMap);
-      if (result.message) effectMessages.push(result.message);
-      if (result.targetKilled) targetKilled = true;
-      if (result.target) affectedTarget = result.target;
+    // Create enhanced context with target information
+    const enhancedContext = {
+      ...context,
+      performer,
+      target,
+      _tileMap
+    };
+
+    for (const actionEffect of action.effects) {
+      // Convert to new Effect interface
+      const effect: Effect = {
+        type: actionEffect.type as CustomEffectType,
+        target: actionEffect.target,
+        parameters: actionEffect.parameters || {},
+        timing: actionEffect.timing
+      };
+
+      try {
+        const fn = RESOLVERS[effect.type];
+        if (!fn) {
+          throw new Error(`No resolver for effect type: ${effect.type}`);
+        }
+        await fn(enhancedContext as any, effect);
+
+        // For now, create a basic message
+        effectMessages.push(`${effect.type} effect executed`);
+      } catch (error) {
+        this.logger.error('Effect execution failed:', error);
+        effectMessages.push(`${effect.type} effect failed: ${error}`);
+      }
     }
 
     const mainMessage = effectMessages.length > 0 ? effectMessages[0] : `${action.name} executed`;
@@ -190,167 +238,52 @@ export class ActionExecutionEngine {
     };
   }
 
-  private executeEffect(
-    effect: ActionEffect,
-    performer: Entity,
-    target: Entity | { x: number; y: number } | null,
-    _context: ActionContext,
-    tileMap?: TileMap
-  ): { message: string; targetKilled?: boolean; target?: Entity } {
-    switch (effect.type) {
-      case EffectType.DAMAGE:
-        return this.executeDamageEffect(effect, performer, target);
 
-      case EffectType.HEALING:
-        return this.executeHealingEffect(effect, performer, target);
 
-      case EffectType.RESOURCE_CHANGE:
-        return this.executeResourceChangeEffect(effect, performer, target);
+  //
+  //   if (attackResult.hit) {
+  //     const wasKilled = CombatSystem.applyDamage(targetEntity, attackResult.finalDamage || attackResult.damage);
+  //
+  //     const damage = attackResult.finalDamage || attackResult.damage;
+  //     let message = `${damage} ${damageType} damage`;
+  //     if (attackResult.critical) message = `CRITICAL HIT! ${message}`;
+  //     if (wasKilled) message += ` - ${targetEntity.name || 'Target'} died!`;
+  //
+  //     // Publish combat events
+  //     this.eventBus.publish({
+  //       type: 'DamageDealt',
+  //       id: generateEventId(),
+  //       timestamp: Date.now(),
+  //       attackerId: performer.id,
+  //       targetId: targetEntity.id,
+  //       damage: damage,
+  //       damageType,
+  //       targetPosition: { x: targetEntity.x, y: targetEntity.y }
+  //     });
+  //
+  //     if (wasKilled) {
+  //       this.eventBus.publish({
+  //         type: 'EnemyDied',
+  //         id: generateEventId(),
+  //         timestamp: Date.now(),
+  //         enemyId: targetEntity.id,
+  //         position: { x: targetEntity.x, y: targetEntity.y }
+  //       });
+  //     }
+  //
+  //     return {
+  //       message,
+  //       targetKilled: wasKilled,
+  //       target: targetEntity
+  //     };
+  //   } else {
+  //     return { message: 'Miss!', target: targetEntity };
+  //   }
+  // }
 
-      case EffectType.MOVEMENT:
-        return this.executeMovementEffect(effect, performer, target, tileMap);
 
-      default:
-        this.logger.warn('Unhandled effect type', { effectType: effect.type });
-        return { message: `${effect.description}` };
-    }
-  }
 
-  private executeDamageEffect(
-    effect: ActionEffect,
-    performer: Entity,
-    target: Entity | { x: number; y: number } | null
-  ): { message: string; targetKilled?: boolean; target?: Entity } {
-    if (!target || !(target as Entity).id) {
-      return { message: 'No valid target for damage' };
-    }
 
-    const targetEntity = target as Entity;
-    const damageString = effect.parameters.amount || '1'; // Keep as string for dice notation
-    const damageType = effect.parameters.damageType || 'bludgeoning';
-
-    // Use existing combat system for damage calculation (expects dice string)
-    const attackResult = CombatSystem.meleeAttack(performer, targetEntity, damageString, damageType);
-
-    if (attackResult.hit) {
-      const wasKilled = CombatSystem.applyDamage(targetEntity, attackResult.finalDamage || attackResult.damage);
-
-      const damage = attackResult.finalDamage || attackResult.damage;
-      let message = `${damage} ${damageType} damage`;
-      if (attackResult.critical) message = `CRITICAL HIT! ${message}`;
-      if (wasKilled) message += ` - ${targetEntity.name || 'Target'} died!`;
-
-      // Publish combat events
-      this.eventBus.publish({
-        type: 'DamageDealt',
-        id: generateEventId(),
-        timestamp: Date.now(),
-        attackerId: performer.id,
-        targetId: targetEntity.id,
-        damage: damage,
-        damageType,
-        targetPosition: { x: targetEntity.x, y: targetEntity.y }
-      });
-
-      if (wasKilled) {
-        this.eventBus.publish({
-          type: 'EnemyDied',
-          id: generateEventId(),
-          timestamp: Date.now(),
-          enemyId: targetEntity.id,
-          position: { x: targetEntity.x, y: targetEntity.y }
-        });
-      }
-
-      return {
-        message,
-        targetKilled: wasKilled,
-        target: targetEntity
-      };
-    } else {
-      return { message: 'Miss!', target: targetEntity };
-    }
-  }
-
-  private executeHealingEffect(
-    effect: ActionEffect,
-    performer: Entity,
-    target: Entity | { x: number; y: number } | null
-  ): { message: string; target?: Entity } {
-    const targetEntity = this.resolveEffectTarget(effect, performer, target);
-    if (!targetEntity) return { message: 'No valid target for healing' };
-
-    const amount = this.resolveAmount(effect.parameters.amount || '1');
-    const resourceId = effect.parameters.resourceId || 'hp';
-
-    ResourceManager.modify(targetEntity, resourceId, amount);
-
-    return {
-      message: `Healed ${amount} ${resourceId}`,
-      target: targetEntity
-    };
-  }
-
-  private executeResourceChangeEffect(
-    effect: ActionEffect,
-    performer: Entity,
-    target: Entity | { x: number; y: number } | null
-  ): { message: string; target?: Entity } {
-    const targetEntity = this.resolveEffectTarget(effect, performer, target);
-    if (!targetEntity) return { message: 'No valid target for resource change' };
-
-    const amount = this.resolveAmount(effect.parameters.amount || '0');
-    const resourceId = effect.parameters.resourceId || 'hp';
-    const operation = effect.parameters.operation || 'add';
-
-    if (operation === 'add') {
-      ResourceManager.modify(targetEntity, resourceId, amount);
-    } else if (operation === 'set') {
-      ResourceManager.set(targetEntity, resourceId, amount);
-    }
-
-    return {
-      message: `${resourceId} ${operation === 'add' ? 'changed by' : 'set to'} ${amount}`,
-      target: targetEntity
-    };
-  }
-
-  private executeMovementEffect(
-    effect: ActionEffect,
-    performer: Entity,
-    target: Entity | { x: number; y: number } | null,
-    _tileMap?: TileMap
-  ): { message: string; target?: Entity } {
-    // Basic movement effect - could be enhanced with pathfinding
-    const targetEntity = this.resolveEffectTarget(effect, performer, target);
-    if (!targetEntity) return { message: 'No valid target for movement' };
-
-    const distance = effect.parameters.distance || 1;
-    const direction = effect.parameters.direction || 'toward';
-
-    // Simple movement logic - in full implementation would use MovementSystem
-    this.logger.debug('Movement effect', { distance, direction, target: targetEntity.id });
-
-    return {
-      message: `Moved ${distance} tiles ${direction}`,
-      target: targetEntity
-    };
-  }
-
-  private resolveEffectTarget(
-    effect: ActionEffect,
-    performer: Entity,
-    target: Entity | { x: number; y: number } | null
-  ): Entity | null {
-    switch (effect.target) {
-      case 'self':
-        return performer;
-      case 'target':
-        return target && (target as Entity).id ? target as Entity : null;
-      default:
-        return null;
-    }
-  }
 
   private resolveAmount(amount: string | number): number {
     if (typeof amount === 'number') {
@@ -368,3 +301,270 @@ export class ActionExecutionEngine {
     return isNaN(parsed) ? 0 : parsed;
   }
 }
+
+async function executeDamageEffect(ctx: ActionContext, eff: Effect): Promise<void> {
+  // Read parameters
+  const amount = eff.parameters.amount || '1d4';
+  const damageType = eff.parameters.damageType || 'bludgeoning';
+  const attackRoll = eff.parameters.attackRoll || false;
+  const abilityType = eff.parameters.abilityType || 'strength';
+  const criticalMultiplier = eff.parameters.criticalMultiplier || 2;
+  const resourceTarget = eff.parameters.resourceTarget || 'hp';
+
+  // Get performer and target from context
+  const performer = (ctx as any).performer as Entity;
+  const target = (ctx as any).target as Entity;
+
+  if (!target || !target.id) {
+    return; // No valid target
+  }
+
+  let isCritical = false;
+  let damage = 0;
+
+  // Handle attack roll if required
+  if (attackRoll) {
+    const attackResult = GameMechanics.rollAttack(performer, target, {
+      abilityType: abilityType as any,
+      advantage: false,
+      disadvantage: false
+    });
+
+    // Publish attack roll event using global EventBus
+    const eventBus = Game.getGlobalEventBus();
+    if (eventBus) {
+      eventBus.publish({
+        type: 'CheckRolled',
+        id: generateEventId(),
+        timestamp: Date.now(),
+        kind: 'attack',
+        performerId: performer.id,
+        targetId: target.id,
+        roll: attackResult.d20Roll,
+        total: attackResult.total,
+        dc: target.stats.ac,
+        success: attackResult.hit,
+        advantage: false,
+        disadvantage: false
+      });
+    }
+
+    if (!attackResult.hit) {
+      return;
+    }
+
+    isCritical = attackResult.isCritical;
+  }
+
+  // Calculate damage
+  const abilityModifier = GameMechanics.getModifier(performer.stats[abilityType as keyof typeof performer.stats] as number);
+  damage = GameMechanics.calculateDamage(amount, abilityModifier, {
+    criticalMultiplier: isCritical ? criticalMultiplier : 1
+  });
+
+  // Apply damage with resistances
+  let finalDamage = damage;
+  if (ResourceManager.applyDamageWithResistances) {
+    const world = WorldConfigLoader.getCurrentWorld();
+    if (world) {
+      finalDamage = ResourceManager.applyDamageWithResistances(target, damage, damageType, world);
+    }
+  }
+
+  // Modify target resource (subtract damage)
+  ResourceManager.modify(target, resourceTarget, -finalDamage);
+
+  // Check if target is defeated
+  if (ResourceManager.isAtMinimum(target, resourceTarget)) {
+    const eventBus = Game.getGlobalEventBus();
+    if (eventBus) {
+      eventBus.publish({
+        type: 'EntityDied',
+        id: generateEventId(),
+        timestamp: Date.now(),
+        entityId: target.id,
+        position: { x: target.x, y: target.y }
+      });
+    }
+  }
+}
+
+async function executeResourceOpEffect(ctx: ActionContext, eff: Effect): Promise<void> {
+  // Read parameters with ResourceOpParameters interface
+  const params = eff.parameters as ResourceOpParameters;
+  const resourceId = params.resourceId || 'hp';
+  const operation = params.operation;
+  const clampToBounds = params.clampToBounds !== false; // Default to true
+
+  // Get target entity from context based on effect target
+  let targetEntity: Entity | null = null;
+  if (eff.target === 'self') {
+    targetEntity = (ctx as any).performer as Entity;
+  } else if (eff.target === 'target') {
+    targetEntity = (ctx as any).target as Entity;
+  }
+
+  if (!targetEntity || !targetEntity.id) {
+    return; // No valid target
+  }
+
+  // Calculate amount - prefer amountFormula over amount
+  let value: number;
+  if (params.amountFormula) {
+    // Simple formula evaluation - for now just handle dice notation and basic numbers
+    // TODO: Replace with Formula.eval if available
+    if (params.amountFormula.includes('d')) {
+      const diceResult = DiceSystem.rollDice(params.amountFormula);
+      value = diceResult.total;
+    } else {
+      value = parseFloat(params.amountFormula) || 0;
+    }
+  } else {
+    value = params.amount || 0;
+  }
+
+  // Get current resource value
+  const currentValue = ResourceManager.getCurrentValue(targetEntity, resourceId);
+  const resource = ResourceManager.getResource(targetEntity, resourceId);
+
+  if (!resource) {
+    // Resource doesn't exist, skip operation
+    return;
+  }
+
+  let newValue: number;
+
+  // Apply operation
+  switch (operation) {
+    case 'add':
+      newValue = currentValue + value;
+      break;
+    case 'subtract':
+      newValue = currentValue - value;
+      break;
+    case 'set':
+      newValue = value;
+      break;
+    case 'multiply':
+      newValue = currentValue * value;
+      break;
+    case 'min':
+      newValue = Math.min(currentValue, value);
+      break;
+    case 'max':
+      newValue = Math.max(currentValue, value);
+      break;
+    default:
+      return; // Unknown operation
+  }
+
+  // Apply bounds clamping if enabled
+  if (clampToBounds) {
+    if (resource.minimum !== undefined) {
+      newValue = Math.max(newValue, resource.minimum);
+    }
+    if (resource.maximum !== undefined) {
+      newValue = Math.min(newValue, resource.maximum);
+    }
+  }
+
+  // Apply the new value
+  ResourceManager.set(targetEntity, resourceId, newValue);
+}
+
+async function executeSkillCheckEffect(ctx: ActionContext, eff: Effect): Promise<void> {
+  // Read parameters
+  const params = eff.parameters as SkillCheckParameters;
+  const skill = params.skill;
+  const mode = params.mode;
+
+  // Get performer from context
+  const performer = (ctx as any).performer as Entity;
+  if (!performer || !performer.id) {
+    return; // No valid performer
+  }
+
+  // Perform skill roll
+  const rollResult = GameMechanics.rollSkill(performer, skill, {
+    advantage: false, // Could be extended to read from parameters
+    disadvantage: false
+  });
+
+  let success = false;
+  let contestResults: Array<{entity: Entity; roll: number}> = [];
+
+  // Evaluate success based on mode
+  if (mode === 'dc') {
+    const dc = params.dc || 10;
+    success = rollResult.total >= dc;
+  } else if (mode === 'contest') {
+    // Contest mode - find nearby entities and roll against them
+    const contest = params.contest || {};
+    const againstSkill = contest.againstSkill || skill;
+    const radius = contest.radius || 1;
+    const anyOrAll = contest.anyOrAll || 'any';
+
+    // Get nearby entities
+    const nearbyEntities = ctx.visibleEntities.filter(entity => {
+      if (entity.id === performer.id) return false;
+      const distance = GameMechanics.getGridDistance(
+        performer.x, performer.y,
+        entity.x, entity.y
+      );
+      return distance <= radius;
+    });
+
+    // Roll for each nearby entity
+    contestResults = nearbyEntities.map(entity => {
+      const entityRoll = GameMechanics.rollSkill(entity, againstSkill, {});
+      return { entity, roll: entityRoll.total };
+    });
+
+    // Determine success based on anyOrAll
+    if (anyOrAll === 'any') {
+      success = contestResults.length === 0 || contestResults.some(result => rollResult.total > result.roll);
+    } else { // 'all'
+      success = contestResults.length === 0 || contestResults.every(result => rollResult.total > result.roll);
+    }
+  }
+
+  // Publish skill check event using global EventBus
+  const eventBus = Game.getGlobalEventBus();
+  if (eventBus) {
+    eventBus.publish({
+      type: 'CheckRolled',
+      id: generateEventId(),
+      timestamp: Date.now(),
+      kind: 'skill',
+      performerId: performer.id,
+      targetId: undefined,
+      roll: rollResult.d20Roll,
+      total: rollResult.total,
+      dc: mode === 'dc' ? params.dc : undefined,
+      success: success,
+      advantage: false,
+      disadvantage: false
+    });
+  }
+
+  // Execute conditional effects
+  const effectsToExecute = success ? params.onSuccess : params.onFailure;
+  if (effectsToExecute) {
+    for (const conditionalEffect of effectsToExecute) {
+      try {
+        const fn = RESOLVERS[conditionalEffect.type];
+        if (!fn) {
+          throw new Error(`No resolver for effect type: ${conditionalEffect.type}`);
+        }
+        await fn(ctx, conditionalEffect);
+      } catch (error) {
+        console.error('Failed to execute conditional effect:', error);
+      }
+    }
+  }
+}
+
+// Register the resolvers
+RESOLVERS.damage = executeDamageEffect;
+RESOLVERS.resourceOp = executeResourceOpEffect;
+RESOLVERS.skillCheck = executeSkillCheckEffect;

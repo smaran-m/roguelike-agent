@@ -1,7 +1,5 @@
-import { Entity, AttackResult, DamageType } from '../../types';
+import { Entity, DamageType } from '../../types';
 import { WorldConfigLoader } from '../../loaders/WorldConfigLoader';
-import { ResourceManager } from '../../managers/ResourceManager';
-import { DiceSystem } from '../dice/DiceSystem';
 import { Logger } from '../../utils/Logger';
 
 export class CombatSystem {
@@ -69,63 +67,65 @@ export class CombatSystem {
     return WorldConfigLoader.calculateDamage(baseDamage, resistanceMultiplier);
   }
 
+  // DEPRECATED: Replaced by GameMechanics.rollAttack() and ResourceManager.modifyAdvanced()
   // Perform a melee attack with optional weapon damage
-  static meleeAttack(attacker: Entity, target: Entity, weaponDamage?: string, damageType: DamageType | string = DamageType.BLUDGEONING): AttackResult {
-    // Roll d20 + attack bonus
-    const d20Roll = DiceSystem.rollD20();
-    const attackBonus = this.getAttackBonus(attacker);
-    const attackRoll = d20Roll + attackBonus;
-    
-    // Check for critical hit
-    const critical = d20Roll === 20;
-    
-    // Check if attack hits
-    const hit = critical || attackRoll >= target.stats.ac;
-    
-    let damage = 0;
-    let finalDamage = 0;
-    let damageRoll = "0";
-    
-    if (hit) {
-      // Use weapon damage or default to 1d6
-      const damageDice = weaponDamage || "1d6";
-      const strMod = this.getModifier(attacker.stats.strength);
-      const baseDamage = DiceSystem.rollDice(damageDice);
-      damage = baseDamage.total + strMod;
-      
-      // Double damage on critical
-      if (critical) {
-        const critDamage = DiceSystem.rollDice(damageDice);
-        damage += critDamage.total;
-        damageRoll = `${baseDamage.rolls.join('+')}+${critDamage.rolls.join('+')}+${strMod} (crit)`;
-      } else {
-        damageRoll = `${baseDamage.rolls.join('+')}+${strMod}`;
-      }
-      
-      // Minimum 1 damage before resistances
-      damage = Math.max(1, damage);
-      
-      // Apply damage type modifiers
-      finalDamage = this.calculateFinalDamage(damage, damageType, target);
-    }
-    
-    return {
-      hit,
-      damage,
-      critical,
-      attackRoll,
-      damageRoll,
-      damageType,
-      finalDamage
-    };
-  }
-  
+  // static meleeAttack(attacker: Entity, target: Entity, weaponDamage?: string, damageType: DamageType | string = DamageType.BLUDGEONING): AttackResult {
+  //   // Roll d20 + attack bonus
+  //   const d20Roll = DiceSystem.rollD20();
+  //   const attackBonus = this.getAttackBonus(attacker);
+  //   const attackRoll = d20Roll + attackBonus;
+  //
+  //   // Check for critical hit
+  //   const critical = d20Roll === 20;
+  //
+  //   // Check if attack hits
+  //   const hit = critical || attackRoll >= target.stats.ac;
+  //
+  //   let damage = 0;
+  //   let finalDamage = 0;
+  //   let damageRoll = "0";
+  //
+  //   if (hit) {
+  //     // Use weapon damage or default to 1d6
+  //     const damageDice = weaponDamage || "1d6";
+  //     const strMod = this.getModifier(attacker.stats.strength);
+  //     const baseDamage = DiceSystem.rollDice(damageDice);
+  //     damage = baseDamage.total + strMod;
+  //
+  //     // Double damage on critical
+  //     if (critical) {
+  //       const critDamage = DiceSystem.rollDice(damageDice);
+  //       damage += critDamage.total;
+  //       damageRoll = `${baseDamage.rolls.join('+')}+${critDamage.rolls.join('+')}+${strMod} (crit)`;
+  //     } else {
+  //       damageRoll = `${baseDamage.rolls.join('+')}+${strMod}`;
+  //     }
+  //
+  //     // Minimum 1 damage before resistances
+  //     damage = Math.max(1, damage);
+  //
+  //     // Apply damage type modifiers
+  //     finalDamage = this.calculateFinalDamage(damage, damageType, target);
+  //   }
+  //
+  //   return {
+  //     hit,
+  //     damage,
+  //     critical,
+  //     attackRoll,
+  //     damageRoll,
+  //     damageType,
+  //     finalDamage
+  //   };
+  // }
+
+  // DEPRECATED: Replaced by ResourceManager.modifyAdvanced()
   // Apply damage to an entity
-  static applyDamage(entity: Entity, damage: number): boolean {
-    const primaryCombatResource = WorldConfigLoader.getCombatResource('primary');
-    ResourceManager.modify(entity, primaryCombatResource, -damage);
-    return ResourceManager.isAtMinimum(entity, primaryCombatResource); // Returns true if entity died
-  }
+  // static applyDamage(entity: Entity, damage: number): boolean {
+  //   const primaryCombatResource = WorldConfigLoader.getCombatResource('primary');
+  //   ResourceManager.modify(entity, primaryCombatResource, -damage);
+  //   return ResourceManager.isAtMinimum(entity, primaryCombatResource); // Returns true if entity died
+  // }
   
   // Create default player stats with resources initialized
   static createPlayerStats(): import('../../types').EntityStats {

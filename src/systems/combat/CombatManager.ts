@@ -1,5 +1,4 @@
 import { Entity } from '../../types';
-import { CombatSystem } from './CombatSystem';
 import { GameMechanics } from '../../engine/GameMechanics';
 import { IRenderer } from '../../core/renderers/IRenderer';
 import { CharacterManager } from '../../managers/CharacterManager';
@@ -114,13 +113,13 @@ export class CombatManager {
    * @param tileMap The game's tile map
    * @returns Result of the action execution
    */
-  executeAction(
+  async executeAction(
     action: any,
     performer: Entity,
     target: Entity | { x: number; y: number } | null,
     entities: Entity[],
     tileMap?: TileMap
-  ): CombatResult {
+  ): Promise<CombatResult> {
     // Create action context for performer
     const characterManager = CharacterManager.getInstance();
     const equippedItems = new Map();
@@ -148,7 +147,7 @@ export class CombatManager {
     }
 
     // Execute the action through the action execution engine
-    const executionResult = this.actionExecutionEngine.executeAction(
+    const executionResult = await this.actionExecutionEngine.executeAction(
       action,
       performer,
       target,
@@ -176,7 +175,7 @@ export class CombatManager {
    * Discover and auto-select the best available action for combat
    * Maintains backward compatibility but uses the generic framework
    */
-  attemptCombatAction(attacker: Entity, entities: Entity[], tileMap?: TileMap): CombatResult {
+  async attemptCombatAction(attacker: Entity, entities: Entity[], tileMap?: TileMap): Promise<CombatResult> {
     // Discover all available actions
     const availableActions = this.discoverAvailableActions(attacker, entities, tileMap);
 
@@ -198,7 +197,7 @@ export class CombatManager {
     const { selectedAction, selectedTarget } = this.selectBestActionAndTarget(combatActions, attacker, entities);
 
     // Execute the selected action
-    return this.executeAction(selectedAction, attacker, selectedTarget, entities, tileMap);
+    return await this.executeAction(selectedAction, attacker, selectedTarget, entities, tileMap);
   }
 
   /**
@@ -558,7 +557,7 @@ export class CombatManager {
   /**
    * Handle when an action is selected from the UI
    */
-  private handleActionSelection(action: any, target: any): void {
+  private async handleActionSelection(action: any, target: any): Promise<void> {
     if (!this.pendingActionContext) {
       this.logger.error('No pending action context when handling action selection');
       return;
@@ -568,7 +567,7 @@ export class CombatManager {
     this.pendingActionContext = null;
 
     // Execute the selected action
-    const result = this.executeAction(action, entity, target, entities, tileMap);
+    const result = await this.executeAction(action, entity, target, entities, tileMap);
 
     // Handle entity removal if target was killed
     if (result.success && result.targetKilled && result.target) {

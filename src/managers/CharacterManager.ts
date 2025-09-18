@@ -23,7 +23,7 @@ export class CharacterManager {
    */
   private async loadCharacterClasses(): Promise<void> {
     const currentWorld = WorldConfigLoader.getCurrentWorld();
-    const worldKey = currentWorld?.theme || 'fantasy';
+    const worldKey: string = currentWorld?.theme || 'fantasy';
     
     // If already fantasy, no need to change
     if (worldKey === 'fantasy') {
@@ -156,7 +156,7 @@ export class CharacterManager {
     const baseStats = characterClass.baseStats;
     
     // Roll for HP and set maxHp to the same value
-    const hp = DiceSystem.rollDice(baseStats.hp).total;
+    const hp = DiceSystem.rollDice(baseStats.hp || '1d8').total;
     
     return {
       hp,
@@ -230,7 +230,7 @@ export class CharacterManager {
     // Increase HP (roll hit die + con modifier)
     const characterClass = this.getCharacterClass(this.currentCharacter.className);
     if (characterClass) {
-      const hitDie = characterClass.baseStats.hp.split('d')[1]?.split('+')[0] || '8';
+      const hitDie = characterClass.baseStats.hp?.split('d')[1]?.split('+')[0] || '8';
       const hpGain = DiceSystem.rollDice(`1d${hitDie}`).total + 
                      GameMechanics.getModifier(this.currentCharacter.stats.constitution);
       

@@ -1,4 +1,4 @@
-import { EnemyDefinition, EntityStats, DamageType } from '../types';
+import { EnemyDefinition, EntityStats, DamageType, Resource } from '../types';
 import { DiceSystem } from '../systems/dice/DiceSystem';
 import { WorldConfigLoader } from './WorldConfigLoader';
 import enemiesData from '../data/enemies.json';
@@ -77,7 +77,7 @@ export class EnemyLoader {
     const stats = definition.stats;
 
     // Handle new resource system format
-    const resources: { [key: string]: { current: number; max: number } } = {};
+    const resources: { [resourceId: string]: Resource } = {};
 
     if (stats.resources) {
       // New resource system format
@@ -85,7 +85,13 @@ export class EnemyLoader {
         // Roll dice once and use same value for both current and max
         if (typeof resourceData.current === 'string' && typeof resourceData.max === 'string' && resourceData.current === resourceData.max) {
           const rolledValue = DiceSystem.rollDice(resourceData.current).total;
-          resources[resourceId] = { current: rolledValue, max: rolledValue };
+          resources[resourceId] = {
+            id: resourceId,
+            current: rolledValue,
+            maximum: rolledValue,
+            minimum: 0,
+            displayName: resourceId
+          };
         } else {
           const current = typeof resourceData.current === 'string'
             ? DiceSystem.rollDice(resourceData.current).total

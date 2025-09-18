@@ -1,6 +1,7 @@
-import { Entity, Resource, ResourceDefinition, ResourceOperation } from '../types';
+import { Entity, Resource, ResourceDefinition, ResourceOperation, WorldConfig } from '../types';
 import { DiceSystem } from '../systems/dice/DiceSystem';
 import { WorldConfigLoader } from '../loaders/WorldConfigLoader';
+import { GameMechanics } from '../engine/GameMechanics';
 import { Logger } from '../utils/Logger';
 
 export class ResourceManager {
@@ -68,7 +69,7 @@ export class ResourceManager {
             entity,
             resourceDef.id,
             existingResource.current,
-            existingResource.max || existingResource.maximum,
+            existingResource.maximum,
             resourceDef
           );
         } else {
@@ -355,5 +356,89 @@ export class ResourceManager {
     if (percentage >= 0.5) return 0xFFFF00;  // Yellow
     if (percentage >= 0.25) return 0xFF8000; // Orange
     return 0xFF0000; // Red
+  }
+
+  /**
+   * Advanced resource modification with full operation support
+   */
+  static modifyAdvanced(
+    entity: Entity,
+    opts: {
+      resourceId: string;
+      op: 'add'|'subtract'|'set'|'multiply'|'min'|'max';
+      amount: number;
+      clamp?: boolean;
+      world?: WorldConfig
+    }
+  ): { before: number; after: number } {
+    const resource = this.getResource(entity, opts.resourceId);
+    if (!resource) {
+      return { before: 0, after: 0 };
+    }
+
+    const before = resource.current;
+    let after: number;
+
+    // Apply operation
+    switch (opts.op) {
+      case 'add':
+        after = before + opts.amount;
+        break;
+      case 'subtract':
+        after = before - opts.amount;
+        break;
+      case 'set':
+        after = opts.amount;
+        break;
+      case 'multiply':
+        after = before * opts.amount;
+        break;
+      case 'min':
+        after = Math.min(before, opts.amount);
+        break;
+      case 'max':
+        after = Math.max(before, opts.amount);
+        break;
+      default:
+        after = before;
+    }
+
+    // Apply clamping if enabled
+    if (opts.clamp !== false) { // Default to true
+      if (resource.minimum !== undefined) {
+        after = Math.max(after, resource.minimum);
+      }
+      if (resource.maximum !== undefined) {
+        after = Math.min(after, resource.maximum);
+      }
+    }
+
+    // Update the resource
+    resource.current = after;
+    this.setResource(entity, resource);
+
+    return { before, after };
+  }
+
+  /**
+   * Get the primary combat resource for a world
+   */
+  static getPrimaryCombatResource(world: WorldConfig): string {
+    return GameMechanics.getPrimaryCombatResource(world);
+  }
+
+
+  /**
+   * Apply damage with resistances/vulnerabilities (stub implementation)
+   */
+  static applyDamageWithResistances(
+    _entity: Entity,
+    dmg: number,
+    _type: string,
+    _world: WorldConfig
+  ): number {
+    // TODO: Implement resistance/vulnerability logic based on world config and entity stats
+    // For now, return damage unchanged
+    return dmg;
   }
 }

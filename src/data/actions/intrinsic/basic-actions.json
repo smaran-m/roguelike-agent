@@ -123,7 +123,9 @@
         "parameters": {
           "amount": "1d4",
           "damageType": "bludgeoning",
-          "attackRoll": true
+          "attackRoll": true,
+          "abilityType": "strength",
+          "criticalMultiplier": 2
         },
         "description": "Deal bludgeoning damage",
         "timing": "immediate"
@@ -208,14 +210,14 @@
     ],
     "effects": [
       {
-        "type": "resourceChange",
+        "type": "resourceOp",
         "target": "self",
         "parameters": {
-          "resourceId": "movement",
-          "amount": 30,
-          "operation": "add"
+          "resourceId": "movementRemaining",
+          "operation": "multiply",
+          "amount": 2
         },
-        "description": "Gain additional movement equal to your speed",
+        "description": "Double your remaining movement",
         "timing": "immediate"
       }
     ],
@@ -227,5 +229,59 @@
     },
     "priority": 70,
     "iconGlyph": "💨"
+  },
+  "hide": {
+    "id": "hide",
+    "name": "Hide",
+    "description": "Attempt to conceal yourself from enemies using stealth",
+    "source": "intrinsic",
+    "category": "stealth",
+    "requirements": [
+      {
+        "type": "gameMode",
+        "value": "combat",
+        "description": "Only available in combat"
+      }
+    ],
+    "costs": [
+      {
+        "type": "actionPoint",
+        "amount": 1,
+        "description": "Uses your action for this turn"
+      }
+    ],
+    "effects": [
+      {
+        "type": "skillCheck",
+        "target": "self",
+        "parameters": {
+          "skill": "stealth",
+          "mode": "dc",
+          "dc": 15,
+          "abilityType": "dexterity",
+          "onSuccess": [
+            {
+              "type": "statusEffect",
+              "target": "self",
+              "parameters": {
+                "statusId": "hidden",
+                "duration": 5
+              }
+            }
+          ],
+          "onFailure": []
+        },
+        "description": "Make a Dexterity (Stealth) check to become hidden",
+        "timing": "immediate"
+      }
+    ],
+    "targeting": {
+      "type": "self",
+      "range": "self",
+      "requiresLineOfSight": false,
+      "validTargets": []
+    },
+    "priority": 65,
+    "iconGlyph": "👤"
   }
 }

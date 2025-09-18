@@ -245,3 +245,11 @@ export interface ActionExecutionContext {
   context: ActionContext;
   validateOnly?: boolean; // If true, only validate, don't execute
 }
+
+export interface ResourceOpParameters {
+  resourceId?: string;
+  operation: 'add' | 'subtract' | 'set' | 'multiply' | 'min' | 'max';
+  amount?: number;
+  amountFormula?: string;
+  clampToBounds?: boolean;
+}
